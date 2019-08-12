@@ -4,6 +4,7 @@ import torch
 class AudioInputs(_Inputs):
     def __init__(self):
         super(AudioInputs, self).__init__()
+        raise NotImplementedError("")
     
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         return torch.Tensor
