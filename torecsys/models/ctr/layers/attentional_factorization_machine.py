@@ -3,11 +3,24 @@ import torch.nn as nn
 from Tyipng import Tuple
 
 class AttentionalFactorizationMachineLayer(nn.Module):
+    r"""AttentionalFactorizationMachineLayer is a attentional factorization machine layer to calculate low dimension cross-features relation by applying attention mechanism
+    
+    Reference:
+        `Jun Xiao et. al 2017, Attentional Factorization Machines: Learning the Weight of Feature Interactions via Attention Networks∗ <https://arxiv.org/abs/1708.04617>`
+    """
     def __init__(self, 
                  embed_size: int,
                  num_fields: int,
                  attn_size : int,
-                 dropout_p : float):
+                 dropout_p : float = 0.1):
+        r"""initialize attentional factorization machine layer module
+        
+        Args:
+            embed_size (int): embedding size
+            num_fields (int): number of field
+            attn_size (int): size of attention layer
+            dropout_p (float, optional): dropout probability after attentional factorization machine. Defaults to 0.1.
+        """
         # initialize nn.Module class
         super(AttentionalFactorizationMachineLayer, self).__init__()
 
@@ -28,18 +41,30 @@ class AttentionalFactorizationMachineLayer(nn.Module):
                 self.col_idx.append(j)
         
         # to dropout
-        self.out_dropout = nn.Dropout(dropout_p)
+        self.dropout = nn.Dropout(dropout_p)
     
     def forward(self, inputs: torch.Tensor) -> Tuple[torch.Tensor]:
-        """
-        shape = (b, n, e)
+        r"""feed-forward calculation of attention factorization machine layer
         
-        output shape = (b, embed),
-        and shape = (b, numfield C 2, 1)
+        Notation:
+            B: batch size
+            N: number of fields
+            E: embedding size
+
+        Args:
+            inputs (torch.Tensor), shape = (B, N, E), dtype = torch.float: features matrices of inputs
+        
+        Returns:
+            Tuple[torch.Tensor], shape = ((B, 1, E) (B, NC2, 1)), dtype = torch.float: output and attention scores of Attentional Factorization Machine 
         """
-        inner = inputs[:, self.row_idx] * inputs[:, self.col_idx] # (b, nC2, embed)
-        attn_scores = self.attn_score(inner) # (b, nc2, 1)
+        # calculate inner product between each field, hence inner's shape = (B, NC2, E)
+        inner = inputs[:, self.row_idx] * inputs[:, self.col_idx]
+
+        # calculate attention scores by inner product, hence scores' shape = (B, NC2, 1)
+        attn_scores = self.attn_score(inner)
+        
+        # apply attention scores on inner-product and apply dropout before return
         outputs = torch.sum(attn_scores * inner, dim=1)
-        outputs = self.out_dropout(outputs)
-        return outputs, attn_scores
+        outputs = self.dropout(outputs)
+        return outputs.unsqueeze(1), attn_scores
     
