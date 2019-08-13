@@ -5,5 +5,5 @@ __version__ = "0.0.1-dev"
 import torecsys.data
 import torecsys.models
 import torecsys.utils
+from .estimators import *
 from .layers import *
-

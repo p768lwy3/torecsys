@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
-from typing import Callable
+from typing import Callable, List
+
 
 class CompressInteractionNetworkLayer(nn.Module):
     r"""CompressInteractionNetworkLayer is a layer used in xDeepFM to calculate element-wise 

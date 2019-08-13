@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
-from Tyipng import Tuple
+from typing import Tuple
+
 
 class AttentionalFactorizationMachineLayer(nn.Module):
     r"""AttentionalFactorizationMachineLayer is a layer used in Attentional Factorization Machine 

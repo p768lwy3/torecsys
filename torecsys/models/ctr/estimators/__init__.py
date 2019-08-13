@@ -7,4 +7,5 @@ import torch.nn as nn
 class _CtrEstimator(nn.Module):
     def __init__(self):
         super(_CtrEstimator, self).__init__()
-    
+
+from .factorization_machine import FactorizationMachine

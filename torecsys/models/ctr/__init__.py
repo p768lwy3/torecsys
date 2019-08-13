@@ -1,7 +1,6 @@
-"""torecsys.models.ctr is a sub module of the implementations of Click Through Rate (ctr) Prediction's algorithm"""
+r"""torecsys.models.ctr is a sub module of the implementations of Click Through Rate (ctr) Prediction's algorithm
+"""
 
-import torch.nn as nn
+from .estimators import *
+from .layers import *
 
-class _CtrModel(nn.Module):
-    def __init__(self):
-        super(_CtrModel, self).__init__()

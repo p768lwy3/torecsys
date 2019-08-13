@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 
-class InnerProductNetworkLayer(nn.Mdoule):
+class InnerProductNetworkLayer(nn.Module):
     r"""InnerProductNetworkLayer is a layer used in Product-based Neural Network to calculate 
     element-wise cross-feature interactions by inner-product of matrix multiplication.
     
@@ -19,12 +19,14 @@ class InnerProductNetworkLayer(nn.Mdoule):
         super(InnerProductNetworkLayer, self).__init__()
         
         # indices for inner product
-        self.rowidx = list()
-        self.colidx = list()
+        rowidx = list()
+        colidx = list()
         for i in range(num_fields - 1):
             for j in range(i + 1, num_fields):
-                self.rowidx.append(i)
-                self.colidx.append(j)
+                rowidx.append(i)
+                colidx.append(j)
+        self.rowidx = torch.Tensor(rowidx)
+        self.colidx = torch.Tensor(colidx)
     
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         r"""feed-forward calculation of inner product network
