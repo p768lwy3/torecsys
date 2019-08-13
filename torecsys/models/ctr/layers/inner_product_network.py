@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+
 class InnerProductNetworkLayer(nn.Mdoule):
     r"""InnerProductNetworkLayer is a layer used in Product-based Neural Network to calculate 
     element-wise cross-feature interactions by inner-product of matrix multiplication.

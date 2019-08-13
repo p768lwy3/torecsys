@@ -38,19 +38,6 @@
 2. .ctr (Click Through Rate Prediction)
     1. .base
         * _CtrModel
-    2. .layers
-        * AttentionFactorizationMachine 
-        * BiInteraction -> torecsys.layers.FactorizationMachine
-        * CIN
-        * CrossNetwork
-        * Dense
-        * FactorizationMachine
-        * FieldAwareFactorizationMachine
-        * GeneralizedMatrixFactorization -> torecsys.layers.MatrixFactorization
-        * InnerProduct
-        * Linear
-        * MultiLayerPerceptron -> torecsys.layers.Dense
-        * OuterProduct
     3. .estimators
         * AttentionFactorizationMachine : https://arxiv.org/abs/1708.04617
         * DeepAndCross : https://arxiv.org/abs/1708.05123
@@ -63,6 +50,7 @@
         * FieldAwareFactorizationMachine : https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf
         * FieldAwareNeuralFactorizationMachine : https://arxiv.org/abs/1902.09096
         * LogisticRegression
+        *  Neural Collaborative Filtering: https://arxiv.org/pdf/1708.05031.pdf
         * NeuralFactorizationMachine : https://arxiv.org/pdf/1708.05027.pdf
         * ProductNeuralNetwork : https://arxiv.org/abs/1611.00144
         * WideAndDeep : https://arxiv.org/abs/1606.07792
