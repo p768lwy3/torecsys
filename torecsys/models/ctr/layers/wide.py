@@ -2,7 +2,8 @@ import torch
 import torch.nn as nn
 
 class WideLayer(nn.Module):
-    r"""WideLayer is a Linear-Dropout layer"""
+    r"""WideLayer is a (Linear-Dropout) layer frequently used to calculate linear relation.
+    """
     def __init__(self,
                  embed_size  : int,
                  num_fields  : int,
@@ -12,7 +13,7 @@ class WideLayer(nn.Module):
         
         Args:
             embed_size (int): embedding size
-            num_fields (int): number of fields
+            num_fields (int): number of fields in inputs
             output_size (int): output size of linear layer
             dropout_p (float, optional): dropout probability after Linear layer. Defaults to 0.0.
         """

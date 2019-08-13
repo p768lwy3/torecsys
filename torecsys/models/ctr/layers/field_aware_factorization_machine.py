@@ -3,7 +3,8 @@ import torch.nn as nn
 
 
 class FieldAwareFactorizationMachineLayer(nn.Module):
-    r"""FieldAwareFactorizationMachineLayer is a field-aware factorization machine layer to calculate complex low dimension cross-features relation
+    r"""FieldAwareFactorizationMachineLayer is a layer used in Field-Aware Factorization Machine 
+    to calculate low dimension cross-features interaction per inputs field.
     
     Reference:
         `Yuchin Juan et. al, 2016, Field-aware Factorization Machines for CTR Prediction <https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf>`
@@ -14,7 +15,7 @@ class FieldAwareFactorizationMachineLayer(nn.Module):
         r"""initialize field-aware factorization machine layer module
         
         Args:
-            num_fields (int): [description]
+            num_fields (int): number of fields in inputs
             dropout_p (float, optional): dropout probability after field-aware factorization machine. Defaults to 0.0.
         """
         super(FieldAwareFactorizationMachineLayer, self).__init__()

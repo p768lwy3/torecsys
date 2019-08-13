@@ -3,7 +3,8 @@ import torch.nn as nn
 from Tyipng import Tuple
 
 class AttentionalFactorizationMachineLayer(nn.Module):
-    r"""AttentionalFactorizationMachineLayer is a attentional factorization machine layer to calculate low dimension cross-features relation by applying attention mechanism
+    r"""AttentionalFactorizationMachineLayer is a layer used in Attentional Factorization Machine 
+    to calculate low-dimension cross-features interactions by applying Attention-mechanism.
     
     Reference:
         `Jun Xiao et. al 2017, Attentional Factorization Machines: Learning the Weight of Feature Interactions via Attention Networks∗ <https://arxiv.org/abs/1708.04617>`
@@ -17,7 +18,7 @@ class AttentionalFactorizationMachineLayer(nn.Module):
         
         Args:
             embed_size (int): embedding size
-            num_fields (int): number of field
+            num_fields (int): number of fields in inputs
             attn_size (int): size of attention layer
             dropout_p (float, optional): dropout probability after attentional factorization machine. Defaults to 0.1.
         """

@@ -9,11 +9,11 @@ class FieldAwareSingleIndexEmbedding(_Inputs):
     r"""FieldAwareSingleIndexEmbedding is a embedding field to pass a list of single index 
         and return a cross field embedding matrix of each vector for a index is :math:`E_{j_{1}, f_{2}}`.
     
-    Reference: 
-        https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf
+        Reference: 
+            `Yuchin Juan et. al, 2016, Field-aware Factorization Machines for CTR Prediction <https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf>`
     """
     def __init__(self, embed_size: int, field_sizes: List[int]):
-        r"""initialize the field-aware single index embedding field
+        r"""initialize field-aware single index embedding field
         
         Args:
             embed_size (int): embedding size
