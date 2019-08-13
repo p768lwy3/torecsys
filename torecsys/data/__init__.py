@@ -14,7 +14,7 @@ r"""torecsys.utils.data is a module to handling data preprocessing before embedd
 
 """
 
-from .dataloader import *
+# from .dataloader import *
 from .dataset import *
 from .negsampling import *
 from .sampledata import *

@@ -59,7 +59,7 @@ class SequenceIndexEmbedding(_Inputs):
         rnn_args = dict(
             input_size    = embed_size,
             hidden_size   = hidden_size,
-            num_layers    = kwargs.get("num_layers", 1)
+            num_layers    = kwargs.get("num_layers", 1),
             bias          = kwargs.get("bias", True),
             batch_first   = True,
             dropout       = kwargs.get("dropout", 0.0),

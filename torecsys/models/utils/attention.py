@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
+import torch
 from typing import Tuple, Union
 
 
@@ -47,7 +48,7 @@ def show_attention(attentions : np.ndarray,
         plt.savefig(savedir)
 
 
-def dummy_attention(key: torch.Tensor, 
+def dummy_attention(key  : torch.Tensor, 
                     query: torch.Tensor, 
                     value: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
     r"""dummy function for jit-compile features of torch, 

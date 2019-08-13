@@ -2,7 +2,7 @@ from . import _Inputs
 import numpy as np
 import torch
 import torch.nn as nn
-from Typing import List
+from typing import List
 
 
 class FieldAwareSingleIndexEmbedding(_Inputs):

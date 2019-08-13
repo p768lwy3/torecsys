@@ -4,7 +4,7 @@ from . import _Inputs
 from .image_inp import ImageInputs
 # from .image_list_inp import ImageListInputs
 from .list_index_emb import ListIndexEmbedding
-from .pretrained_image_inp import PretrainedImageInputs
+# from .pretrained_image_inp import PretrainedImageInputs
 # from .pretrained_text_inp import PretrainedTextInputs
 from .sequence_index_emb import SequenceIndexEmbedding
 from .single_index_emb import SingleIndexEmbedding
@@ -18,7 +18,7 @@ import torch
 import torch.nn as nn
 from typing import Dict, List, Tuple
 
-__field_type__ = ["image", "list_index", "pretrained_image", "sequence_index", "single_index", 
+__field_type__ = ["image", "list_index", "sequence_index", "single_index", 
                   "stacked", "value"]
 
 class EmbeddingDict(_Inputs):
@@ -62,8 +62,8 @@ class EmbeddingDict(_Inputs):
                 self.embeddings[fname] = ImageInputs(esize, **fkwargs)
             elif ftype == "list_index":
                 self.embeddings[fname] = ListIndexEmbedding(esize, fsize, **fkwargs)
-            elif ftype == "pretrained_image":
-                self.embeddings[fname] = PretrainedImageInputs(esize, **fkwargs)
+            # elif ftype == "pretrained_image":
+            #     self.embeddings[fname] = PretrainedImageInputs(esize, **fkwargs)
             elif ftype == "sequence_index":
                 self.embeddings[fname] = SequenceIndexEmbedding(esize, fsize, **fkwargs)
             elif ftype == "single_index":

@@ -3,6 +3,7 @@ import torch.nn as nn
 from texttable import Texttable
 from typing import List, Tuple
 
+
 class Regularization(nn.Module):
     r"""Regularization is a Module to calculate regularized loss of a model"""
     def __init__(self,
