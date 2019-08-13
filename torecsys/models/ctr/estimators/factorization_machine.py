@@ -3,6 +3,7 @@ from ..layers import FactorizationMachineLayer, WideLayer
 
 import torch
 import torch.nn as nn
+from typing import Dict
 
 class FactorizationMachine(_CtrEstimator):
     r"""FactoizationMachine is an estimator of Factorization Machine which calculate 
