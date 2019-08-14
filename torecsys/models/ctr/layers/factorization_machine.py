@@ -8,7 +8,9 @@ class FactorizationMachineLayer(nn.Module):
     dimension cross-features interactions.
     
     :Reference:
-    #. `Steffen Rendle, 2010. Factorization Machine <https://www.csie.ntu.edu.tw/~b97053/paper/Rendle2010FM.pdf>`_.
+    
+    #. `Steffen Rendle, 2010. Factorization Machine <https://www.csie.ntu.edu.tw/~b97053/paper/Rendle2010FM.pdf>`
+    
     """
     @jit_experimental
     def __init__(self, 

@@ -6,10 +6,12 @@ from typing import Callable, List
 
 class ListNet(_LtrEstimator):
     r"""ListNet is a model which is a stack of feed forward dense layers to predict ranking of the
-    given list, e.g. :math:`y_{true} = [1, 4, 5, 6, 3, 2]`_.
+    given list, e.g. :math:`y_{true} = [1, 4, 5, 6, 3, 2]` .
 
     :Reference:
-    #. 
+    
+    #. `Zhe Cao et al, 2007. Learning to Rank: From Pairwise Approach to Listwise Approach <https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-2007-40.pdf>`
+
     """
     def __init__(self,
                  num_fields : int,

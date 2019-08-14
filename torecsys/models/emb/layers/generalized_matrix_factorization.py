@@ -6,16 +6,18 @@ class GeneralizedMatrixFactorizationLayer(nn.Module):
     r"""GeneralizedMatrixFactorization is a layer generalized matrix factorization in a linear 
     format, and used in Neural Collaborative Filtering.
     
-    :Reference:
-    #. `Xiangnan He et al, 2017. Neural Collaborative Filtering <https://arxiv.org/abs/1708.05031>`_.
-    """"
+    Reference:
+
+    #. `Xiangnan He et al, 2017. Neural Collaborative Filtering <https://arxiv.org/abs/1708.05031>`
+    
+    """
     def __init__(self):
-        """initialize generalized matrix factorization layer module
+        r"""initialize generalized matrix factorization layer module
         """
         super(GeneralizedMatrixFactorizationLayer, self).__init__()
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
-        """feed-forward calculation of generalized matrix factorization
+        r"""feed-forward calculation of generalized matrix factorization
         
         Args:
             inputs (torch.Tensor), shape = (B, 2, E), dtype=torch.float: inputs of two features vectors

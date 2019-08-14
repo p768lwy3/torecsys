@@ -6,7 +6,7 @@ from typing import Callable, List
 class MultilayerPerceptronLayer(nn.Module):
     r"""MultilayerPerceptron is a Fully Connected Feed Forward Neural Network, 
     which is also called Dense Layer, Deep Neural Network etc, to learn high-order
-    interaction between different features by element-wise
+    interaction between different features by element-wise.
     """
     def __init__(self, 
                  embed_size  : int,

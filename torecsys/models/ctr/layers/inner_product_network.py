@@ -7,7 +7,9 @@ class InnerProductNetworkLayer(nn.Module):
     element-wise cross-feature interactions by inner-product of matrix multiplication.
     
     :Reference:
-    #. `Yanru Qu et at, 2016. Product-based Neural Networks for User Response Prediction <https://arxiv.org/abs/1611.00144>`_.
+
+    #. `Yanru Qu et at, 2016. Product-based Neural Networks for User Response Prediction <https://arxiv.org/abs/1611.00144>`
+    
     """
     def __init__(self, 
                  num_fields: int):

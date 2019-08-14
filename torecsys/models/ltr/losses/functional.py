@@ -43,7 +43,9 @@ def bayesian_personalized_ranking_loss(pout: torch.Tensor, nout: torch.Tensor) -
         torch.Tensor, shape = (batch size, number of negative samples): loss for each negative samples
     
     :Reference:
+
     #. `Steffen Rendle et al, 2009. BPR: Bayesian Personalized Ranking from Implicit Feedback <https://arxiv.org/abs/1205.2618>`
+
     """
     loss = (1.0 - torch.sigmoid(pout - nout))
     return loss
@@ -72,7 +74,9 @@ def adaptive_hinge_loss(pout: torch.Tensor, nout: torch.Tensor) -> torch.Tensor:
         torch.Tensor, shape = (batch size, 1): loss for each negative samples
     
     :Reference:
+
     #. `Jason Weston el at, 2011. WSABIE: Scaling Up To Large Vocabulary Image Annotation <http://www.thespermwhale.com/jaseweston/papers/wsabie-ijcai.pdf>`
+
     """
     highest_nout, _ = torch.max(nout, 0)
     return hinge_loss(pout, highest_nout.unsqueeze(-1))
@@ -124,7 +128,7 @@ def soft_margin_loss_parser(pout  : torch.Tensor,
 # groupwise ranking loss
 def listnet_loss(yhat: torch.Tensor, ytrue: torch.Tensor) -> torch.Tensor:
     r"""Cross-Entropy implementation in ListNet by the following formula:
-    :math:`loss = \sum \text{Softmax} (y_{true}) * \text{log} (\text{Softmax} (\^{y}))`_.
+    :math:`loss = \sum \text{Softmax} (y_{true}) * \text{log} (\text{Softmax} (\^{y}))` .
     
     Args:
         yhat (torch.Tensor), shape = (batch size, sequence len), dtype = torch.float: Predicted Ranking scores
@@ -134,7 +138,9 @@ def listnet_loss(yhat: torch.Tensor, ytrue: torch.Tensor) -> torch.Tensor:
         torch.Tensor: cross-entropy loss 
     
     :Reference:
+
     #. `Zhe Cao et al, 2007. Learning to Rank: From Pairwise Approach to Listwise Approach <https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-2007-40.pdf>` 
+    
     """
     # calculate softmax for each row of sample
     phat = torch.softmax(yhat, dim=0)

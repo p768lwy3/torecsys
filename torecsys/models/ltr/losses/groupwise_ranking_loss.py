@@ -4,7 +4,7 @@ groupwise ranking loss
 
 from . import _RankingLoss
 from .functional import apply_mask, listnet_loss
-
+import torch
 
 class _GroupwiseRankingLoss(_RankingLoss):
     r"""Base Class of groupwise ranking loss
@@ -16,10 +16,12 @@ class _GroupwiseRankingLoss(_RankingLoss):
 class ListnetLoss(_GroupwiseRankingLoss):
     r"""listnet groupwise ranking loss is a variant of cross-entropy to do ranking with a list
     of inputs, by the following formula:
-    :math:`loss = \sum \text{Softmax} (y_{true}) * \text{log} (\text{Softmax} (\^{y}))`_.
+    :math:`loss = \sum \text{Softmax} (y_{true}) * \text{log} (\text{Softmax} (\^{y}))` .
 
     :Reference:
+
     #. `Zhe Cao et al, 2007. Learning to Rank: From Pairwise Approach to Listwise Approach <https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-2007-40.pdf>` 
+
     """
     def __init__(self):
         super(ListnetLoss, self).__init__()

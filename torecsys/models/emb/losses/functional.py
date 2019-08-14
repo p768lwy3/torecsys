@@ -5,7 +5,7 @@ import torch.nn.functional as F
 def skip_gram_loss(cout: torch.Tensor, pout: torch.Tensor, nout: torch.Tensor) -> torch.Tensor:
     r"""loss function used in SkipGram, i.e. one of the most famous and traditional algorithm
     in Word2Vec, which is calculated by the following formula:
-    :math:`loss = - \sum_{c=1}^{C} u_{j_{c}^{*}} + C log ( \sum_{j'=1}^{v} e^{u_{j'}} )`_.
+    :math:`loss = - \sum_{c=1}^{C} u_{j_{c}^{*}} + C log ( \sum_{j'=1}^{v} e^{u_{j'}} )` .
     
     Args:
         cout (torch.Tensor), shape = (batch size, 1, embed size), dtype = torch.float: content or anchor to be learnt with samples

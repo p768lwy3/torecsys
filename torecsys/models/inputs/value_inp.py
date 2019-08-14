@@ -4,8 +4,10 @@ import torch
 class ValueInputs(_Inputs):
     r"""ValueInputs is a input field to pass the value directly
     
-    :TODO:
+    :Todo:
+
     #. add transforms for value inputs to do preprocessing
+
     """
     def __init__(self, num_fields: int):
         r"""initialize the value inputs field

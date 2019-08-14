@@ -4,6 +4,7 @@ pointwise ranking loss
 
 from . import _RankingLoss
 from .functional import apply_mask, pointwise_logistic_ranking_loss
+import torch
 
 
 class _PointwiseRankingLoss(_RankingLoss):
@@ -23,7 +24,7 @@ class PointwiseLogisticLoss(_PointwiseRankingLoss):
                 pos_outputs: torch.Tensor,
                 neg_outputs: torch.Tensor,
                 mask: torch.Tensor = None) -> torch.Tensor:
-        r"""feed forward of pointwise logistic ranking loss by calculating
+        r"""feed forward of pointwise logistic ranking loss by calculating 
         :math:`\text{loss} = (1.0 - \sigma (y_{pos})) + \sigma (y_{neg})`
         
         Args:

@@ -6,11 +6,14 @@ import torch.nn as nn
 from typing import Dict
 
 class FactorizationMachine(_CtrEstimator):
-    r"""FactoizationMachine is an estimator of Factorization Machine which calculate interactions between fields by the following equation:
-    :math:`\^{y}(x) := b_{0} + \sum_{i=1}^{n} w_{i} x_{i} + \sum_{i=1}^{n} \sum_{j=1+1}^{n} <v_{i},v_{j}> x_{i} x_{j}`_.
+    r"""FactoizationMachine is an estimator of Factorization Machine which calculate interactions 
+    between fields by the following equation:
+    :math:`\^{y}(x) := b_{0} + \sum_{i=1}^{n} w_{i} x_{i} + \sum_{i=1}^{n} \sum_{j=1+1}^{n} <v_{i},v_{j}> x_{i} x_{j}` .
 
     :Reference:
-    #. `Steffen Rendle, 2010. Factorization Machine <https://www.csie.ntu.edu.tw/~b97053/paper/Rendle2010FM.pdf>`_.
+
+    #. `Steffen Rendle, 2010. Factorization Machine <https://www.csie.ntu.edu.tw/~b97053/paper/Rendle2010FM.pdf>`
+
     """
     def __init__(self, 
                  embed_size    : int,
@@ -54,7 +57,7 @@ class FactorizationMachine(_CtrEstimator):
             second_order, shape = (batch size, num_fields, embed_size): second order outputs of one-hot encoding, i.e. outputs from nn.Embedding(vocab_size, embed_size)
         
         Returns:
-            torch.Tenso, shape = (batch size, 1 OR output size), dtype = torch.float -- outputs of Factorization Machine
+            torch.Tensor, shape = (batch size, 1 OR output size), dtype = torch.float -- outputs of Factorization Machine
         """
         # get batch size
         batch_size = inputs["first_order"].size(0)

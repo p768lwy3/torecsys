@@ -9,7 +9,9 @@ class CompressInteractionNetworkLayer(nn.Module):
     1D-convalution to compress cross-features vectors.
 
     :Reference:
-    #. `Jianxun Lian et al, 2018. xDeepFM: Combining Explicit and Implicit Feature Interactions for Recommender Systems <https://arxiv.org/pdf/1803.05170.pdf>`_.
+
+    #. `Jianxun Lian et al, 2018. xDeepFM: Combining Explicit and Implicit Feature Interactions for Recommender Systems <https://arxiv.org/pdf/1803.05170.pdf>`
+
     """
     def __init__(self, 
                  embed_size    : int,

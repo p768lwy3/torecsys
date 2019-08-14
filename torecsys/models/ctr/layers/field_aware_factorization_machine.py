@@ -7,7 +7,9 @@ class FieldAwareFactorizationMachineLayer(nn.Module):
     to calculate low dimension cross-features interaction per inputs field.
     
     :Reference:
-    #. `Yuchin Juan et al, 2016. Field-aware Factorization Machines for CTR Prediction <https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf>`_.
+
+    #. `Yuchin Juan et al, 2016. Field-aware Factorization Machines for CTR Prediction <https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf>`
+
     """
     def __init__(self, 
                  num_fields : int,

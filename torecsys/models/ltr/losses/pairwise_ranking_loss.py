@@ -1,5 +1,4 @@
-r"""torecsys.models.ltr.losses.pairwise_ranking_loss is a sub module of algorithms of 
-pairwise ranking loss
+r"""torecsys.models.ltr.losses.pairwise_ranking_loss is a sub module of algorithms of pairwise ranking loss
 """
 
 from . import _RankingLoss
@@ -17,11 +16,13 @@ class _PairwiseRankingLoss(_RankingLoss):
 
 
 class BayesianPersonalizedRankingLoss(_PairwiseRankingLoss):
-    r"""pairwise loss calculated bayesian personalized ranking, by the following equation:
-    :math:`loss = \sigma (y_{pos} - y_{neg})`_.
+    r"""pairwise loss calculated bayesian personalized ranking, by the following equation: 
+    :math:`loss = \sigma (y_{pos} - y_{neg})` .
     
     :Reference:
+
     #. `Steffen Rendle et al, 2009. BPR: Bayesian Personalized Ranking from Implicit Feedback <https://arxiv.org/abs/1205.2618>`
+
     """
     def __init__(self):
         super(BayesianPersonalizedRankingLoss, self).__init__()
@@ -45,8 +46,8 @@ class BayesianPersonalizedRankingLoss(_PairwiseRankingLoss):
 
 
 class HingeLoss(_PairwiseRankingLoss):
-    r"""HingeLoss is a pairwise ranking loss function which calculated loss with the following equation:
-    :math:`loss = max ( 0.0, 1.0 + y_{pos} - y_{neg} )`_.
+    r"""HingeLoss is a pairwise ranking loss function which calculated loss with the following equation: 
+    :math:`loss = max ( 0.0, 1.0 + y_{pos} - y_{neg} )` .
     """
     def __init__(self):
         super(HingeLoss, self).__init__()
@@ -72,11 +73,12 @@ class HingeLoss(_PairwiseRankingLoss):
 class AdaptiveHingeLoss(_PairwiseRankingLoss):
     r"""AdaptiveHingeLoss is a pairwise ranking loss function which is a variant of hinge loss and
     calculated the loss between positive samples and the negative samples where their scores are 
-    highest, and so, the equation will be:
-    :math:`loss = max ( 0.0, 1.0 + y_{pos} - max ( y_{neg} ) )`._
+    highest, and so, the equation will be: :math:`loss = max ( 0.0, 1.0 + y_{pos} - max ( y_{neg} ) )` .
 
     :Reference:
+
     #. `Jason Weston el at, 2011. WSABIE: Scaling Up To Large Vocabulary Image Annotation <http://www.thespermwhale.com/jaseweston/papers/wsabie-ijcai.pdf>`
+
     """
     def __init__(self):
         super(AdaptiveHingeLoss, self).__init__()
@@ -100,14 +102,16 @@ class AdaptiveHingeLoss(_PairwiseRankingLoss):
 
 
 class TripletLoss(_PairwiseRankingLoss):
-    r"""TripletLoss is a pairwise ranking loss which is used in FaceNet at first, and implemented 
-    by PyTorch in module: torch.nn.MarginRankingLoss and torch.nn.SoftMarginLoss. this module is 
-    an integration of those losses as a standardize calling method with other losses implemented
-    in this package. For the calculation, the loss is calculated by
-    :math:`\Big[\left\| x_{anchor} - x_{pos} \right\|_{2}^{2} - \left\| x_{anchor} - x_{neg} \right\|_{2}^{2} \Big]_{\text{+}}`_.
+    r"""TripletLoss is a pairwise ranking loss which is used in FaceNet at first, 
+    and implemented by PyTorch in module\: torch.nn.MarginRankingLoss and torch.nn.SoftMarginLoss. 
+    This module is an integration of those losses as a standardize calling method with other losses 
+    implemented in this package. For the calculation, the loss is calculated by 
+    :math:`\Big[\left\| x_{anchor} - x_{pos} \right\|_{2}^{2} - \left\| x_{anchor} - x_{neg} \right\|_{2}^{2} \Big]_{\text{+}}` .
     
     :Reference:
+
     #. `Florian Schroff et at, 2015. FaceNet: A Unified Embedding for Face Recognition and Clustering <https://arxiv.org/abs/1503.03832>`
+
     """
     def __init__(self, 
                  margin    : float = 1.0, 

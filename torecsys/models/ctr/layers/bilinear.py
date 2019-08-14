@@ -5,7 +5,7 @@ import torch.nn as nn
 class BilinearNetworkLayer(nn.Module):
     r"""BilinearNetworkLayer is a bilinear network layer to calculate the low dimension 
     element-wise feature interaction by nn.Bilinear function:
-    :math:`\text{for i-th layer, } \bm{x}_{i} = (x_{0} * A_{i} * x_{i - 1}) + b_{i} + x_{0}`_.
+    :math:`\text{for i-th layer, } \bm{x}_{i} = (x_{0} * A_{i} * x_{i - 1}) + b_{i} + x_{0}` .
     """
     def __init__(self,
                  embed_size  : int, 
