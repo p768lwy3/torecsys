@@ -8,4 +8,5 @@ import torch.nn as nn
 class _LtrEstimator(_Estimator):
     def __init__(self):
         super(_LtrEstimator, self).__init__()
-        
+
+from .listnet import ListNet
