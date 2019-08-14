@@ -1,9 +1,11 @@
+from torecsys.utils.logging.decorator import jit_experimental
 import torch
 import torch.nn as nn
 
 class WideLayer(nn.Module):
     r"""WideLayer is a (Linear-Dropout) layer frequently used to calculate linear relation.
     """
+    @jit_experimental
     def __init__(self,
                  embed_size  : int,
                  num_fields  : int,

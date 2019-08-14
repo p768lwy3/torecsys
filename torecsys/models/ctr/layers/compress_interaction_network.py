@@ -1,3 +1,4 @@
+from torecsys.utils.logging.decorator import jit_experimental
 import torch
 import torch.nn as nn
 from typing import Callable, List
@@ -13,6 +14,7 @@ class CompressInteractionNetworkLayer(nn.Module):
     #. `Jianxun Lian et al, 2018. xDeepFM: Combining Explicit and Implicit Feature Interactions for Recommender Systems <https://arxiv.org/pdf/1803.05170.pdf>`_.
 
     """
+    @jit_experimental
     def __init__(self, 
                  embed_size    : int,
                  num_fields    : int,
@@ -53,7 +55,7 @@ class CompressInteractionNetworkLayer(nn.Module):
                 cin.add_module("batchnorm", nn.BatchNorm1d(out_c))
             if activation is not None:
                 cin.add_module("activation", activation)
-            self.model.append("cin_%s" % (i + 1), cin)
+            self.model.append(cin)
         
         model_output_size = int(sum(layer_sizes))
         self.fc = nn.Linear(model_output_size, output_size)
@@ -88,7 +90,7 @@ class CompressInteractionNetworkLayer(nn.Module):
             xi = hidden_list[-1].unsqueeze(2)
 
             # calculate outer product by matmul, where the shape = (B, N, E_0, E_i-1)
-            out_prod = torch.matmul(x0, x1)
+            out_prod = torch.matmul(x0, xi)
             
             # then reshape the outer product to (B, E_0 * E_i-1, N)
             out_prod = out_prod.view(-1, self.embed_size, layer_size * self.layer_sizes[0])

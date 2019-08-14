@@ -1,3 +1,4 @@
+from torecsys.utils.logging.decorator import jit_experimental
 import torch
 import torch.nn as nn
 
@@ -11,6 +12,7 @@ class CrossNetworkLayer(nn.Module):
     #. `Ruoxi Wang et al, 2017. Deep & Cross Network for Ad Click Predictions <https://arxiv.org/abs/1708.05123>`_.
 
     """
+    @jit_experimental
     def __init__(self, 
                  embed_size  : int, 
                  num_fields  : int, 

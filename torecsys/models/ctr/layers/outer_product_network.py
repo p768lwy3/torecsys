@@ -1,3 +1,4 @@
+from torecsys.utils.logging.decorator import jit_experimental
 import torch
 import torch.nn as nn
 
@@ -10,6 +11,7 @@ class OuterProductNetworkLayer(nn.Module):
     #. `Yanru Qu et at, 2016. Product-based Neural Networks for User Response Prediction <https://arxiv.org/abs/1611.00144>`_.
     
     """
+    @jit_experimental
     def __init__(self, 
                  embed_size  : int,
                  num_fields  : int,
@@ -44,6 +46,7 @@ class OuterProductNetworkLayer(nn.Module):
             kernel_size = (num_fields * (num_fields - 1) // 2, 1)
         else:
             raise ValueError("kernel_type only allows: [%s]." % (", ".join(__kernel_size__)))
+        self.kernel_type = kernel_type
         self.param = nn.Parameter(torch.zeros(kernel_size))
         nn.init.xavier_normal_(self.param.data)
 

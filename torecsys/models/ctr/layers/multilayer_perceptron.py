@@ -1,3 +1,4 @@
+from torecsys.utils.logging.decorator import jit_experimental
 import torch
 import torch.nn as nn
 from typing import Callable, List
@@ -8,6 +9,7 @@ class MultilayerPerceptronLayer(nn.Module):
     which is also called Dense Layer, Deep Neural Network etc, to learn high-order
     interaction between different features by element-wise.
     """
+    @jit_experimental
     def __init__(self, 
                  embed_size  : int,
                  num_fields  : int,
@@ -39,7 +41,7 @@ class MultilayerPerceptronLayer(nn.Module):
         self.model = nn.Sequential()
         inputs_size = embed_size * num_fields
         layer_sizes = [inputs_size] + layer_sizes
-        for i, (in_f, out_f) in enumerate(zip(layer_sizes[:-1, layer_sizes[1:]])):
+        for i, (in_f, out_f) in enumerate(zip(layer_sizes[:-1], layer_sizes[1:])):
             self.model.add_module("linear_%s" % i, nn.Linear(in_f, out_f))
             if activation is not None:
                 self.model.add_module("activation_%s" % i, activation)

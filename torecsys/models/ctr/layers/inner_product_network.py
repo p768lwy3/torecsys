@@ -1,3 +1,4 @@
+from torecsys.utils.logging.decorator import jit_experimental
 import torch
 import torch.nn as nn
 
@@ -11,6 +12,7 @@ class InnerProductNetworkLayer(nn.Module):
     #. `Yanru Qu et at, 2016. Product-based Neural Networks for User Response Prediction <https://arxiv.org/abs/1611.00144>`_.
     
     """
+    @jit_experimental
     def __init__(self, 
                  num_fields: int):
         r"""initialize inner product network layer module
@@ -27,8 +29,8 @@ class InnerProductNetworkLayer(nn.Module):
             for j in range(i + 1, num_fields):
                 rowidx.append(i)
                 colidx.append(j)
-        self.rowidx = torch.Tensor(rowidx)
-        self.colidx = torch.Tensor(colidx)
+        self.rowidx = torch.LongTensor(rowidx)
+        self.colidx = torch.LongTensor(colidx)
     
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         r"""feed-forward calculation of inner product network

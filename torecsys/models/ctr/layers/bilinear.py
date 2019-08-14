@@ -1,12 +1,15 @@
+from torecsys.utils.logging.decorator import jit_experimental
 import torch
 import torch.nn as nn
 
 
+# the output shape of this function need to be confirmed
 class BilinearNetworkLayer(nn.Module):
     r"""BilinearNetworkLayer is a bilinear network layer to calculate the low dimension 
     element-wise feature interaction by nn.Bilinear function: for i-th layer, 
     :math:`x_{i} = (x_{0} * A_{i} * x_{i - 1}) + b_{i} + x_{0}` .
     """
+    @jit_experimental
     def __init__(self,
                  embed_size  : int, 
                  num_fields  : int, 

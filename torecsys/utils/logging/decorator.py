@@ -41,6 +41,11 @@ def jit_experimental(func: callable):
     """
     @wraps(func)
     def wrapper(*args, **kwargs):
-        warnings.warn("the module have been checked with torch.jit.trace, but the feature is in experimemtal.")
+        msg = (
+            "the module have been checked with torch.jit.trace, but the feature is in experimemtal."
+            "!!! Remark. It is not allow to use dropout at this stage, since inferences of the "
+            "same inputs will be different after dropout layer. So, Please use dropout_p = 0.0 or None."
+        )
+        warnings.warn(msg)
         return func(*args, **kwargs)
     return wrapper

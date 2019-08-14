@@ -1,3 +1,4 @@
+from torecsys.utils.logging.decorator import jit_experimental
 import torch
 import torch.nn as nn
 from typing import Tuple
@@ -12,6 +13,7 @@ class AttentionalFactorizationMachineLayer(nn.Module):
     #. `Jun Xiao et al, 2017. Attentional Factorization Machines: Learning the Weight of Feature Interactions via Attention Networks∗ <https://arxiv.org/abs/1708.04617>`_.
 
     """
+    @jit_experimental
     def __init__(self, 
                  embed_size: int,
                  num_fields: int,
