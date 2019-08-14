@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from typing import Callable, List, Union
+from typing import Callable, List
 
 
 class MultilayerPerceptronLayer(nn.Module):
@@ -22,7 +22,7 @@ class MultilayerPerceptronLayer(nn.Module):
             num_fields (int): number of fields in inputs
             output_size (int): output size of multilayer perceptron layer
             layer_sizes (List[int]): layer sizes of multilayer perceptron layer
-            dropout_p (List[float], optional): dropout probability after activation of each layer. Allow: [None, list of float for each layer]. Defaults to [].
+            dropout_p (List[float], optional): dropout probability after activation of each layer. Allow: [None, list of float for each layer]. Defaults to None.
             activation (Callable[[torch.Tensor], torch.Tensor], optional): activation function of each layer. Allow: [None, Callable[[torch.Tensor], torch.Tensor]]. Defaults to nn.ReLU().
         
         Raises:
