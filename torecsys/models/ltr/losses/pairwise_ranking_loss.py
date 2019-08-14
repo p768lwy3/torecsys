@@ -140,10 +140,12 @@ class TripletLoss(_PairwiseRankingLoss):
         Returns:
             torch.Tensor: aggregated (masked) loss
         """
-        # masking inputs if needed and then create the target ones_liken tensor - y
+        # masking inputs if needed
         if mask is not None:
             pos_outputs = apply_mask(pos_outputs, mask)
             neg_outputs = apply_mask(neg_outputs, mask)
+        
+        # create the target ones_liken tensor - y
         y = torch.ones_like(neg_outputs)
         
         # create inputs by parsing with self.parser
