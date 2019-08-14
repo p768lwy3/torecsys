@@ -1,6 +1,5 @@
 from . import _CtrEstimator
-from ..layers import FactorizationMachineLayer, WideLayer
-
+from ..layers import FactorizationMachineLayer
 from functools import partial
 import torch
 import torch.nn as nn
@@ -73,7 +72,7 @@ class FactorizationMachine(_CtrEstimator):
         # which could be get by nn.Embedding(vocab size, embed size)
         fm_out = self.fm(inputs["second_order"])
             
-        # reshape fm_out to (batch size, number of fields * embed size)
+        # reshape fm_out to (batch size, embed size)
         fm_out = fm_out.view(batch_size, -1)
 
         # reshape linear_out to (batch size, number of fields)
