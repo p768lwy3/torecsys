@@ -21,7 +21,8 @@ __field_type__ = ["image", "list_index", "sequence_index", "single_index",
                   "value"]
 
 class StackedInputs(_Inputs):
-    r"""StackedInputs is a field of stacked inputs to stack multiple inputs into a row of features vectors"""
+    r"""StackedInputs is a field of stacked inputs to stack multiple inputs into a row of features vectors
+    """
     def __init__(self,
                  field_names: List[str],
                  field_types: List[str],

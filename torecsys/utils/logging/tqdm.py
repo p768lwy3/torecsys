@@ -1,12 +1,15 @@
-r"""torecsys.utils.tqdm is a sub module of utils for logging during training"""
+r"""torecsys.utils.tqdm is a sub module of utils for logging during training
+"""
 
 import logging
 from tqdm.autonotebook import tqdm
 
+
 class TqdmHandler(logging.StreamHandler):
     r"""logging.StreamHandler for logging with tqdm progress bar"""
     def __init__(self):
-        """initialize TqdmHandler"""
+        r"""initialize TqdmHandler
+        """
         logging.StreamHandler.__init__(self)
     
     def emit(self, record : str):

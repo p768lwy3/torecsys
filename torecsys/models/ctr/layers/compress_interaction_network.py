@@ -8,8 +8,8 @@ class CompressInteractionNetworkLayer(nn.Module):
     cross-features interactions which applying outer product to calculate interaction and 
     1D-convalution to compress cross-features vectors.
 
-    Reference:
-        `Jianxun Lian et. al 2018, xDeepFM: Combining Explicit and Implicit Feature Interactions for Recommender Systems <https://arxiv.org/pdf/1803.05170.pdf>`
+    :Reference:
+    #. `Jianxun Lian et al, 2018. xDeepFM: Combining Explicit and Implicit Feature Interactions for Recommender Systems <https://arxiv.org/pdf/1803.05170.pdf>`_.
     """
     def __init__(self, 
                  embed_size    : int,

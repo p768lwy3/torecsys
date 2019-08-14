@@ -1,7 +1,8 @@
 import torch
 
 class BaseNegativeSampler(object):
-    r"""Base Class of Negative Sampler"""
+    r"""Base Class of Negative Sampler
+    """
     def __init__(self):
         raise NotImplementedError("")
 
@@ -31,7 +32,8 @@ class BaseNegativeSampler(object):
         raise NotImplementedError("")
 
 class MultinomialSampler(BaseNegativeSampler):
-    r"""MutlinomialSampler is to generate negative samplers by multinomial distribution, i.e. draw samples by given probabilities"""
+    r"""MutlinomialSampler is to generate negative samplers by multinomial distribution, i.e. draw samples by given probabilities
+    """
     def __init__(self, 
                  weights          : torch.Tensor,
                  with_replacement : bool = True):
@@ -62,7 +64,8 @@ class MultinomialSampler(BaseNegativeSampler):
 
 
 class UniformSamplerWithReplacement(BaseNegativeSampler):
-    r"""UniformSamplerWithReplacement is to generate negative samplers by uniform distribution with replacement, i.e. draw samples uniformlly with replacement"""
+    r"""UniformSamplerWithReplacement is to generate negative samplers by uniform distribution with replacement, i.e. draw samples uniformlly with replacement
+    """
     def __init__(self, 
                  low  : int, 
                  high : int):
@@ -89,7 +92,8 @@ class UniformSamplerWithReplacement(BaseNegativeSampler):
 
 
 class UniformSamplerWithoutReplacement(BaseNegativeSampler):
-    r"""UniformSamplerWithReplacement is to generate negative samplers by uniform distribution without replacement, i.e. draw samples uniformlly without replacement"""
+    r"""UniformSamplerWithReplacement is to generate negative samplers by uniform distribution without replacement, i.e. draw samples uniformlly without replacement
+    """
     def __init__(self, 
                  low  : int, 
                  high : int):

@@ -9,8 +9,9 @@ from typing import Tuple
 # need to fix for the jit-compile later
 class ListIndexEmbedding(_Inputs):
     r"""ListIndexEmbedding is a embedding field to pass a list of index without order 
-        process by Multihead Attention, and finally return aggregated embedding tensor"""
-
+        process by Multihead Attention, and finally return aggregated embedding tensor
+    """
+    
     # constants of jit variables
     __constants__ = ["output_method"]
 

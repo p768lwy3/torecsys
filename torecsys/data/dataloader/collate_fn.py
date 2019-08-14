@@ -8,7 +8,9 @@ import torchvision
 import torchvision.transforms as transforms
 from Typing import Dict, List, Tuple
 
+
 __field_type__ = ["values", "single_index", "list_index", "sequence_index", "image_dir", "image_url", "sentence"]
+
 
 def trs_collate_fn(batch_data  : List[list],
                    field_names : List[str],

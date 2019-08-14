@@ -6,11 +6,11 @@ import torch.nn as nn
 from typing import Dict
 
 class FactorizationMachine(_CtrEstimator):
-    r"""FactoizationMachine is an estimator of Factorization Machine which calculate 
-    interactions between fields by 
+    r"""FactoizationMachine is an estimator of Factorization Machine which calculate interactions between fields by the following equation:
+    :math:`\^{y}(x) := b_{0} + \sum_{i=1}^{n} w_{i} x_{i} + \sum_{i=1}^{n} \sum_{j=1+1}^{n} <v_{i},v_{j}> x_{i} x_{j}`_.
 
-    Reference:
-
+    :Reference:
+    #. `Steffen Rendle, 2010. Factorization Machine <https://www.csie.ntu.edu.tw/~b97053/paper/Rendle2010FM.pdf>`_.
     """
     def __init__(self, 
                  embed_size    : int,

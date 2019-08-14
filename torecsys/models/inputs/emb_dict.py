@@ -22,7 +22,8 @@ __field_type__ = ["image", "list_index", "sequence_index", "single_index",
                   "stacked", "value"]
 
 class EmbeddingDict(_Inputs):
-    r"""EmbeddingDict is a field of inputs to build a dictionary for embedding"""
+    r"""EmbeddingDict is a field of inputs to build a dictionary for embedding
+    """
     def __init__(self,
                  field_names: List[str],
                  field_types: List[str],

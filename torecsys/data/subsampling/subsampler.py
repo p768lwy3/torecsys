@@ -23,7 +23,7 @@ def subsampling(array     : np.ndarray,
 
     :Reference:
 
-    #. `Omer Levy etal.: Improving Distributional Similarity with Lessons Learned from Word Embeddings <https://levyomer.files.wordpress.com/2015/03/improving-distributional-similarity-tacl-2015.pdf>`_.
+    #. `Omer Levy et al, 2015. Improving Distributional Similarity with Lessons Learned from Word Embeddings <https://levyomer.files.wordpress.com/2015/03/improving-distributional-similarity-tacl-2015.pdf>`_.
 
     """
     # count occurences of each token

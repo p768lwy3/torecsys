@@ -6,8 +6,8 @@ class InnerProductNetworkLayer(nn.Module):
     r"""InnerProductNetworkLayer is a layer used in Product-based Neural Network to calculate 
     element-wise cross-feature interactions by inner-product of matrix multiplication.
     
-    Reference:
-        `Yanru Qu et. at 2016, Product-based Neural Networks for User Response Prediction <https://arxiv.org/abs/1611.00144>`
+    :Reference:
+    #. `Yanru Qu et at, 2016. Product-based Neural Networks for User Response Prediction <https://arxiv.org/abs/1611.00144>`_.
     """
     def __init__(self, 
                  num_fields: int):

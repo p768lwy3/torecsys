@@ -7,8 +7,8 @@ class AttentionalFactorizationMachineLayer(nn.Module):
     r"""AttentionalFactorizationMachineLayer is a layer used in Attentional Factorization Machine 
     to calculate low-dimension cross-features interactions by applying Attention-mechanism.
     
-    Reference:
-        `Jun Xiao et. al 2017, Attentional Factorization Machines: Learning the Weight of Feature Interactions via Attention Networks∗ <https://arxiv.org/abs/1708.04617>`
+    :Reference:
+    #. `Jun Xiao et al, 2017. Attentional Factorization Machines: Learning the Weight of Feature Interactions via Attention Networks∗ <https://arxiv.org/abs/1708.04617>`_.
     """
     def __init__(self, 
                  embed_size: int,

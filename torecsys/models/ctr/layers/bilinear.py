@@ -38,7 +38,7 @@ class BilinearNetworkLayer(nn.Module):
         
             Returns:
                 torch.Tensor, shape = (batch size, 1, output size), dtype = torch.float: output of bilinear network layer
-            """
+        """
         batch_size = inputs.size(0)
         inputs = inputs.view(batch_size, -1)
         outputs = inputs.detach().requires_grad_()

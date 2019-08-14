@@ -7,8 +7,8 @@ class FactorizationMachineLayer(nn.Module):
     r"""FactorizationMachineLayer is a layer used in Factorization Machine to calculate low 
     dimension cross-features interactions.
     
-    Reference:
-        `Steffen Rendle 2010, Factorization Machine <https://www.csie.ntu.edu.tw/~b97053/paper/Rendle2010FM.pdf>`
+    :Reference:
+    #. `Steffen Rendle, 2010. Factorization Machine <https://www.csie.ntu.edu.tw/~b97053/paper/Rendle2010FM.pdf>`_.
     """
     @jit_experimental
     def __init__(self, 

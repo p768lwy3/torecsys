@@ -1,3 +1,5 @@
+from torecsys.utils.logging.decorator import to_be_tested
+
 import numpy as np
 import pandas as pd
 import scipy.sparse as sparse
@@ -9,7 +11,8 @@ from typing import List
 
 
 class NdarrayToDataset(torch.utils.data.Dataset):
-    r"""Conver np.ndarray to torch.utils.data.Dataset per row"""
+    r"""Conver np.ndarray to torch.utils.data.Dataset per row
+    """
     def __init__(self,
                  ndarray: np.ndarray):
         r"""initialize NdarrayToDataset
@@ -42,7 +45,8 @@ class NdarrayToDataset(torch.utils.data.Dataset):
 
 
 class DataFrameToDataset(torch.utils.data.Dataset):
-    r"""Convert pd.DataFrame to torch.utils.data.Dataset per row"""
+    r"""Convert pd.DataFrame to torch.utils.data.Dataset per row
+    """
     def __init__(self, 
                  dataframe: pd.DataFrame,
                  columns  : List[str]):
@@ -78,9 +82,10 @@ class DataFrameToDataset(torch.utils.data.Dataset):
         return [[v] for v in row]
 
 
-# not yet tested
+@to_be_tested
 class SqlalchemyToDataset(torch.utils.data.Dataset):
-    r"""[to be tested] Convert a SQL query to torch.utils.data.Dataset"""
+    r"""[to be tested] Convert a SQL query to torch.utils.data.Dataset
+    """
     def __init__(self,
                  sql_engine: Engine,
                  sql_query : str,
@@ -118,7 +123,7 @@ class SqlalchemyToDataset(torch.utils.data.Dataset):
         return [[v] for v in row]
 
 
-# to be developed
+@to_be_tested
 class CooToDataset(torch.utils.data.Dataset):
     r"""[to be developed] Conver scipy.sparse.coo_matrix to torch.utils.data.Dataset
     

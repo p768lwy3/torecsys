@@ -6,8 +6,8 @@ class GeneralizedMatrixFactorizationLayer(nn.Module):
     r"""GeneralizedMatrixFactorization is a layer generalized matrix factorization in a linear 
     format, and used in Neural Collaborative Filtering.
     
-    Reference:
-        `Xiangnan He et. al 2017, Neural Collaborative Filtering <https://arxiv.org/abs/1708.05031>`
+    :Reference:
+    #. `Xiangnan He et al, 2017. Neural Collaborative Filtering <https://arxiv.org/abs/1708.05031>`_.
     """"
     def __init__(self):
         """initialize generalized matrix factorization layer module

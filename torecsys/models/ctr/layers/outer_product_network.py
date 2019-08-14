@@ -5,8 +5,8 @@ class OuterProductNetworkLayer(nn.Module):
     r"""OuterProductNetworkLayer is a layer used in Product-based Neural Network to calculate 
     element-wise cross-feature interactions by outer-product of matrix multiplication.
     
-    Reference:
-        `Yanru Qu et. at 2016, Product-based Neural Networks for User Response Prediction <https://arxiv.org/abs/1611.00144>`
+    :Reference:
+    #. `Yanru Qu et at, 2016. Product-based Neural Networks for User Response Prediction <https://arxiv.org/abs/1611.00144>`_.
     """
     def __init__(self, 
                  embed_size  : int,

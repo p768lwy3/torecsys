@@ -6,8 +6,8 @@ class FieldAwareFactorizationMachineLayer(nn.Module):
     r"""FieldAwareFactorizationMachineLayer is a layer used in Field-Aware Factorization Machine 
     to calculate low dimension cross-features interaction per inputs field.
     
-    Reference:
-        `Yuchin Juan et. al, 2016, Field-aware Factorization Machines for CTR Prediction <https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf>`
+    :Reference:
+    #. `Yuchin Juan et al, 2016. Field-aware Factorization Machines for CTR Prediction <https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf>`_.
     """
     def __init__(self, 
                  num_fields : int,

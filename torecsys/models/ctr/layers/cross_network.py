@@ -6,8 +6,8 @@ class CrossNetworkLayer(nn.Module):
     element-wise cross-feature interaction by the following equation:
     :math:`\text{for i-th layer, } \bm{x}_{i} = x_{0} * (w_{i} * x_{i-1} + b_{i}) + x_{0}`_.
 
-    Reference:
-        `Ruoxi Wang et. al 2017, Deep & Cross Network for Ad Click Predictions <https://arxiv.org/abs/1708.05123>`
+    :Reference:
+    #. `Ruoxi Wang et al, 2017. Deep & Cross Network for Ad Click Predictions <https://arxiv.org/abs/1708.05123>`_.
     """
     def __init__(self, 
                  embed_size  : int, 
