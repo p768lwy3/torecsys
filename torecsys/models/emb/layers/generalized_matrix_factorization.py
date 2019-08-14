@@ -8,7 +8,7 @@ class GeneralizedMatrixFactorizationLayer(nn.Module):
     
     Reference:
 
-    #. `Xiangnan He et al, 2017. Neural Collaborative Filtering <https://arxiv.org/abs/1708.05031>`
+    #. `Xiangnan He et al, 2017. Neural Collaborative Filtering <https://arxiv.org/abs/1708.05031>`_.
     
     """
     def __init__(self):

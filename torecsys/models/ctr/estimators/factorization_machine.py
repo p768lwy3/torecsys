@@ -12,7 +12,7 @@ class FactorizationMachine(_CtrEstimator):
 
     :Reference:
 
-    #. `Steffen Rendle, 2010. Factorization Machine <https://www.csie.ntu.edu.tw/~b97053/paper/Rendle2010FM.pdf>`
+    #. `Steffen Rendle, 2010. Factorization Machine <https://www.csie.ntu.edu.tw/~b97053/paper/Rendle2010FM.pdf>`_.
 
     """
     def __init__(self, 

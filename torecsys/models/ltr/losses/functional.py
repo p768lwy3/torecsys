@@ -44,7 +44,7 @@ def bayesian_personalized_ranking_loss(pout: torch.Tensor, nout: torch.Tensor) -
     
     :Reference:
 
-    #. `Steffen Rendle et al, 2009. BPR: Bayesian Personalized Ranking from Implicit Feedback <https://arxiv.org/abs/1205.2618>`
+    #. `Steffen Rendle et al, 2009. BPR: Bayesian Personalized Ranking from Implicit Feedback <https://arxiv.org/abs/1205.2618>`_.
 
     """
     loss = (1.0 - torch.sigmoid(pout - nout))
@@ -75,7 +75,7 @@ def adaptive_hinge_loss(pout: torch.Tensor, nout: torch.Tensor) -> torch.Tensor:
     
     :Reference:
 
-    #. `Jason Weston el at, 2011. WSABIE: Scaling Up To Large Vocabulary Image Annotation <http://www.thespermwhale.com/jaseweston/papers/wsabie-ijcai.pdf>`
+    #. `Jason Weston el at, 2011. WSABIE: Scaling Up To Large Vocabulary Image Annotation <http://www.thespermwhale.com/jaseweston/papers/wsabie-ijcai.pdf>`_.
 
     """
     highest_nout, _ = torch.max(nout, 0)
@@ -139,7 +139,7 @@ def listnet_loss(yhat: torch.Tensor, ytrue: torch.Tensor) -> torch.Tensor:
     
     :Reference:
 
-    #. `Zhe Cao et al, 2007. Learning to Rank: From Pairwise Approach to Listwise Approach <https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-2007-40.pdf>` 
+    #. `Zhe Cao et al, 2007. Learning to Rank: From Pairwise Approach to Listwise Approach <https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-2007-40.pdf>`_.
     
     """
     # calculate softmax for each row of sample

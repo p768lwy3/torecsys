@@ -6,10 +6,27 @@
 Welcome to torecsys's documentation!
 ====================================
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+*Recommendation System in PyTorch.*
 
+This package is an implementation of several famous recommendation systelm algorithm in PyTorch, including click-through-rate prediction, learning-to-ranking and embedding.
+
+Minimial Requirements
+=====================
+
+* (on planning...)
+
+Installation
+============
+
+Install with pip:
+
+    pip install torecsys (planning to develop on 0.1.0...)
+
+API documentation
+=================
+
+.. toctree::
+   modules
 
 
 Indices and tables

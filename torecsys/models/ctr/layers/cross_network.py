@@ -8,7 +8,7 @@ class CrossNetworkLayer(nn.Module):
 
     :Reference:
 
-    #. `Ruoxi Wang et al, 2017. Deep & Cross Network for Ad Click Predictions <https://arxiv.org/abs/1708.05123>`
+    #. `Ruoxi Wang et al, 2017. Deep & Cross Network for Ad Click Predictions <https://arxiv.org/abs/1708.05123>`_.
 
     """
     def __init__(self, 

@@ -5,7 +5,8 @@ from typing import List, Tuple
 
 
 class Regularization(nn.Module):
-    r"""Regularization is a Module to calculate regularized loss of a model"""
+    r"""Regularization is a Module to calculate regularized loss of a model
+    """
     def __init__(self,
                  model        : nn.Module,
                  weight_decay : float = 0.01,

@@ -8,7 +8,7 @@ class FieldAwareFactorizationMachineLayer(nn.Module):
     
     :Reference:
 
-    #. `Yuchin Juan et al, 2016. Field-aware Factorization Machines for CTR Prediction <https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf>`
+    #. `Yuchin Juan et al, 2016. Field-aware Factorization Machines for CTR Prediction <https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf>`_.
 
     """
     def __init__(self, 

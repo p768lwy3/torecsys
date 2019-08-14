@@ -8,7 +8,7 @@ class InnerProductNetworkLayer(nn.Module):
     
     :Reference:
 
-    #. `Yanru Qu et at, 2016. Product-based Neural Networks for User Response Prediction <https://arxiv.org/abs/1611.00144>`
+    #. `Yanru Qu et at, 2016. Product-based Neural Networks for User Response Prediction <https://arxiv.org/abs/1611.00144>`_.
     
     """
     def __init__(self, 

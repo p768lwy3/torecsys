@@ -21,7 +21,7 @@ class BayesianPersonalizedRankingLoss(_PairwiseRankingLoss):
     
     :Reference:
 
-    #. `Steffen Rendle et al, 2009. BPR: Bayesian Personalized Ranking from Implicit Feedback <https://arxiv.org/abs/1205.2618>`
+    #. `Steffen Rendle et al, 2009. BPR: Bayesian Personalized Ranking from Implicit Feedback <https://arxiv.org/abs/1205.2618>`_.
 
     """
     def __init__(self):
@@ -77,7 +77,7 @@ class AdaptiveHingeLoss(_PairwiseRankingLoss):
 
     :Reference:
 
-    #. `Jason Weston el at, 2011. WSABIE: Scaling Up To Large Vocabulary Image Annotation <http://www.thespermwhale.com/jaseweston/papers/wsabie-ijcai.pdf>`
+    #. `Jason Weston el at, 2011. WSABIE: Scaling Up To Large Vocabulary Image Annotation <http://www.thespermwhale.com/jaseweston/papers/wsabie-ijcai.pdf>`_.
 
     """
     def __init__(self):
@@ -110,7 +110,7 @@ class TripletLoss(_PairwiseRankingLoss):
     
     :Reference:
 
-    #. `Florian Schroff et at, 2015. FaceNet: A Unified Embedding for Face Recognition and Clustering <https://arxiv.org/abs/1503.03832>`
+    #. `Florian Schroff et at, 2015. FaceNet: A Unified Embedding for Face Recognition and Clustering <https://arxiv.org/abs/1503.03832>`_.
 
     """
     def __init__(self, 
