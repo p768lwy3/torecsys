@@ -2,7 +2,6 @@ r"""torecsys.models.ltr.estimators is a sub module of the implementation of seve
 """
 
 from torecsys.models import _Estimator
-import torch
 import torch.nn as nn
 
 class _LtrEstimator(_Estimator):

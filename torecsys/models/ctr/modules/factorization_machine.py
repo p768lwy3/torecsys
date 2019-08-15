@@ -31,6 +31,7 @@ class FactorizationMachineModule(_CtrModule):
             embed_size (int): embedding size
             num_fields (int): number of fields in inputs
             dropout_p (float, optional): dropout probability after factorization machine. Defaults to 0.1.
+            bias (bool, optional): use bias parameter in the calculation. Defaults to True.
             output_method (str, optional): output method, Allows: ["concatenate", "sum"]. Defaults to "concatenate".
             output_size (int, optional): ONLY apply on output_method == "concatenate", output size after concatenate. Defaults to 1.
         """

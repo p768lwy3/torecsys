@@ -10,3 +10,4 @@ import torecsys.utils
 from .estimators import *
 from .layers import *
 from .losses import *
+from .modules import *

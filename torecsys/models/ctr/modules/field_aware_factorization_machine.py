@@ -1,19 +1,28 @@
-from . import _CtrEstimator
+from . import _Module
 from ..layers import FieldAwareFactorizationMachineLayer
 from functools import partial
 import torch
 import torch.nn as nn
 from typing import Dict
 
-class FieldAwareFactorizationMachine(_CtrEstimator):
-
+class FieldAwareFactorizationMachineModule(_Module):
+    r""""""
     def __init__(self,
                  embed_size    : int,
                  num_fields    : int,
                  dropout_p     : float = 0.1,
                  output_method : str = "concatenate",
                  output_size   : int = 1):
-        super(FieldAwareFactorizationMachine, self).__init__()
+        r"""[summary]
+        
+        Args:
+            embed_size (int): [description]
+            num_fields (int): [description]
+            dropout_p (float, optional): [description]. Defaults to 0.1.
+            output_method (str, optional): [description]. Defaults to "concatenate".
+            output_size (int, optional): [description]. Defaults to 1.
+        """
+        super(FieldAwareFactorizationMachineModule, self).__init__()
         if bias:
             # output size = fm output size + linear output size + bias
             self.bias = nn.Parameter(torch.zeros(1))
@@ -25,7 +34,14 @@ class FieldAwareFactorizationMachine(_CtrEstimator):
             output_size = embed_size + num_fields
     
     def forward(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
+        r"""[summary]
         
+        Args:
+            inputs (Dict[str, torch.Tensor]): [description]
+        
+        Returns:
+            torch.Tensor: [description]
+        """
         # get batch size
         batch_size = inputs["first_order"].size(0)
 

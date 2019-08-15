@@ -30,3 +30,8 @@ def skip_gram_loss(cout: torch.Tensor, pout: torch.Tensor, nout: torch.Tensor) -
     loss = - (pval + nval).mean()
 
     return loss
+
+# to be developed
+def cbow_loss():
+    pass
+

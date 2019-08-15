@@ -2,5 +2,6 @@ r"""torecsys.models.ltr is a sub module of the implementations of Learning-to-Ra
 """
 
 from .estimators import *
-# from .layers import *
+from .layers import *
 from .losses import *
+from .modules import *
