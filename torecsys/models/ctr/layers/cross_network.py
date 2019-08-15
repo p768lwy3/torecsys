@@ -14,36 +14,43 @@ class CrossNetworkLayer(nn.Module):
     """
     @jit_experimental
     def __init__(self, 
-                 embed_size  : int, 
-                 num_fields  : int, 
-                 output_size : int, 
-                 num_layers  : int):
+                 num_layers: int,
+                 embed_size  : int = None,
+                 num_fields  : int = None,
+                 inputs_size : int = None):
         r"""initialize cross network layer module
         
         Args:
-            embed_size (int): embedding size
-            num_fields (int): number of fields in inputs
-            output_size (int): output size of cross network layer
             num_layers (int): number of layers of cross network layer
+            embed_size (int, optional): embedding size, must input with num_fields together. Defaults to None.
+            num_fields (int, optional): number of fields in inputs, must input with embed_size together. Defaults to None.
+            inputs_size (int, optional): inputs size, cannot input with embed_size and num_fields. Defaults to None.
+        
+        Raises:
+            ValueError: when embed_size or num_fields is missing if using embed_size and num_field pairs, or when inputs_size is missing if using inputs_size
         """
         # initialize nn.Module class
         super(CrossNetworkLayer, self).__init__()
-        inputs_size = embed_size * num_fields
+        if inputs_size is None and embed_size is not None and num_fields is not None:
+            inputs_size = embed_size * num_fields
+        elif inputs_size is not None and (embed_size is None or num_fields is None):
+            inputs_size = inputs_size
+        else:
+            raise ValueError("Only allowed:\n    1. embed_size and num_fields is not None, and inputs_size is None\n    2. inputs_size is not None, and embed_size or num_fields is None")
 
         # initialize cross network module list
         self.model = nn.ModuleList()
         for _ in range(num_layers):
             self.model.append(nn.Linear(inputs_size, inputs_size))
-        self.fc = nn.Linear(inputs_size, output_size)
     
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         """feed-forward calculation of cross network layer
         
         Args:
-            inputs (torch.Tensor), shape = (B, N, E), dtype = torch.float: features matrices of inputs
+            inputs (torch.Tensor), shape = (batch size, number of fields, embedding size), dtype = torch.float: features matrices of inputs
         
         Returns:
-            torch.Tensor, shape = (batch size, 1, output size), dtype = torch.float: output of cross network layer
+            torch.Tensor, shape = (batch size, 1, embedding size), dtype = torch.float: output of cross network layer
         """
         batch_size = inputs.size(0)
         inputs = inputs.view(batch_size, -1)
@@ -52,5 +59,4 @@ class CrossNetworkLayer(nn.Module):
         for layer in self.model:
             outputs = inputs * layer(outputs) + inputs
         
-        outputs = self.fc(outputs)
         return outputs.unsqueeze(1)

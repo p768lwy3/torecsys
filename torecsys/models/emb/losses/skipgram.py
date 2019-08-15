@@ -15,7 +15,7 @@ class SkipGramLoss(nn.Module):
     
     """
     def __init__(self):
-        r"""
+        r"""initialize SkipGram loss
         """
         super(SkipGram, self).__init__()
     

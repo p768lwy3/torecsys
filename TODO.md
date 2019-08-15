@@ -39,11 +39,7 @@
     1. .base
         * _CtrModel
     3. .estimators
-        * AttentionFactorizationMachine : https://arxiv.org/abs/1708.04617
-        * DeepAndCross : https://arxiv.org/abs/1708.05123
         * DeepMCP : https://arxiv.org/abs/1906.04365
-        * DeepFFM : https://arxiv.org/abs/1905.06336
-        * DeepFM  : https://arxiv.org/abs/1703.04247
         * FactorizationMachine : https://www.csie.ntu.edu.tw/~b97053/paper/Rendle2010FM.pdf
         * FactorizationSupportedNeuralNetwork : https://arxiv.org/abs/1601.02376
         * FATDeepFFM (use conv1d kernel 1x1 to compose kxn field matrix to 1xn vector) : https://arxiv.org/abs/1905.06336

@@ -8,7 +8,7 @@ from typing import Dict
 
 
 class FactorizationMachineModule(_CtrModule):
-    r"""FactoizationMachine is an module of Factorization Machine which calculate interactions 
+    r"""FactoizationMachine is a module of Factorization Machine which calculate interactions 
     between fields by the following equation:
     :math:`\^{y}(x) := b_{0} + \sum_{i=1}^{n} w_{i} x_{i} + \sum_{i=1}^{n} \sum_{j=1+1}^{n} <v_{i},v_{j}> x_{i} x_{j}` .
 
@@ -33,7 +33,10 @@ class FactorizationMachineModule(_CtrModule):
             dropout_p (float, optional): dropout probability after factorization machine. Defaults to 0.1.
             bias (bool, optional): use bias parameter in the calculation. Defaults to True.
             output_method (str, optional): output method, Allows: ["concatenate", "sum"]. Defaults to "concatenate".
-            output_size (int, optional): ONLY apply on output_method == "concatenate", output size after concatenate. Defaults to 1.
+            output_size (int, optional): ONLY apply on output_method == "concatenate", output size of linear transformation after concatenate. Defaults to 1.
+        
+        Raises:
+            ValueError: when output_method is not in ["concatenate", "sum"]
         """
         super(FactorizationMachineModule, self).__init__()
         if bias:
@@ -52,6 +55,8 @@ class FactorizationMachineModule(_CtrModule):
             self.fc = nn.Linear(cat_size, output_size)
         elif output_method == "sum":
             self.fc = partial(torch.sum, dim=1, keepdim=True)
+        else:
+            raise ValueError("output_method %s is not allowed." % output_method)
     
     def forward(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
         r"""feed forward of Factorization Machine Model 
@@ -64,7 +69,7 @@ class FactorizationMachineModule(_CtrModule):
             second_order, shape = (batch size, num_fields, embed_size): second order outputs of one-hot encoding, i.e. outputs from nn.Embedding(vocab_size, embed_size)
         
         Returns:
-            torch.Tensor, shape = (batch size, 1 OR output size), dtype = torch.float -- outputs of Factorization Machine
+            torch.Tensor, shape = (batch size, 1 OR output size), dtype = torch.float: outputs of Factorization Machine
         """
         # get batch size
         batch_size = inputs["first_order"].size(0)
