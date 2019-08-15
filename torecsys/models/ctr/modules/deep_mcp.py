@@ -1,10 +1,9 @@
 from . import _CtrModule
 from ..layers import MultilayerPerceptronLayer
-from torecsys.models.emb.losses import SkipGramLoss
 from torecsys.utils.logging.decorator import jit_experimental
 import torch
 import torch.nn as nn
-from typing import List
+from typing import Dict, List
 
 
 # in-development
@@ -75,7 +74,7 @@ class DeepMatchingCorrelationPredictionModule(_CtrModule):
         # initialize matching subnet, which is a pair of dense networks to calculate high-level 
         # representations of users and items, and calculate sigmoid of dot product between them.
         self.matching = nn.ModuleDict()
-        self.matching["loss"] = nn.Sigmoid()
+        self.matching["sigmoid"] = nn.Sigmoid()
 
         # initialize user part of matching subnet
         self.matching["user"] = nn.Sequential()
@@ -119,8 +118,37 @@ class DeepMatchingCorrelationPredictionModule(_CtrModule):
             )
         )
         self.correlation["item"].add_module(nn.Tanh())
-        self.correlation["loss"] = SkipGramLoss()
 
-    def forward(self):
-            
-        return 
+    def forward(self, inputs: Dict[torch.Tensor]) -> Tuple[torch.Tensor]:
+        r"""feed forward calculation of DeepMCP
+        
+        Args:
+            inputs (Dict[torch.Tensor]): [description]
+        
+        Returns:
+            Tuple[torch.Tensor]: [description]
+        """
+
+        # calculate prediction of prediction subnet, return shape = (batch size, 1)
+        cat_pred = torch.cat([inputs["user"], inputs["content_item"]], dim=1)
+        y_pred = self.prediction(cat_pred)
+
+        # calculate inference of matching subnet, return shape = (batch size, 1)
+        user_match = self.matching["user"](inputs["user"])
+        item_match = self.matching["item"](inputs["item"])
+        y_match = (user_match * item_match).sum(dim=1, keepdim=True)
+        y_match = self.matching["sigmoid"](y_match)
+
+        # calculate inference of correlation subnet between content and 
+        # positive or negative, return a pair of tensors with shape = (batch size, 1)
+        content_corr = self.correlation["item"](inputs["item"])
+        positive_corr = self.correlation["item"](inputs["positive"])
+        negative_corr = self.correlation["item"](inputs["negative"])
+        
+        # calculate the inference by dot-product
+        ## need to modify output shape of mlp to (B, 1, E)
+        y_corr_pos = (content_corr * positive_corr).sum(dim=2)
+        ## need to modify mlp layers for the negative inputs with shape = (B, nneg, field * emb)
+        y_corr_neg = (content_corr * negative_corr).sum(dim=2).mean(dim=1, keepdim=True)
+
+        return y_pred, y_match, y_corr_pos, y_corr_neg
