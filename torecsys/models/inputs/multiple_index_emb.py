@@ -27,11 +27,13 @@ class MultipleIndexEmbedding(_Inputs):
             self.embedding = nn.Embedding.from_pretrained(nn_embedding)
         else:
             self.embedding = nn.Embedding(sum(field_sizes), embed_size, **kwargs)
-        self.offsets = np.array((0, *np.cumsum(field_sizes)[:-1]), dtype=np.long)
+
+        # create a offsets tensor with shape (1, num fields) to be added on inputs for each row
+        self.offsets = torch.Tensor((0, *np.cumsum(field_sizes)[:-1])).long().unsqueeze(0)
         self.length = embed_size
     
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
-        """Return embedding vectors of inputs
+        r"""Return embedding vectors of inputs
         
         Args:
             inputs (torch.Tensor), shape = (batch size, num fields), dtype = torch.long: [description]
@@ -40,6 +42,6 @@ class MultipleIndexEmbedding(_Inputs):
             torch.Tensor, shape = (batch size, num fields, embedding size), dtype = torch.float: [description]
         """
         # add offset to it
-        inputs = inputs + inputs.new_tensor(self.offsets).unsqueeze(0)
+        inputs = inputs + self.offsets
         outputs = self.embedding(inputs)
         return outputs

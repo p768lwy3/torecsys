@@ -1,11 +1,13 @@
 r"""torecsys.models.ctr.estimators is a sub module of the implementation of several click through rate models, which can be called directly
 """
-
-import torch
+from torecsys.estimators import _Estimator
 import torch.nn as nn
 
-class _CtrEstimator(nn.Module):
+class _CtrEstimator(_Estimator):
     def __init__(self):
         super(_CtrEstimator, self).__init__()
+    
+    def nparams(self):
+        return self.nparams
 
-from .factorization_machine import FactorizationMachine
+from .factorization_machine import FactorizationMachineEstimator

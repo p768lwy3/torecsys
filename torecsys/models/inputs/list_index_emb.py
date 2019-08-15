@@ -6,14 +6,10 @@ import torch.nn as nn
 from typing import Tuple
 
 
-# need to fix for the jit-compile later
 class ListIndexEmbedding(_Inputs):
     r"""ListIndexEmbedding is a embedding field to pass a list of index without order 
         process by Multihead Attention, and finally return aggregated embedding tensor
     """
-    
-    # constants of jit variables
-    __constants__ = ["output_method"]
 
     def __init__(self,
                  embed_size    : int,
@@ -51,16 +47,10 @@ class ListIndexEmbedding(_Inputs):
 
         if nn_embedding is not None:
             self.embed_size = nn_embedding.size(1)
-            self.embedding = torch.jit.trace(
-                nn.Embedding.from_pretrained(nn_embedding),
-                (torch.randint(low=0, high=self.field_size, size=(1, )).long())
-            )
+            self.embedding = nn.Embedding.from_pretrained(nn_embedding)
         else:
             self.embed_size = embed_size
-            self.embedding = torch.jit.trace(
-                nn.Embedding(field_size, embed_size, padding_idx=padding_idx),
-                (torch.randint(low=0, high=self.field_size, size=(1, )).long())
-            )
+            self.embedding = nn.Embedding(field_size, embed_size, padding_idx=padding_idx)
         
         # initialize Attention layer
         self.use_attn = use_attn
@@ -84,9 +74,6 @@ class ListIndexEmbedding(_Inputs):
         
         # initialize the output layer
         __output_method__ = ["avg_pooling", "max_pooling", "mean", "none", "sum"]
-
-        self.output_method = output_method
-        
         if output_method == "avg_pooling":
             self.output_layer = torch.jit.trace(
                 nn.AdaptiveAvgPool1d(1),
@@ -105,6 +92,7 @@ class ListIndexEmbedding(_Inputs):
             self.output_layer = partial(torch.sum, dim=1, keepdim=True)
         else:
             raise ValueError("output_method only allows [%s]." % (", ".join(__output_method__)))
+        self.output_method = output_method
 
     def forward(self, inputs: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """Return aggregated embedding vectors of inputs by self-attention model
