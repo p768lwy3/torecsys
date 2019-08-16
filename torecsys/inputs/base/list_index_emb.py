@@ -1,5 +1,5 @@
 from . import _Inputs
-from ..utils import show_attention, dummy_attention
+from torecsys.functional import show_attention, dummy_attention
 from functools import partial
 import torch
 import torch.nn as nn

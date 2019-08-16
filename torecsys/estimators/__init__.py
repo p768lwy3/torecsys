@@ -19,7 +19,7 @@ class _Estimator(nn.Module):
                  optimizer: Callable, 
                  epochs   : int,
                  verbose  : int,
-                 logdir   : logdir = None):
+                 logdir   : str = None):
         self.model = model
         self.loss = loss
         self.optimizer = optimizer

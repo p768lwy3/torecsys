@@ -1,7 +1,8 @@
 r"""torecsys.estimators.ctr. is a sub module of the estimators of click-through-rate prediction model
 """
 
-from .. import _Estimator 
+from .. import _Estimator
+from typing import Callable
 
 class _CtrEstimator(_Estimator):
     r"""Base class of click through rate prediction estimator provide several functions would 
@@ -12,7 +13,7 @@ class _CtrEstimator(_Estimator):
                  optimizer: Callable, 
                  epochs   : int,
                  verbose  : int,
-                 logdir   : logdir = None):
+                 logdir   : str = None):
         
         super(_CtrEstimator, self).__init__(
             model     = model,

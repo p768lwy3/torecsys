@@ -1,6 +1,8 @@
 r"""torecsys.data.negsampling is a module of negative sampling algorithms, e.g. MultinomialSampler, UniformSampler
 """
 
+import torch
+
 class _NegativeSampler(object):
     r"""Base Class of Negative Sampler
     """
