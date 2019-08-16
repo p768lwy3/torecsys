@@ -16,7 +16,7 @@ class DeepAndCrossNetworkModule(_CtrModule):
                  output_size      : int = 1,
                  deep_dropout_p   : List[float] = None, 
                  deep_activation  : Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
-        r"""[summary]
+        r"""initialize deep adn cross network
         
         Args:
             inputs_size (int): [description]
@@ -39,22 +39,22 @@ class DeepAndCrossNetworkModule(_CtrModule):
         cat_size = deep_output_size + inputs_size
         self.fc = nn.Linear(cat_size, output_size)
     
-    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
-        r"""[summary]
+    def forward(self, emb_inputs: torch.Tensor) -> torch.Tensor:
+        r"""feed forward of deep and cross network
         
         Args:
-            inputs (torch.Tensor): [description]
+            emb_inputs (torch.Tensor), shape = (batch size, number of fields, embed size), dtype = torch.float: second order terms of fields that will be passed into afm layer and can be get from nn.Embedding(embed_size=embed_size)
         
         Returns:
-            torch.Tensor: [description]
+            torch.Tensor: output of deep and cross network
         """
-        # inputs' shape = (batch size, 1, inputs size)
+        # inputs' shape = (batch size, num of fields, inputs size)
         # deep_out's shape = (batch size, 1, deep_output_size)
-        deep_out = self.deep(inputs)
+        deep_out = self.deep(emb_inputs)
 
-        # inputs' shape = (batch size, 1, inputs size)
+        # inputs' shape = (batch size, num of fields, inputs size)
         # cross_out's shape = (batch size, 1, inputs size)
-        cross_out = self.cross()
+        cross_out = self.cross(emb_inputs)
         
         # cat in third dimension and return shape = (batch size, 1, deep_output_size + inputs_size)
         # then squeeze() to shape = (batch size, deep_output_size + inputs_size)

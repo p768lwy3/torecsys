@@ -38,27 +38,24 @@ class AttentionalFactorizationMachineModel(_CtrModel):
         self.bias = nn.Parameter(torch.zeros(1))
         nn.init.uniform_(self.bias.data)
         
-    def forward(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
+    def forward(self, feat_inputs: torch.Tensor, emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""feed forward of AttentionalFactorizationMachineModel
         
         Args:
-            inputs (Dict[str, torch.Tensor]): dictionary of inputs
-        
-        Key-Values:
-            first_order, shape = (batch size, number of fields, 1), dtype = torch.float: linear terms of fields, which can be get from nn.Embedding(embed_size=1)
-            second_order, shape = (batch size, number of fields, embed size), dtype = torch.float: second order terms of fields that will be passed into afm layer and can be get from nn.Embedding(embed_size=embed_size)
+            feat_inputs (torch.Tensor), shape = (batch size, number of fields, 1), dtype = torch.float: linear terms of fields, which can be get from nn.Embedding(embed_size=1)
+            emb_inputs (torch.Tensor), shape = (batch size, number of fields, embed size), dtype = torch.float: second order terms of fields that will be passed into afm layer and can be get from nn.Embedding(embed_size=embed_size)
         
         Returns:
             torch.Tensor, shape = (batch size, 1), dtype = torch.float: predicted values of afm model
         """
         # first_order's shape = (batch size, number of fields, 1)
         # output's shape = (batch size, 1)
-        linear_out = inputs["first_order"].sum(dim=1)
+        linear_out = feat_inputs.sum(dim=1)
 
         # second_order's shape = (batch size, number of fields, embed size)
         # output's shape = (batch size, 1, embed size)
         # aggregate afm_out with dim = 2, and the output's shape = (batch size, 1)
-        afm_out = self.afm(inputs["second_order"]).sum(dim=2)
+        afm_out = self.afm(emb_inputs).sum(dim=2)
 
         # sum up bias, linear_out and afm_out to output
         outputs = self.bias + linear_out + afm_out
