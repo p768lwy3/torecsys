@@ -45,23 +45,27 @@ Thank you for ReadTheDocs!
 ## (!!!Planning)
 | Component | Description |
 | --------- | ----------- |
-| [**torecsys.data**] | download sample data, build dataloader, and other functions for convenience
-| [**torecsys.models**] | main sub package of implementations |
+| [**torecsys.data**] | download sample data, build dataloader, and other functions for convenience |
+| [**torecsys.estimators**] | models with embedding, which can be trained with ```.fit(dataloader)``` directly |
+| [**torecsys.functional**] | functions used in recommendation system |
+| [**torecsys.inputs] | inputs' functions, including embedding, image transformations |
 | [**torecsys.layers**] | layers-level implementation of algorithms |
-| [**torecsys.losses**] | loss functions used in recommendation systems |
-| [**torecsys.modules**] | whole-architecture of models which can be trained by **torecsys.base.trainer**
-| [**torecsys.estimators**] | models with embedding, which can be trained with ```.fit(dataloader)``` directly
+| [**torecsys.losses**] | loss functions used in recommendation system |
+| [**torecsys.metrics**] | metrics to evaluate recommendation system |
+| [**torecsys.models**] | whole-architecture of models which can be trained by **torecsys.base.trainer** |
+| [**torecsys.utils**] | little tools used in torecsys |
 
-### torecsys.modules
-```torecsys.modules``` is a part of model excluding embedding part, so you can choose 
+
+### torecsys.models
+```torecsys.models``` is a part of model excluding embedding part, so you can choose 
 a suitable embedding method for your model with the following codes:
 
 ```python
 import torecsys as trs
 
-emb = trs.models.inputs.EmbeddingDict(...)
-model = trs.modules.WideAndDeepModule(...)
-trainer = trs.base.Trainer(emb, model, ...)
+emb = trs.inputs.EmbeddingDict(...)
+model = trs.models.WideAndDeepModule(...)
+trainer = trs.Trainer(emb, model, ...)
 trainer.fit(dataloader)
 trainer.predict(test_data)
 ```
@@ -88,7 +92,7 @@ import torecsys as trs
 
 # Load the movielens dataset
 trs.data.download_ml_data(size="latest-small")
-ratings, _ = trs.load_ml_data(size="latest-small")
+ratings, _ = trs.data.load_ml_data(size="latest-small")
 
 ```
 
