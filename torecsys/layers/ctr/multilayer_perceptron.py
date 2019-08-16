@@ -1,4 +1,4 @@
-from torecsys.utils.logging.decorator import jit_experimental
+from torecsys.utils.decorator import jit_experimental
 import torch
 import torch.nn as nn
 from typing import Callable, List

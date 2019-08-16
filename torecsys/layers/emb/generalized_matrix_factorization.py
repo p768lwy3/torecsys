@@ -1,3 +1,4 @@
+from torecsys.utils.decorator import jit_experimental
 import torch
 import torch.nn as nn
 
@@ -11,6 +12,7 @@ class GeneralizedMatrixFactorizationLayer(nn.Module):
     #. `Xiangnan He et al, 2017. Neural Collaborative Filtering <https://arxiv.org/abs/1708.05031>`_.
     
     """
+    @jit_experimental
     def __init__(self):
         r"""initialize generalized matrix factorization layer module
         """
