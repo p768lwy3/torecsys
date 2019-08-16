@@ -1,4 +1,4 @@
-r"""torecsys.utils.data is a module to handling data preprocessing before embedding layers, including:
+r"""torecsys.data is a module to handling data preprocessing before embedding layers, including:
 
 #. download samples data
 

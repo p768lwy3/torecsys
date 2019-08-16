@@ -1,4 +1,4 @@
-r"""torecsys.utils.data.sampler.subsampler is a module of subsampling algorithms 
+r"""torecsys.data.subsampling is a module of subsampling algorithms 
 """
 
-from .subsampler import subsampling as subsampling
+from .subsampler import subsampling

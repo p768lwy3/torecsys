@@ -5,6 +5,7 @@ import requests
 from tqdm.autonotebook import tqdm
 import zipfile
 
+
 def download_ml_data(size : str):
     r"""Download movielens data from grouplens to directory ../sample_data/,
     and the source url of movielens is : https://grouplens.org/datasets/movielens/

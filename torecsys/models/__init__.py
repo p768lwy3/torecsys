@@ -1,13 +1,11 @@
-r"""torecsys.models is a sub module of building recommendation system model, including inputs embedding, implementation of algorithms
+r"""torecsys.models is a sub module of implementation with a whole models in recommendation system
 """
+
 import torch.nn as nn
 
-class _Estimator(nn.Module):
-    def __init__(self):
-        super(_Estimator, self).__init__()
+class _Model(nn.Module):
+    super(_Model, self).__init__()
 
 from .ctr import *
 from .emb import *
-from .inputs import *
 from .ltr import *
-from .utils import *

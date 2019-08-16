@@ -1,7 +1,11 @@
-r"""torecsys.models.emb is a sub module of the implementations of Embedding algorithm
+r"""torecsys.models.ctr is a sub module of the implementation of the whole models of Embedding model
 """
 
-from .estimators import *
-from .layers import *
-from .losses import *
-from .modules import *
+from .. import _Model
+
+class _EmbModule(_Model):
+    def __init__(self):
+        super(_EmbModule, self).__init__()
+
+# from .matrix_factorization import 
+# from .starspace import StarSpaceModule

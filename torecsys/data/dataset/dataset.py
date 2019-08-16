@@ -1,5 +1,4 @@
-from torecsys.utils.logging.decorator import to_be_tested
-
+from torecsys.utils.decorator import to_be_tested
 import numpy as np
 import pandas as pd
 import scipy.sparse as sparse

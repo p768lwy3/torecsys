@@ -1,4 +1,4 @@
-r"""torecsys.models.ltr is a sub module of the implementations of Learning-to-Rank algorithm
+r"""torecsys.models.ltr is a sub module of the implementations of the whole models of Learning-to-Rank algorithm
 """
 
 from .estimators import *

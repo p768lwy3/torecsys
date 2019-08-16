@@ -1,11 +1,11 @@
 import numpy as np
 
+
 def subsampling(array     : np.ndarray, 
                 column_id : int   = 0, 
                 threshold : float = 1e-2) -> np.ndarray:
     r"""Drop occurrences of the most frequent word tokens with the following condition by the given threshold value:
-
-        if :math:`P_{\text{random}} < P_{\text{drop}}`, where :math:`P_{\text{random}} \in U(0, 1)` and :math:`P_{drop} = 1 - \sqrt{\frac{threshold}{frequencies}}`
+    if :math:`P_{\text{random}} < P_{\text{drop}}`, where :math:`P_{\text{random}} \in U(0, 1)` and :math:`P_{drop} = 1 - \sqrt{\frac{threshold}{frequencies}}`
 
     Hence
 
@@ -48,4 +48,3 @@ def subsampling(array     : np.ndarray,
             subsampled_data.append(array[i])
     
     return np.vstack(subsampled_data)
-    
