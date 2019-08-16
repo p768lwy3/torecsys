@@ -22,7 +22,7 @@ class GeneralizedMatrixFactorizationLayer(nn.Module):
         r"""feed-forward calculation of generalized matrix factorization
         
         Args:
-            inputs (torch.Tensor), shape = (B, 2, E), dtype=torch.float: inputs of two features vectors
+            inputs (torch.Tensor), shape = (B, 2, E), dtype = torch.float: inputs of two features vectors
         
         Returns:
             torch.Tensor, shape = (B, 1), dtype = torch.float: output of generalized matrix factorization
