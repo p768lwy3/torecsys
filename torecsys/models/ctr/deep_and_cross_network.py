@@ -53,7 +53,7 @@ class DeepAndCrossNetworkModel(_CtrModel):
             emb_inputs (T), shape = (B, N, E), dtype = torch.float: second order terms of fields that will be passed into afm layer and can be get from nn.Embedding(embed_size=E)
         
         Returns:
-            T: output of deep and cross network
+            T, shape = (B, O), dtype = torch.float: output of deep and cross network
         """
         # inputs' shape = (B, N, I) and reshape to (B, 1, O_d)
         deep_out = self.deep(emb_inputs)
