@@ -3,7 +3,7 @@ from torecsys.layers import CrossNetworkLayer, MultilayerPerceptronLayer
 from torecsys.utils.decorator import jit_experimental
 import torch
 import torch.nn as nn
-
+from typing import Callable, List
 
 class DeepAndCrossNetworkModel(_CtrModel):
     r"""DeepAndCrossNetworkModel is a model of deep and cross network, which is a model of 
