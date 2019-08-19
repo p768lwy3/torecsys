@@ -30,7 +30,7 @@ class DeepFieldAwareFactorizationMachineModel(_CtrModel):
 
     :Reference:
 
-    #. Junlin Zhang et al, 2019. ` FAT-DeepFFM: Field Attentive Deep Field-aware Factorization Machine <https://arxiv.org/abs/1905.06336>`_.
+    #. `Junlin Zhang et al, 2019. FAT-DeepFFM: Field Attentive Deep Field-aware Factorization Machine <https://arxiv.org/abs/1905.06336>`_.
 
     """
     def __init__(self,

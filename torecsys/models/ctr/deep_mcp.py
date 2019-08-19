@@ -7,8 +7,8 @@ from typing import List
 
 
 # in-development
-class DeepMatchingCorrelationPredictionModule(_CtrModel):
-    r"""DeepMacthingCorrelationPredictionModule is a module of Deep Matching, Correlation and 
+class DeepMatchingCorrelationPredictionModel(_CtrModel):
+    r"""DeepMatchingCorrelationPredictionModule is a module of Deep Matching, Correlation and 
     Preidction (DeepMCP) proposed by Wentao Ouyang et al of Alibaba Group in 2019, which is a 
     model concatenated three parts: Matching, Correlation, and Predction, to adjust the distance 
     between user-item and item-item in the following way: 
@@ -59,7 +59,7 @@ class DeepMatchingCorrelationPredictionModule(_CtrModel):
             match_activation (Callable[[T], T], optional): activation function of each layer in multilayer perceptron of matching subnet. Allow: [None, Callable[[T], T]]. Defaults to nn.ReLU().
             pred_activation (Callable[[T], T], optional): activation function of each layer in multilayer perceptron of prediction subnet. Allow: [None, Callable[[T], T]]. Defaults to nn.ReLU().
         """
-        super(DeepMatchingCorrelationPredictionModule, self).__init__()
+        super(DeepMatchingCorrelationPredictionModel, self).__init__()
 
         # initialize prediction subnet, which is a dense network with output's size = 1
         self.prediction = MultilayerPerceptronLayer(
