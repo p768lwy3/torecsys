@@ -1,6 +1,6 @@
 from . import _CtrModel
 from torecsys.layers import FieldAwareFactorizationMachineLayer
-from functools import partial
+from torecsys.utils.decorator import jit_experimental
 import torch
 import torch.nn as nn
 

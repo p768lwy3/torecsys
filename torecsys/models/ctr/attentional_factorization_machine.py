@@ -1,7 +1,6 @@
 from . import _CtrModel
 from torecsys.layers import AttentionalFactorizationMachineLayer
 from torecsys.utils.decorator import jit_experimental
-from functools import partial
 import torch
 import torch.nn as nn
 
