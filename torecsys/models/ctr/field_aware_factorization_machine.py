@@ -1,74 +1,63 @@
-from . import _Module
-from ..layers import FieldAwareFactorizationMachineLayer
+from . import _CtrModel
+from torecsys.layers import FieldAwareFactorizationMachineLayer
 from functools import partial
 import torch
 import torch.nn as nn
-from typing import Dict
 
-class FieldAwareFactorizationMachineModule(_Module):
-    r""""""
+
+class FieldAwareFactorizationMachineModel(_CtrModel):
+    r"""FieldAwareFactorizationMachineModel is a model of field-aware factorization machine (ffm), which is 
+    to calculate the interaction of features for each field with different embedding vectors, instead of a 
+    universal vectors. 
+
+    :Reference:
+
+    #. `Yuchin Juan et al, 2016. Field-aware Factorization Machines for CTR Prediction <https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf>`_.
+
+    """
     def __init__(self,
                  embed_size    : int,
                  num_fields    : int,
-                 dropout_p     : float = 0.1,
-                 output_method : str = "concatenate",
-                 output_size   : int = 1):
-        r"""[summary]
+                 dropout_p     : float = 0.0):
+        r"""initialize Field-Aware Factorization Machine Model
         
         Args:
-            embed_size (int): [description]
-            num_fields (int): [description]
-            dropout_p (float, optional): [description]. Defaults to 0.1.
-            output_method (str, optional): [description]. Defaults to "concatenate".
-            output_size (int, optional): [description]. Defaults to 1.
+            embed_size (int): embedding size
+            num_fields (int): N in inputs
+            dropout_p (float, optional): dropout probability of field-aware factorization machine layer. Defaults to 0.0.
         """
-        super(FieldAwareFactorizationMachineModule, self).__init__()
-        if bias:
-            # output size = fm output size + linear output size + bias
-            self.bias = nn.Parameter(torch.zeros(1))
-            nn.init.xavier_uniform_(self.bias.data)
-            output_size = embed_size + num_fields + 1
-        else:
-            # output size = fm output size + linear output size
-            self.bias = None
-            output_size = embed_size + num_fields
+        super(FieldAwareFactorizationMachineModel, self).__init__()
+            
+        # initialize bias variable
+        self.bias = nn.Parameter(torch.zeros(1))
+        nn.init.xavier_uniform_(self.bias.data)
+
+        # initialize ffm layer
+        self.ffm = FieldAwareFactorizationMachineLayer(dropout_p=dropout_p)
+
     
-    def forward(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
-        r"""[summary]
+    def forward(self, feat_inputs: torch.Tensor, field_emb_inputs: torch.Tensor) -> torch.Tensor:
+        r"""feed forward of Field-Aware Factorization Machine Model 
         
         Args:
-            inputs (Dict[str, torch.Tensor]): [description]
+            feat_inputs (T), shape = (B, N, 1): first order outputs, i.e. outputs from nn.Embedding(V, 1)
+            field_emb_inputs (T), shape = (B, N * N, E): field-aware second order outputs, :math:`x_{i, \text{field}_{j}}`
         
         Returns:
-            torch.Tensor: [description]
+            torch.Tensor, shape = (B, O), dtype = torch.float: outputs of Deep Field-aware Factorization Machine Model
         """
-        # get batch size
-        batch_size = inputs["first_order"].size(0)
 
-        # inputs' shape = (batch size, number of fields, 1)
-        # which could be get by nn.Embedding(vocab size, 1)
-        linear_out = inputs["first_order"]
+        # feat_inputs'shape = (B, N, 1) and reshape to (B, N)
+        ffm_first = feat_inputs.squeeze()
 
-        # inputs' shape = (batch size, number of fields * number of fields, embed size)
-        # which could be get by trs.models.inputs.FieldAwareIndexEmbedding
-        ffm_out = self.ffm(inputs["second_order"])
+        # inputs' shape = (B, N * N, E) which could be get by ..inputs.base.FieldAwareIndexEmbedding
+        # and output shape = (B, N, E)
+        ffm_second = self.ffm(field_emb_inputs)
 
-        # reshape ffm_out to (batch size, embed size)
-        ffm_out = ffm_out.view(batch_size, -1)
+        # aggregate ffm_out in dimension [1, 2], where the shape = (B, 1)
+        ffm_second = ffm_out.sum(dim=[1, 2])
 
-        # reshape linear_out to (batch size, number of fields)
-        linear_out = linear_out.view(batch_size, -1)
-
-        # repeat and reshape bias to shape = (batch size, 1)
-        if self.bias is not None:
-            bias = self.bias.repeat(batch_size).view(batch_size, 1)
-
-        # cat in dim = 1
-        # shape = (batch size, number of fields * embed size + number of fields + 1)
-        outputs = torch.cat([ffm_out, linear_out, self.bias], dim=1)
-
-        # fully-connected dense layer for output, return (batch size, output size)
-        # or sum with second dimension, return (batch size, 1)
-        outputs = self.fc(outputs)
+        # sum bias, fm_first and ffm_sceond and getn fmm outputs with shape = (B, 1)
+        outputs = ffm_second + ffm_first + self.bias
 
         return outputs

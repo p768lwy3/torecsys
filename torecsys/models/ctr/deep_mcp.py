@@ -1,13 +1,13 @@
-from . import _CtrModule
-from ..layers import MultilayerPerceptronLayer
-from torecsys.utils.logging.decorator import jit_experimental
+from . import _CtrModel
+from torecsys.layers import MultilayerPerceptronLayer
+from torecsys.utils.decorator import jit_experimental
 import torch
 import torch.nn as nn
-from typing import Dict, List
+from typing import List
 
 
 # in-development
-class DeepMatchingCorrelationPredictionModule(_CtrModule):
+class DeepMatchingCorrelationPredictionModule(_CtrModel):
     r"""DeepMacthingCorrelationPredictionModule is a module of Deep Matching, Correlation and 
     Preidction (DeepMCP) proposed by Wentao Ouyang et al of Alibaba Group in 2019, which is a 
     model concatenated three parts: Matching, Correlation, and Predction, to adjust the distance 
@@ -18,7 +18,7 @@ class DeepMatchingCorrelationPredictionModule(_CtrModule):
     #. Matching subnt: sigmoid of dot-product between high-level representations of users and items,
     with the following calculation: :math"`\^{y} = \frac{1}{1 + \text{exp}(-(w^{T}z + b))}` .
 
-    #. Correlation subnet: 
+    #. Correlation subnet: a subnet to control similarity between items 
 
     :Reference:
 
@@ -55,9 +55,9 @@ class DeepMatchingCorrelationPredictionModule(_CtrModule):
             corr_dropout_p (List[float], optional): dropout probability after activation of each layer in multilayer perceptron in correlation subnet. Defaults to None.
             match_dropout_p (List[float], optional): dropout probability after activation of each layer in multilayer perceptron in matching subnet. Defaults to None.
             pred_dropout_p (List[float], optional): dropout probability after activation of each layer in multilayer perceptron in prediction subnet. Defaults to None.
-            corr_activation (Callable[[torch.Tensor], torch.Tensor], optional): activation function of each layer in multilayer perceptron of correlation subnet. Allow: [None, Callable[[torch.Tensor], torch.Tensor]]. Defaults to nn.ReLU().
-            match_activation (Callable[[torch.Tensor], torch.Tensor], optional): activation function of each layer in multilayer perceptron of matching subnet. Allow: [None, Callable[[torch.Tensor], torch.Tensor]]. Defaults to nn.ReLU().
-            pred_activation (Callable[[torch.Tensor], torch.Tensor], optional): activation function of each layer in multilayer perceptron of prediction subnet. Allow: [None, Callable[[torch.Tensor], torch.Tensor]]. Defaults to nn.ReLU().
+            corr_activation (Callable[[T], T], optional): activation function of each layer in multilayer perceptron of correlation subnet. Allow: [None, Callable[[T], T]]. Defaults to nn.ReLU().
+            match_activation (Callable[[T], T], optional): activation function of each layer in multilayer perceptron of matching subnet. Allow: [None, Callable[[T], T]]. Defaults to nn.ReLU().
+            pred_activation (Callable[[T], T], optional): activation function of each layer in multilayer perceptron of prediction subnet. Allow: [None, Callable[[T], T]]. Defaults to nn.ReLU().
         """
         super(DeepMatchingCorrelationPredictionModule, self).__init__()
 
@@ -105,9 +105,8 @@ class DeepMatchingCorrelationPredictionModule(_CtrModule):
         self.matching["item"].add_module(nn.Tanh())
 
         # initialize correlation subnet
-        self.correlation = nn.ModuleDict()
-        self.correlation["item"] = nn.Sequential()
-        self.correlation["item"].add_module(
+        self.correlation = nn.Sequential()
+        self.correlation.add_module(
             MultilayerPerceptronLayer(
                 output_size = corr_output_size,
                 layers_size = corr_layer_sizes,
@@ -117,38 +116,45 @@ class DeepMatchingCorrelationPredictionModule(_CtrModule):
                 activation  = corr_activation
             )
         )
-        self.correlation["item"].add_module(nn.Tanh())
+        self.correlation.add_module(nn.Tanh())
 
-    def forward(self, inputs: Dict[torch.Tensor]) -> Tuple[torch.Tensor]:
+    def forward(self, 
+                user_feat   : torch.Tensor, 
+                content_feat: torch.Tensor, 
+                pos_feat    : torch.Tensor, 
+                neg_feat    : torch.Tensor) -> Tuple[torch.Tensor]:
         r"""feed forward calculation of DeepMCP
         
         Args:
-            inputs (Dict[torch.Tensor]): [description]
+            user_feat (T), shape = (B, 1, E), dtype = torch.float: Feature vectors of users
+            content_feat (T), shape = (B, 1, E), dtype = torch.float: Feature vectors of content items
+            pos_feat (T), shape = (B, 1, E), dtype = torch.float: Feature vectors of positive sampled items
+            neg_feat (T), shape = (B, 1, E), dtype = torch.float: Feature vectors of negative sampled items
         
         Returns:
-            Tuple[torch.Tensor]: [description]
+            Tuple[T]: tuple of score tensor, including prediction scores, matching scores, correlation scores of positive items \
+                and negative items, where their shape = (B, 1) and dtype = torch.float
         """
 
-        # calculate prediction of prediction subnet, return shape = (batch size, 1)
-        cat_pred = torch.cat([inputs["user"], inputs["content_item"]], dim=1)
+        # calculate prediction of prediction subnet, return shape = (B, 1)
+        cat_pred = torch.cat([user_feat, content_feat], dim=1)
         y_pred = self.prediction(cat_pred)
 
-        # calculate inference of matching subnet, return shape = (batch size, 1)
-        user_match = self.matching["user"](inputs["user"])
-        item_match = self.matching["item"](inputs["item"])
+        # calculate inference of matching subnet, return shape = (B, 1)
+        user_match = self.matching["user"](user_feat)
+        item_match = self.matching["item"](content_feat)
         y_match = (user_match * item_match).sum(dim=1, keepdim=True)
         y_match = self.matching["sigmoid"](y_match)
 
-        # calculate inference of correlation subnet between content and 
-        # positive or negative, return a pair of tensors with shape = (batch size, 1)
-        content_corr = self.correlation["item"](inputs["item"])
-        positive_corr = self.correlation["item"](inputs["positive"])
-        negative_corr = self.correlation["item"](inputs["negative"])
+        # calculate features' representations of items and return shape = (B, 1 or N, O_C)
+        content_corr = self.correlation(content_feat)
+        positive_corr = self.correlation(pos_feat)
+        negative_corr = self.correlation(neg_feat)
         
-        # calculate the inference by dot-product
-        ## need to modify output shape of mlp to (B, 1, E)
+        # calculate the inference of correlation subnet between content 
+        # and positive or negative by dot-product, and return a pair of 
+        # tensors with shape = (B, 1)
         y_corr_pos = (content_corr * positive_corr).sum(dim=2)
-        ## need to modify mlp layers for the negative inputs with shape = (B, nneg, field * emb)
         y_corr_neg = (content_corr * negative_corr).sum(dim=2).mean(dim=1, keepdim=True)
 
         return y_pred, y_match, y_corr_pos, y_corr_neg

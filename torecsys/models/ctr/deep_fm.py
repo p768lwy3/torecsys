@@ -1,13 +1,12 @@
-from . import _CtrModule
-from ..layers import FactorizationMachineLayer, MultilayerPerceptronLayer
-from torecsys.utils.logging.decorator import jit_experimental
+from . import _CtrModel
+from torecsys.layers import FactorizationMachineLayer, MultilayerPerceptronLayer
+from torecsys.utils.decorator import jit_experimental
 import torch
 import torch.nn as nn
-from typing import Dict
 
 
-class DeepFactorizationMachineModule(_CtrModule):
-    r"""DeepFactorizationMachineModule is a module of Deep Factorization Machine (DeepFM) proposed
+class DeepFactorizationMachineModel(_CtrModel):
+    r"""DeepFactorizationMachineModel is a model of Deep Factorization Machine (DeepFM) proposed
     by Huawei in 2017, which add up outputs of factorization machine and fully-connected dense 
     neural network directly: :math:`y_{out} = y_{deep} + y_{fm}` , to gain the advantage of two 
     different models of two different objectives, i.e. to gain the explainable power in high dimension 
@@ -33,7 +32,7 @@ class DeepFactorizationMachineModule(_CtrModule):
                  deep_dropout_p   : List[float] = None,
                  deep_activation  : Callable[[torch.Tensor], torch.Tensor] = nn.ReLU(),
                  output_size      : int = 1):
-        r"""initialize Deep Factorization Machine Module
+        r"""initialize Deep Factorization Machine Model
         
         Args:
             embed_size (int): embedding size
@@ -45,7 +44,7 @@ class DeepFactorizationMachineModule(_CtrModule):
             output_size (int, optional): output size of linear transformation after concatenate. Defaults to 1.
         """
         # initialize nn.Module class
-        super(DeepFactorizationMachineModule, self).__init__()
+        super(DeepFactorizationMachineModel, self).__init__()
 
         # layers (deep and fm) of second-order part of inputs
         self.fm = FactorizationMachineLayer(fm_dropout_p)
@@ -59,14 +58,14 @@ class DeepFactorizationMachineModule(_CtrModule):
         )
     
     def forward(self, feat_inputs: torch.Tensor, emb_inputs: torch.Tensor) -> torch.Tensor:
-        r"""feed forward of Deep Factorization Machine Module
+        r"""feed forward of Deep Factorization Machine Model
         
         Args:
             feat_inputs (T), shape = (B, N, 1): first order outputs, i.e. outputs from nn.Embedding(V, 1)
             emb_inputs (T), shape = (B, N, E): second order outputs of one-hot encoding, i.e. outputs from nn.Embedding(V, E)
         
         Returns:
-            torch.Tensor, shape = (B, O), dtype = torch.float: outputs of Deep Factorization Machine Module
+            torch.Tensor, shape = (B, O), dtype = torch.float: outputs of Deep Factorization Machine Model
         """
 
         # feat_inputs'shape = (B, N, 1) and reshape to (B, N)

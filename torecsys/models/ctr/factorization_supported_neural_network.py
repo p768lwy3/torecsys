@@ -1,11 +1,12 @@
-from . import _CtrModule
-from ..layers import FactorizationMachineLayer, MultilayerPerceptronLayer
-from torecsys.utils.logging.decorator import jit_experimental
+from . import _CtrModel
+from torecsys.layers import FactorizationMachineLayer, MultilayerPerceptronLayer
+from torecsys.utils.decorator import jit_experimental
 import torch
 import torch.nn as nn
 
-class FactorizationMachineSupportedNeuralNetwork(_CtrModule):
-    r"""FactorizationMachineSupportedNeuralNetwork is a module of Factorization-machine supported Neural
+
+class FactorizationMachineSupportedNeuralNetwork(_CtrModel):
+    r"""FactorizationMachineSupportedNeuralNetwork is a model of Factorization-machine supported Neural
     Network, which is a stack of Factorization Machine and Deep Neural Network, with the following calculation: 
     First calculate features interactions by factorization machine: :math:`y_{FM} = \text{Sigmoid} ( w_{0} + \sum_{i=1}^{N} w_{i} x_{i} + \sum_{i=1}^{N} \sum_{j=i+1}^{N} <v_{i}, v_{j}> x_{i} x_{j} )` .
     Then feed the interactions' representation to deep neural network: :math:`y_{i} = \text{Activation} ( w_{i} y_{i - 1} + b_{i} )` , 
@@ -24,7 +25,7 @@ class FactorizationMachineSupportedNeuralNetwork(_CtrModule):
                  fm_dropout_p     : float = 0.0,
                  deep_dropout_p   : List[float] = None,
                  deep_activation  : Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
-        """initialize Factorization-machine Supported Neural Network
+        r"""initialize Factorization-machine Supported Neural Network
         
         Args:
             embed_size (int): embedding size
@@ -33,7 +34,7 @@ class FactorizationMachineSupportedNeuralNetwork(_CtrModule):
             deep_layer_sizes (List[int]): layer sizes of multilayer perceptron layer
             fm_dropout_p (float, optional): dropout probability after factorization machine. Defaults to 0.0.
             deep_dropout_p (List[float], optional): dropout probability after activation of each layer. Allow: [None, list of float for each layer]. Defaults to None.
-            deep_activation (Callable[[torch.Tensor], torch.Tensor], optional): activation function of each layer. Allow: [None, Callable[[torch.Tensor], torch.Tensor]]. Defaults to nn.ReLU().
+            deep_activation (Callable[[T], T], optional): activation function of each layer. Allow: [None, Callable[[T], T]]. Defaults to nn.ReLU().
         """
         super(FactorizationMachineSupportedNeuralNetwork, self).__init__()
 
@@ -50,35 +51,28 @@ class FactorizationMachineSupportedNeuralNetwork(_CtrModule):
             activation  = deep_activation
         )
 
-    def forward(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
+    def forward(self, feat_inputs: torch.Tensor, emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""feed forward of Factorization-machine Supported Neural Network
         
         Args:
-            inputs (Dict[str, torch.Tensor]): Dictionary of inputs torch.Tensor
-        
-        Key-Values:
-            first_order, shape = (batch size, num_fields, 1): first order outputs, i.e. outputs from nn.Embedding(vocab_size, 1)
-            second_order, shape = (batch size, num_fields, embed_size): second order outputs
+            feat_inputs (T), shape = (B, N, 1): first order outputs, i.e. outputs from nn.Embedding(V, 1)
+            emb_inputs (T), shape = (B, N, E): second order outputs
         
         Returns:
-            torch.Tensor, shape = (batch size, output size), dtype = torch.float: outputs of Factorization-machine Supported Neural Network Module
+            T, shape = (B, O), dtype = torch.float: outputs of Factorization-machine Supported Neural Network Model
         """
-        # get batch size
-        batch_size = inputs["first_order"].size(0)
 
-        # first_order's shape = (batch size, number of fields, 1)
-        # and the output's shape = (batch size, number of fields)
-        first_out = inputs["first_order"]
-        first_out = first_out.view(batch_size, -1)
+        # squeeze feat_inputs to shape = (B, N)
+        fm_first = feat_inputs.squeeze()
 
-        # second_order's shape = (batch size, number of fields * number of fields, embed size)
-        # and the output's shape = (batch size, output size)
-        second_out = self.fm(inputs["second_order"])
-        second_out = second_out.view(batch_size, -1)
+        # pass to fm layer where its returns' shape = (B, E)
+        fm_second = self.fm(emb_inputs).squeeze()
 
-        # cat and feed-forward to Dense-layers
-        outputs = torch.cat([first_out, second_out], dim=1)
-        outputs = self.deep(outputs)
+        # cat into a tensor with shape = (B, N + E)
+        fm_out = torch.cat([fm_first, fm_second], dim=1)
+
+        # feed-forward to deep neural network, return shape = (B, O)
+        outputs = self.deep(fm_out)
 
         return outputs
     

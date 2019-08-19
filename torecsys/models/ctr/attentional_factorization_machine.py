@@ -4,7 +4,7 @@ from torecsys.utils.decorator import jit_experimental
 from functools import partial
 import torch
 import torch.nn as nn
-from typing import Dict
+
 
 class AttentionalFactorizationMachineModel(_CtrModel):
     r"""AttentionalFactorizationMachineModel is a model of attentional factorization machine,

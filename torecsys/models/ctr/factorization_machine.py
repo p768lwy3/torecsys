@@ -1,14 +1,14 @@
-from . import _CtrModule
-from ..layers import FactorizationMachineLayer
-from torecsys.utils.logging.decorator import jit_experimental
+from . import _CtrModel
+from torecsys.layers import FactorizationMachineLayer
+from torecsys.utils.decorator import jit_experimental
 from functools import partial
 import torch
 import torch.nn as nn
-from typing import Dict
 
 
-class FactorizationMachineModule(_CtrModule):
-    r"""FactoizationMachine is a module of Factorization Machine which calculate interactions 
+
+class FactorizationMachineModel(_CtrModel):
+    r"""FactoizationMachine is a model of Factorization Machine which calculate interactions 
     between fields by the following equation:
     :math:`\^{y}(x) := b_{0} + \sum_{i=1}^{n} w_{i} x_{i} + \sum_{i=1}^{n} \sum_{j=1+1}^{n} <v_{i},v_{j}> x_{i} x_{j}` .
 
@@ -22,19 +22,20 @@ class FactorizationMachineModule(_CtrModule):
                  embed_size    : int,
                  num_fields    : int,
                  dropout_p     : float = 0.0):
-        r"""initialize Factorization Machine Module
+        r"""initialize Factorization Machine Model
         
         Args:
             embed_size (int): embedding size
             num_fields (int): number of fields in inputs
             dropout_p (float, optional): dropout probability after factorization machine. Defaults to 0.1.
         """
-        super(FactorizationMachineModule, self).__init__()
+        super(FactorizationMachineModel, self).__init__()
         
         # initialize bias variable
         self.bias = nn.Parameter(torch.zeros(1))
         nn.init.uniform_(self.bias.data)
         
+        # initialize fm layer
         self.fm = FactorizationMachineLayer(dropout_p)
     
     def forward(self, feat_inputs: torch.Tensor, emb_inputs: torch.Tensor) -> torch.Tensor:
@@ -45,7 +46,7 @@ class FactorizationMachineModule(_CtrModule):
             emb_inputs (T), shape = (B, N, E): second order outputs of one-hot encoding, i.e. outputs from nn.Embedding(V, E)
         
         Returns:
-            torch.Tensor, shape = (B, 1 OR output size), dtype = torch.float: outputs of Factorization Machine
+            torch.Tensor, shape = (B, 1), dtype = torch.float: outputs of Factorization Machine
         """
 
         # feat_inputs'shape = (B, N, 1) and reshape to (B, N)
@@ -55,6 +56,6 @@ class FactorizationMachineModule(_CtrModule):
         fm_second = self.fm(emb_inputs).squeeze()
             
         # sum bias, fm_first, fm_second and get fm outputs with shape = (B, 1)
-        outputs = fm_second + fm_first + bias
+        outputs = fm_second + fm_first + self.bias
 
         return outputs

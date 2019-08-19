@@ -1,16 +1,23 @@
-from . import _CtrModule
-from ..layers import CrossNetworkLayer, MultilayerPerceptronLayer
-from torecsys.utils.logging.decorator import jit_experimental
+from . import _CtrModel
+from torecsys.layers import CrossNetworkLayer, MultilayerPerceptronLayer
+from torecsys.utils.decorator import jit_experimental
 import torch
 import torch.nn as nn
 
 
-class DeepAndCrossNetworkModule(_CtrModule):
-    r"""
+class DeepAndCrossNetworkModel(_CtrModel):
+    r"""DeepAndCrossNetworkModel is a model of deep and cross network, which is a model of 
+    a concatenation of deep neural network and cross network, and finally pass to a fully 
+    connect layer for the output.
+
+    :Reference:
+
+    #. `Ruoxi Wang et al, 2017. Deep & Cross Network for Ad Click Predictions <https://arxiv.org/abs/1708.05123>`_.
+    
     """
     def __init__(self, 
                  inputs_size      : int,
-                 O_d : int,
+                 deep_output_size : int,
                  deep_layer_sizes : List[int],
                  cross_num_layers : int,
                  output_size      : int = 1,
@@ -19,15 +26,15 @@ class DeepAndCrossNetworkModule(_CtrModule):
         r"""initialize deep adn cross network
         
         Args:
-            inputs_size (int): [description]
-            deep_output_size (int): [description]
-            deep_layer_sizes (List[int]): [description]
-            cross_num_layers (int): [description]
-            output_size (int, optional): [description]. Defaults to 1.
-            deep_dropout_p (List[float], optional): [description]. Defaults to None.
-            deep_activation (Callable[[torch.Tensor], torch.Tensor], optional): [description]. Defaults to nn.ReLU().
+            inputs_size (int): size of inputs tensor
+            deep_output_size (int): size of outputs of deep neural network
+            deep_layer_sizes (List[int]): sizes of layers in deep neural network
+            cross_num_layers (int): number of layers in cross network
+            output_size (int, optional): output size of model, i.e. output size of the last fully-connect layer. Defaults to 1.
+            deep_dropout_p (List[float], optional): dropout probability for each layer after dense layer. Defaults to None.
+            deep_activation (Callable[[T], T], optional): activation function for each layer of deep neural network. Defaults to nn.ReLU().
         """
-        super(DeepAndCrossNetworkModule, self).__init__()
+        super(DeepAndCrossNetworkModel, self).__init__()
 
         # initialize the layers of module
         # deep output's shape = (B, 1, O_d)
@@ -36,7 +43,7 @@ class DeepAndCrossNetworkModule(_CtrModule):
         self.cross = CrossNetworkLayer(num_layers=cross_num_layers, inputs_size=inputs_size)
 
         # initialize output fc layer
-        cat_size = O_d + inputs_size
+        cat_size = deep_output_size + inputs_size
         self.fc = nn.Linear(cat_size, output_size)
     
     def forward(self, emb_inputs: torch.Tensor) -> torch.Tensor:
@@ -46,7 +53,7 @@ class DeepAndCrossNetworkModule(_CtrModule):
             emb_inputs (T), shape = (B, N, E), dtype = torch.float: second order terms of fields that will be passed into afm layer and can be get from nn.Embedding(embed_size=E)
         
         Returns:
-            torch.Tensor: output of deep and cross network
+            T: output of deep and cross network
         """
         # inputs' shape = (B, N, I) and reshape to (B, 1, O_d)
         deep_out = self.deep(emb_inputs)

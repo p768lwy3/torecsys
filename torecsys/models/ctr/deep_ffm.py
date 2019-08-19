@@ -1,13 +1,13 @@
-from . import _CtrModule
-from ..layers import FieldAwareFactorizationMachineLayer, MultilayerPerceptronLayer
-from torecsys.utils.logging.decorator import jit_experimental
+from . import _CtrModel
+from torecsys.layers import FieldAwareFactorizationMachineLayer, MultilayerPerceptronLayer
+from torecsys.utils.decorator import jit_experimental
 import torch
 import torch.nn as nn
 from typing import Callable, List
 
 
-class DeepFieldAwareFactorizationMachineModule(_CtrModule):
-    r"""DeepFieldAwareFactorizationMachineModule is a module of Deep Field-aware Factorization 
+class DeepFieldAwareFactorizationMachineModel(_CtrModel):
+    r"""DeepFieldAwareFactorizationMachineModel is a model of Deep Field-aware Factorization 
     Machine (DeepFFM) proposed by Yang et al in Tencent Social Ads competition 2017 (they called
     this model Network on Field-aware Factorization Machine - NFFM), and described and rename to
     Deep Field-aware Factorization Machine by Zhang et al in their research (Zhang et al, 2019). 
@@ -42,20 +42,20 @@ class DeepFieldAwareFactorizationMachineModule(_CtrModule):
                  deep_dropout_p   : List[float] = None,
                  deep_activation  : Callable[[torch.Tensor], torch.Tensor] = nn.ReLU(),
                  output_size      : int = 1):
-        r"""initialize Deep Field-aware Factorization Machine Module
+        r"""initialize Deep Field-aware Factorization Machine Model
         
         Args:
             embed_size (int): embedding size
             num_fields (int): number of fields in inputs
-            deep_output_size (int): O of multilayer perceptron layer
-            deep_layer_sizes (List[int]): layer sizes of multilayer perceptron layer
-            ffm_dropout_p (float, optional): dropout probability after field-aware factorization machine. Defaults to 0.0.
-            deep_dropout_p (List[float], optional): dropout probability after activation of each layer. Allow: [None, list of float for each layer]. Defaults to None.
-            deep_activation (Callable[[T], T], optional): activation function of each layer. Allow: [None, Callable[[T], T]]. Defaults to nn.ReLU().
-            output_size (int, optional): O of linear transformation after concatenate. Defaults to 1.
+            deep_output_size (int): output size of mlp layer
+            deep_layer_sizes (List[int]): layer sizes of mlp layer
+            ffm_dropout_p (float, optional): dropout probability after ffm layer. Defaults to 0.0.
+            deep_dropout_p (List[float], optional): dropout probability after each mlp layer. Allow: [None, List[float]]. Defaults to None.
+            deep_activation (Callable[[T], T], optional): activation after each mlp layer. Allow: [None, Callable[[T], T]]. Defaults to nn.ReLU().
+            output_size (int, optional): output size of linear transformation after concatenate. Defaults to 1.
         """
         # initialize nn.Module class
-        super(DeepFieldAwareFactorizationMachineModule, self).__init__()
+        super(DeepFieldAwareFactorizationMachineModel, self).__init__()
 
         # sequential of second-order part in inputs
         self.second_order = nn.Sequential()
@@ -82,14 +82,14 @@ class DeepFieldAwareFactorizationMachineModule(_CtrModule):
         self.fc = nn.Linear(cat_size, output_size)
     
     def forward(self, feat_inputs: torch.Tensor, field_emb_inputs: torch.Tensor) -> torch.Tensor:
-        r"""feed forward of Deep Field-aware Factorization Machine Module
+        r"""feed forward of Deep Field-aware Factorization Machine Model
 
         Args:
             feat_inputs (T), shape = (B, N, 1): first order outputs, i.e. outputs from nn.Embedding(V, 1)
             field_emb_inputs (T), shape = (B, N * N, E): field-aware second order outputs, :math:`x_{i, \text{field}_{j}}`
         
         Returns:
-            torch.Tensor, shape = (B, O), dtype = torch.float: outputs of Deep Field-aware Factorization Machine Module
+            torch.Tensor, shape = (B, O), dtype = torch.float: outputs of Deep Field-aware Factorization Machine Model
         """
         # get B
         batch_size = feat_inputs.size(0)
