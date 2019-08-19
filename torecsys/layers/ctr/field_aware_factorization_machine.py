@@ -26,28 +26,23 @@ class FieldAwareFactorizationMachineLayer(nn.Module):
         self.num_fields = num_fields
         self.dropout = nn.Dropout(dropout_p)
     
-    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+    def forward(self, field_emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""feed-forward calculation of field-aware factorization machine layer
-        
-        Notations:
-            B: batch size
-            N: number of fields
-            E: embedding size
 
         Args:
-            inputs (torch.Tensor), shape = (B, N * N, E), dtype = torch.float: features matrices of inputs
+            field_emb_inputs (T), shape = (B, N * N, E), dtype = torch.float: features matrices of inputs
         
         Returns:
-            torch.Tensor, shape = (B, 1, output size), dtype = torch.float: output of field-aware factorization machine layer
+            T, shape = (B, 1, O), dtype = torch.float: output of field-aware factorization machine layer
         """
         # chunk inputs' tensor into num_fields parts with shape = (B, N, E)
-        inputs = torch.chunk(inputs, self.num_fields, dim=1)
+        field_emb_inputs = torch.chunk(field_emb_inputs, self.num_fields, dim=1)
         
         # calculate dot-product between efij and efji
         outputs = []
         for i in range(self.num_fields - 1):
             for j in range(i + 1, self.num_fields):
-                outputs.append(inputs[j][:, i] * inputs[i][:, j])
+                outputs.append(field_emb_inputs[j][:, i] * field_emb_inputs[i][:, j])
         
         # stack outputs into a tensor and pass into dropout layer
         outputs = torch.stack(outputs, dim=1)

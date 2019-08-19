@@ -49,22 +49,17 @@ class AttentionalFactorizationMachineLayer(nn.Module):
         # to dropout
         self.dropout = nn.Dropout(dropout_p)
     
-    def forward(self, inputs: torch.Tensor) -> Tuple[torch.Tensor]:
+    def forward(self, emb_inputs: torch.Tensor) -> Tuple[torch.Tensor]:
         r"""feed-forward calculation of attention factorization machine layer
-        
-        Notation:
-            B: batch size
-            N: number of fields
-            E: embedding size
 
         Args:
-            inputs (torch.Tensor), shape = (B, N, E), dtype = torch.float: features matrices of inputs
+            emb_inputs (T), shape = (B, N, E), dtype = torch.float: features matrices of inputs
         
         Returns:
-            Tuple[torch.Tensor], shape = ((B, 1, E) (B, NC2, 1)), dtype = torch.float: output and attention scores of Attentional Factorization Machine 
+            Tuple[T], shape = ((B, 1, E) (B, NC2, 1)), dtype = torch.float: output and attention scores of Attentional Factorization Machine 
         """
         # calculate inner product between each field, hence inner's shape = (B, NC2, E)
-        inner = inputs[:, self.row_idx] * inputs[:, self.col_idx]
+        inner = emb_inputs[:, self.row_idx] * emb_inputs[:, self.col_idx]
 
         # calculate attention scores by inner product, hence scores' shape = (B, NC2, 1)
         attn_scores = self.attn_score(inner)

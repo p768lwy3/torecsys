@@ -27,7 +27,7 @@ class MultilayerPerceptronLayer(nn.Module):
             num_fields (int, optional): number of fields in inputs, must input with embed_size together. Defaults to None.
             inputs_size (int, optional): inputs size, cannot input with embed_size and num_fields. Defaults to None.
             dropout_p (List[float], optional): dropout probability after activation of each layer. Allow: [None, list of float for each layer]. Defaults to None.
-            activation (Callable[[torch.Tensor], torch.Tensor], optional): activation function of each layer. Allow: [None, Callable[[torch.Tensor], torch.Tensor]]. Defaults to nn.ReLU().
+            activation (Callable[[T], T], optional): activation function of each layer. Allow: [None, Callable[[T], T]]. Defaults to nn.ReLU().
         
         Raises:
             ValueError: when embed_size or num_fields is missing if using embed_size and num_field pairs, or when inputs_size is missing if using inputs_size
@@ -57,16 +57,16 @@ class MultilayerPerceptronLayer(nn.Module):
                 self.model.add_module("dropout_%s" % i, nn.Dropout(dropout_p[i]))
         self.model.add_module("linear_output", nn.Linear(layer_sizes[-1], output_size))
     
-    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+    def forward(self, emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""feed-forward calculation of multilayer perceptron
         
         Args:
-            inputs (torch.Tensor), shape = (B, N, E), dtype = torch.float: features vectors of inputs
+            emb_inputs (T), shape = (B, N, E), dtype = torch.float: features vectors of inputs
         
         Returns:
-            torch.Tensor, shape = (B, 1, E), dtype = torch.float: output of multilayer perceptron
+            T, shape = (B, 1, E), dtype = torch.float: output of multilayer perceptron
         """
-        batch_size = inputs.size(0)
-        outputs = inputs.view(batch_size, -1)
+        batch_size = emb_inputs.size(0)
+        outputs = emb_inputs.view(batch_size, -1)
         outputs = self.model(outputs)
         return outputs.unsqueeze(1)

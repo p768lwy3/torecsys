@@ -33,21 +33,21 @@ class BilinearNetworkLayer(nn.Module):
             self.model.append(nn.Bilinear(inputs_size, inputs_size, inputs_size))
         self.fc = nn.Linear(inputs_size, output_size)
     
-    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+    def forward(self, emb_inputs: torch.Tensor) -> torch.Tensor:
         """feed-forward calculation of bilinear network layer
         
         Args:
-            inputs (torch.Tensor), shape = (B, N, E), dtype = torch.float: features matrices of inputs
+            emb_inputs (T), shape = (B, N, E), dtype = torch.float: features matrices of inputs
         
             Returns:
-                torch.Tensor, shape = (batch size, 1, output size), dtype = torch.float: output of bilinear network layer
+                T, shape = (B, 1, O), dtype = torch.float: output of bilinear network layer
         """
-        batch_size = inputs.size(0)
-        inputs = inputs.view(batch_size, -1)
-        outputs = inputs.detach().requires_grad_()
+        batch_size = emb_inputs.size(0)
+        emb_inputs = emb_inputs.view(batch_size, -1)
+        outputs = emb_inputs.detach().requires_grad_()
 
         for layer in self.model:
-            outputs = layer(inputs, outputs) + inputs
+            outputs = layer(emb_inputs, outputs) + emb_inputs
         
         output = self.fc(outputs)
         return outputs.unsqueeze(1)

@@ -50,18 +50,18 @@ class OuterProductNetworkLayer(nn.Module):
         self.param = nn.Parameter(torch.zeros(kernel_size))
         nn.init.xavier_normal_(self.param.data)
 
-    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+    def forward(self, emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""feed-forward calculation of outer product network
         
         Args:
-            inputs (torch.Tensor), shape = (B, N, E), dtype = torch.float: features vectors of inputs
+            emb_inputs (T), shape = (B, N, E), dtype = torch.float: features vectors of inputs
         
         Returns:
-            torch.Tensor, shape = (B, 1, NC2), dtype = torch.float: output of outer product network
+            T, shape = (B, 1, NC2), dtype = torch.float: output of outer product network
         """
         # indexing data for outer product
-        p = inputs[:, self.rowidx] # shape = (B, NC2, E)
-        q = inputs[:, self.colidx] # shape = (B, NC2, E)
+        p = emb_inputs[:, self.rowidx] # shape = (B, NC2, E)
+        q = emb_inputs[:, self.colidx] # shape = (B, NC2, E)
 
         # apply kernel on outer product
         if self.kernel_type == "mat":

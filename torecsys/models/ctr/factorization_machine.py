@@ -21,84 +21,40 @@ class FactorizationMachineModule(_CtrModule):
     def __init__(self, 
                  embed_size    : int,
                  num_fields    : int,
-                 dropout_p     : float = 0.1,
-                 bias          : bool = True,
-                 output_method : str = "concatenate",
-                 output_size   : int = 1):
+                 dropout_p     : float = 0.0):
         r"""initialize Factorization Machine Module
         
         Args:
             embed_size (int): embedding size
             num_fields (int): number of fields in inputs
             dropout_p (float, optional): dropout probability after factorization machine. Defaults to 0.1.
-            bias (bool, optional): use bias parameter in the calculation. Defaults to True.
-            output_method (str, optional): output method, Allows: ["concatenate", "sum"]. Defaults to "concatenate".
-            output_size (int, optional): ONLY apply on output_method == "concatenate", output size of linear transformation after concatenate. Defaults to 1.
-        
-        Raises:
-            ValueError: when output_method is not in ["concatenate", "sum"]
         """
         super(FactorizationMachineModule, self).__init__()
-        if bias:
-            # output size = fm output size + linear output size + bias
-            self.bias = nn.Parameter(torch.zeros(1))
-            nn.init.uniform_(self.bias.data)
-            cat_size = embed_size + num_fields + 1
-        else:
-            # output size = fm output size + linear output size
-            self.bias = None
-            cat_size = embed_size + num_fields
+        
+        # initialize bias variable
+        self.bias = nn.Parameter(torch.zeros(1))
+        nn.init.uniform_(self.bias.data)
         
         self.fm = FactorizationMachineLayer(dropout_p)
-        
-        if output_method == "concatenate":
-            self.fc = nn.Linear(cat_size, output_size)
-        elif output_method == "sum":
-            self.fc = partial(torch.sum, dim=1, keepdim=True)
-        else:
-            raise ValueError("output_method %s is not allowed." % output_method)
     
-    def forward(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
+    def forward(self, feat_inputs: torch.Tensor, emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""feed forward of Factorization Machine Model 
         
         Args:
-            inputs (Dict[str, torch.Tensor]): Dictionary of inputs torch.Tensor
-        
-        Key-Values:
-            first_order, shape = (batch size, num_fields, 1): first order outputs, i.e. outputs from nn.Embedding(vocab_size, 1)
-            second_order, shape = (batch size, num_fields, embed_size): second order outputs of one-hot encoding, i.e. outputs from nn.Embedding(vocab_size, embed_size)
+            feat_inputs (T), shape = (B, N, 1): first order outputs, i.e. outputs from nn.Embedding(V, 1)
+            emb_inputs (T), shape = (B, N, E): second order outputs of one-hot encoding, i.e. outputs from nn.Embedding(V, E)
         
         Returns:
-            torch.Tensor, shape = (batch size, 1 OR output size), dtype = torch.float: outputs of Factorization Machine
+            torch.Tensor, shape = (B, 1 OR output size), dtype = torch.float: outputs of Factorization Machine
         """
-        # get batch size
-        batch_size = inputs["first_order"].size(0)
 
-        # first_order's shape = (batch size, number of fields, 1)
-        # which could be get by nn.Embedding(vocab size, 1)
-        linear_out = inputs["first_order"]
+        # feat_inputs'shape = (B, N, 1) and reshape to (B, N)
+        fm_first = feat_inputs.squeeze()
 
-        # second_order's shape = (batch size, number of fields, embed size)
-        # which could be get by nn.Embedding(vocab size, embed size)
-        fm_out = self.fm(inputs["second_order"])
+        # pass to fm layer where its returns' shape = (B, E)
+        fm_second = self.fm(emb_inputs).squeeze()
             
-        # reshape fm_out to (batch size, embed size)
-        fm_out = fm_out.view(batch_size, -1)
-
-        # reshape linear_out to (batch size, number of fields)
-        linear_out = linear_out.view(batch_size, -1)
-
-        # repeat and reshape bias to shape = (batch size, 1)
-        if self.bias is not None:
-            # shape = (batch size, number of fields * embed size + number of fields + 1)
-            bias = self.bias.repeat(batch_size).view(batch_size, 1)
-            outputs = torch.cat([fm_out, linear_out, bias], dim=1)
-        else:
-            # shape = (batch size, number of fields * embed size + number of fields)
-            outputs = torch.cat([fm_out, linear_out], dim=1)
-            
-        # fully-connected dense layer for output, return (batch size, output size)
-        # or sum with second dimension, return (batch size, 1)
-        outputs = self.fc(outputs)
+        # sum bias, fm_first, fm_second and get fm outputs with shape = (B, 1)
+        outputs = fm_second + fm_first + bias
 
         return outputs

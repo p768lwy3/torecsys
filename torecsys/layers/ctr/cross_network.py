@@ -43,20 +43,23 @@ class CrossNetworkLayer(nn.Module):
         for _ in range(num_layers):
             self.model.append(nn.Linear(inputs_size, inputs_size))
     
-    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+    def forward(self, emb_inputs: torch.Tensor) -> torch.Tensor:
         """feed-forward calculation of cross network layer
         
         Args:
-            inputs (torch.Tensor), shape = (batch size, number of fields, embedding size), dtype = torch.float: features matrices of inputs
+            emb_inputs (T), shape = (B, N, E), dtype = torch.float: features matrices of inputs
         
         Returns:
-            torch.Tensor, shape = (batch size, 1, embedding size), dtype = torch.float: output of cross network layer
+            T, shape = (B, 1, E), dtype = torch.float: output of cross network layer
         """
-        batch_size = inputs.size(0)
-        inputs = inputs.view(batch_size, -1)
-        outputs = inputs.detach().requires_grad_()
+        # reshape inputs from 3 dimensiol to 2 dimension with shape = (B, N * E)
+        batch_size = emb_inputs.size(0)
+        emb_inputs = emb_inputs.view(batch_size, -1)
+
+        # copy a tensor call outpus from inputs
+        outputs = emb_inputs.detach().requires_grad_()
 
         for layer in self.model:
-            outputs = inputs * layer(outputs) + inputs
+            outputs = emb_inputs * layer(outputs) + emb_inputs
         
         return outputs.unsqueeze(1)

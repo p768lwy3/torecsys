@@ -58,36 +58,29 @@ class DeepFactorizationMachineModule(_CtrModule):
             activation=deep_activation
         )
     
-    def forward(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
+    def forward(self, feat_inputs: torch.Tensor, emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""feed forward of Deep Factorization Machine Module
         
         Args:
-            inputs (Dict[str, torch.Tensor]): Dictionary of inputs torch.Tensor
-        
-        Key-Values:
-            first_order, shape = (batch size, num_fields, 1): first order outputs, i.e. outputs from nn.Embedding(vocab_size, 1)
-            second_order, shape = (batch size, num_fields, embed_size): second order outputs of one-hot encoding, i.e. outputs from nn.Embedding(vocab_size, embed_size)
+            feat_inputs (T), shape = (B, N, 1): first order outputs, i.e. outputs from nn.Embedding(V, 1)
+            emb_inputs (T), shape = (B, N, E): second order outputs of one-hot encoding, i.e. outputs from nn.Embedding(V, E)
         
         Returns:
-            torch.Tensor, shape = (batch size, output size), dtype = torch.float: outputs of Deep Factorization Machine Module
+            torch.Tensor, shape = (B, O), dtype = torch.float: outputs of Deep Factorization Machine Module
         """
 
-        # first_order'shape = (batch size, number of fields, 1)
-        # and the output's shape = (batch size, number of fields)
-        first_out = inputs["first_order"].squeeze()
+        # feat_inputs'shape = (B, N, 1) and reshape to (B, N)
+        fm_first = feat_inputs.squeeze()
 
-        # second_order's shape = (batch size, number of fields, embed size)
-        second_in = inputs["second_order"]
-
-        # pass to fm layer with shape = (batch size, embed size)
-        second_out = self.fm(second_in).squeeze()
+        # pass to fm layer where its returns' shape = (B, E)
+        fm_second = self.fm(emb_inputs).squeeze()
         
-        # calculate output of factorization machine with output's shape = (batch size, 1)
-        fm_out = torch.cat([first_out, second_out], dim=1)
+        # calculate output of factorization machine with output's shape = (B, 1)
+        fm_out = torch.cat([fm_first, fm_second], dim=1)
         fm_out = fm_out.sum(dim=1, keepdim=True)
 
-        # pass to dense layers with output's shape = (batch size, 1)
-        deep_out = self.deep(second_in)
+        # pass to dense layers with output's shape = (B, 1)
+        deep_out = self.deep(emb_inputs)
 
         # deepfm outputs = fm_out + deep_out
         outputs = deep_out + fm_out

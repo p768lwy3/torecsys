@@ -18,14 +18,14 @@ class GeneralizedMatrixFactorizationLayer(nn.Module):
         """
         super(GeneralizedMatrixFactorizationLayer, self).__init__()
 
-    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+    def forward(self, emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""feed-forward calculation of generalized matrix factorization
         
         Args:
-            inputs (torch.Tensor), shape = (B, 2, E), dtype = torch.float: inputs of two features vectors
+            emb_inputs (T), shape = (B, 2, E), dtype = torch.float: inputs of two features vectors
         
         Returns:
-            torch.Tensor, shape = (B, 1), dtype = torch.float: output of generalized matrix factorization
+            T, shape = (B, 1), dtype = torch.float: output of generalized matrix factorization
         """
-        outputs = (inputs[:, 0, :] * inputs[:, 1, :]).sum(dim=1, keepdim=True)
+        outputs = (emb_inputs[:, 0, :] * emb_inputs[:, 1, :]).sum(dim=1, keepdim=True)
         return outputs.unsqueeze(1)

@@ -32,14 +32,14 @@ class InnerProductNetworkLayer(nn.Module):
         self.rowidx = torch.LongTensor(rowidx)
         self.colidx = torch.LongTensor(colidx)
     
-    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+    def forward(self, emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""feed-forward calculation of inner product network
         
         Args:
-            inputs (torch.Tensor), shape = (B, N, E), dtype = torch.float: features vectors of inputs
+            emb_inputs (T), shape = (B, N, E), dtype = torch.float: features vectors of inputs
         
         Returns:
-            torch.Tensor, shape = (B, 1, NC2), dtype = torch.float: output of inner product network
+            T, shape = (B, 1, NC2), dtype = torch.float: output of inner product network
         """
-        outputs = torch.sum(inputs[:, self.rowidx] * inputs[:, self.colidx], dim=2)
+        outputs = torch.sum(emb_inputs[:, self.rowidx] * emb_inputs[:, self.colidx], dim=2)
         return outputs.unsqueeze(1)

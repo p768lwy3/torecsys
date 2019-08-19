@@ -47,26 +47,26 @@ class DeepFieldAwareFactorizationMachineModule(_CtrModule):
         Args:
             embed_size (int): embedding size
             num_fields (int): number of fields in inputs
-            deep_output_size (int): output size of multilayer perceptron layer
+            deep_output_size (int): O of multilayer perceptron layer
             deep_layer_sizes (List[int]): layer sizes of multilayer perceptron layer
             ffm_dropout_p (float, optional): dropout probability after field-aware factorization machine. Defaults to 0.0.
             deep_dropout_p (List[float], optional): dropout probability after activation of each layer. Allow: [None, list of float for each layer]. Defaults to None.
-            deep_activation (Callable[[torch.Tensor], torch.Tensor], optional): activation function of each layer. Allow: [None, Callable[[torch.Tensor], torch.Tensor]]. Defaults to nn.ReLU().
-            output_size (int, optional): output size of linear transformation after concatenate. Defaults to 1.
+            deep_activation (Callable[[T], T], optional): activation function of each layer. Allow: [None, Callable[[T], T]]. Defaults to nn.ReLU().
+            output_size (int, optional): O of linear transformation after concatenate. Defaults to 1.
         """
         # initialize nn.Module class
         super(DeepFieldAwareFactorizationMachineModule, self).__init__()
 
         # sequential of second-order part in inputs
         self.second_order = nn.Sequential()
-        # ffm's input shape = (batch size, num_fields * num_fields, embedding size)
-        # ffm's output shape = (batch size, num_fields, embedding size)
+        # ffm's input shape = (B, N * N, E)
+        # ffm's output shape = (B, N, E)
         self.second_order.add_module("ffm", FieldAwareFactorizationMachineLayer(
             num_fields=num_fields, 
             dropout_p=ffm_dropout_p
         ))
-        # deep's input shape = (batch size, num_fields, embedding size)
-        # deep's output shape = (batch size, 1, output size)
+        # deep's input shape = (B, N, E)
+        # deep's output shape = (B, 1, O)
         self.second_order.add_module("deep", MultilayerPerceptronLayer(
             output_size=deep_output_size, 
             layer_sizes=deep_layer_sizes, 
@@ -76,39 +76,35 @@ class DeepFieldAwareFactorizationMachineModule(_CtrModule):
             activation=deep_activation
         ))
 
-        # fully connected layers' input = (batch size, 1, number of fields + output size)
-        # and output's shape = (batch size, 1, output_size)
+        # fully connected layers' input = (B, 1, N + O)
+        # and output's shape = (B, 1, O)
         cat_size = num_fields + deep_output_size
         self.fc = nn.Linear(cat_size, output_size)
     
-    def forward(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
+    def forward(self, feat_inputs: torch.Tensor, field_emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""feed forward of Deep Field-aware Factorization Machine Module
-        
+
         Args:
-            inputs (Dict[str, torch.Tensor]): Dictionary of inputs torch.Tensor
-        
-        Key-Values:
-            first_order, shape = (batch size, num_fields, 1): first order outputs, i.e. outputs from nn.Embedding(vocab_size, 1)
-            second_order, shape = (batch size, num_fields * num_fields, embed_size): field-aware second order outputs, :math:`x_{i, \text{field}_{j}}`
+            feat_inputs (T), shape = (B, N, 1): first order outputs, i.e. outputs from nn.Embedding(V, 1)
+            field_emb_inputs (T), shape = (B, N * N, E): field-aware second order outputs, :math:`x_{i, \text{field}_{j}}`
         
         Returns:
-            torch.Tensor, shape = (batch size, output size), dtype = torch.float: outputs of Deep Field-aware Factorization Machine Module
+            torch.Tensor, shape = (B, O), dtype = torch.float: outputs of Deep Field-aware Factorization Machine Module
         """
-        # get batch size
-        batch_size = inputs["first_order"].size(0)
+        # get B
+        batch_size = feat_inputs.size(0)
 
-        # first_order's shape = (batch size, number of fields, 1)
-        # and the output's shape = (batch size, number of fields)
-        first_out = inputs["first_order"]
-        first_out = first_out.view(batch_size, -1)
+        # feat_inputs's shape = (B, N, 1)
+        # and the output's shape = (B, N)
+        feat_inputs = feat_inputs.view(batch_size, -1)
         
-        # second_order's shape = (batch size, number of fields * number of fields, embed size)
-        # and the output's shape = (batch size, 1, output size)
-        second_out = self.second_order(inputs["second_order"])
-        second_out = second_out.view(batch_size, -1)
+        # field_emb_inputs's shape = (B, N * N, E)
+        # and the output's shape = (B, 1, O)
+        ffm_out = self.second_order(field_emb_inputs)
+        ffm_out = ffm_out.view(batch_size, -1)
 
         # cat and feed-forward to nn.Linear
-        outputs = torch.cat([second_out, first_out], dim=1)
+        outputs = torch.cat([ffm_out, feat_inputs], dim=1)
         outputs = self.fc(outputs)
 
         return outputs

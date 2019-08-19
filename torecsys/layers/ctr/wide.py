@@ -24,21 +24,20 @@ class WideLayer(nn.Module):
         self.model.add_module("linear_0", nn.Linear(embed_size * num_fields, output_size))
         self.model.add_module("dropout_0", nn.Dropout(dropout_p))
     
-    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+    def forward(self, emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""feed-forward calculation of wide layer
         
         Args:
-            inputs (torch.Tensor), shape = (batch size, number of fields, embedding size), dtype = torch.float: features matrices of inputs
+            emb_inputs (T), shape = (B, N, E), dtype = torch.float: features matrices of inputs
         
         Returns:
-            torch.Tensor, shape = (batch size, 1, output size), dtype = torch.float: output of wide layer
+            T, shape = (B, 1, O), dtype = torch.float: output of wide layer
         """
-        # flatten inputs tensor from (batch size, number of fields, embedding size)
-        # to (batch size, num of fields * embedding size)
-        batch_size = inputs.size(0)
-        outputs = inputs.view(batch_size, -1)
+        # flatten inputs tensor from (B, N, E) to (B, N * E)
+        batch_size = emb_inputs.size(0)
+        outputs = emb_inputs.view(batch_size, -1)
 
-        # calculate outputs of model and unsqueeze 2-nd dimension to make outputs' shape be (batch size, 1, output size)
+        # calculate outputs of model and unsqueeze 2-nd dimension to make outputs' shape be (B, 1, O)
         outputs = self.model(outputs)
         return outputs.unsqueeze(1)
     

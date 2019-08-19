@@ -42,19 +42,19 @@ class AttentionalFactorizationMachineModel(_CtrModel):
         r"""feed forward of AttentionalFactorizationMachineModel
         
         Args:
-            feat_inputs (torch.Tensor), shape = (batch size, number of fields, 1), dtype = torch.float: linear terms of fields, which can be get from nn.Embedding(embed_size=1)
-            emb_inputs (torch.Tensor), shape = (batch size, number of fields, embed size), dtype = torch.float: second order terms of fields that will be passed into afm layer and can be get from nn.Embedding(embed_size=embed_size)
+            feat_inputs (T), shape = (B, N, 1), dtype = torch.float: linear terms of fields, which can be get from nn.Embedding(embed_size=1)
+            emb_inputs (T), shape = (B, N, E), dtype = torch.float: second order terms of fields that will be passed into afm layer and can be get from nn.Embedding(embed_size=E)
         
         Returns:
-            torch.Tensor, shape = (batch size, 1), dtype = torch.float: predicted values of afm model
+            T, shape = (B, 1), dtype = torch.float: predicted values of afm model
         """
-        # first_order's shape = (batch size, number of fields, 1)
-        # output's shape = (batch size, 1)
+        # first_order's shape = (B, N, 1)
+        # output's shape = (B, 1)
         linear_out = feat_inputs.sum(dim=1)
 
-        # second_order's shape = (batch size, number of fields, embed size)
-        # output's shape = (batch size, 1, embed size)
-        # aggregate afm_out with dim = 2, and the output's shape = (batch size, 1)
+        # second_order's shape = (B, N, E)
+        # output's shape = (B, 1, E)
+        # aggregate afm_out with dim = 2, and the output's shape = (B, 1)
         afm_out = self.afm(emb_inputs).sum(dim=2)
 
         # sum up bias, linear_out and afm_out to output

@@ -23,20 +23,20 @@ class FactorizationMachineLayer(nn.Module):
         super(FactorizationMachineLayer, self).__init__()
         self.dropout = nn.Dropout(dropout_p)
         
-    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+    def forward(self, emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""feed-forward calculation of factorization machine layer
         
         Args:
-            inputs (torch.Tensor), shape = (batch size, number of fields, embedding size), dtype = torch.float: features matrices of inputs
+            emb_inputs (T), shape = (B, N, E), dtype = torch.float: features matrices of inputs
         
         Returns:
-            torch.Tensor, shape = (batch size, 1, output size), dtype = torch.float: output of factorization machine layer
+            T, shape = (B, 1, O), dtype = torch.float: output of factorization machine layer
         """
         # squared sum embedding where output shape = (B, E)
-        squared_sum_embs = (inputs.sum(dim=1)) ** 2
+        squared_sum_embs = (emb_inputs.sum(dim=1)) ** 2
         
         # sum squared embedding where output shape = (B, E)
-        sum_squared_embs = (inputs ** 2).sum(dim=1)
+        sum_squared_embs = (emb_inputs ** 2).sum(dim=1)
         
         # calculate output of fm
         outputs = 0.5 * (squared_sum_embs - sum_squared_embs)

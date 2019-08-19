@@ -28,6 +28,23 @@ Install with pip:
 
     pip install torecsys (planning to develop on 0.1.0...)
 
+Notations
+=========
++---------+--------------------------------------------------+
+| Symbol: | To refer:                                        |
++=========+==================================================+
+| **T**   | torch.Tensor                                     |
+| **B**   | batch size                                       |
+| **E**   | embedding size                                   |
+| **H_i** | output size of i-th hidden layer                 |
+| **N**   | number of fields                                 |
+| **I**   | input sizes of any layers required *inputs_size* |
+| **O**   | output size of any layers requried *output_size* |
+| **V**   | total number of words in a vocabulary set        |
+| **S**   | total number of samples, e.g. negative samples   |
++---------+--------------------------------------------------+
+
+
 API documentation
 =================
 

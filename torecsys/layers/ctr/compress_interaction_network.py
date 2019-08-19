@@ -34,7 +34,7 @@ class CompressInteractionNetworkLayer(nn.Module):
             is_direct (bool, optional): boolea flag to set whether passing the whole output directly or passing half of output. Defaults to False.
             use_bias (bool, optional): boolean flag to set whether using bias variable in Conv1d layers. Defaults to True.
             use_batchnorm (bool, optional): boolean flag to set whether using Batch Norm after Conv1d layers. Defaults to True.
-            activation (Callable[[torch.Tensor], torch.Tensor], optional): activation function of each layer. Allow: [None, Callable[[torch.Tensor], torch.Tensor]]. Defaults to nn.ReLU().
+            activation (Callable[[T], T], optional): activation function of each layer. Allow: [None, Callable[[T], T]]. Defaults to nn.ReLU().
         """
         super(CompressInteractionNetworkLayer, self).__init__()
 
@@ -60,55 +60,48 @@ class CompressInteractionNetworkLayer(nn.Module):
         model_output_size = int(sum(layer_sizes))
         self.fc = nn.Linear(model_output_size, output_size)
 
-    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+    def forward(self, emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""feed-forward calculation of compress interaction network
-
-        Notation:
-            B: batch size
-            N: number of fields
-            E / E_0: embedding size
-            E_i: i-th hidden layer
-            O: output size
         
         Args:
-            inputs (torch.Tensor), shape = (B, N, E), dtype = torch.float: features vectors of inputs
+            emb_inputs (T), shape = (B, N, E), dtype = torch.float: features vectors of emb_inputs
         
         Returns:
-            torch.Tensor, shape = (B, 1, O), dtype = torch.float: output of compress interaction network
+            T, shape = (B, 1, O), dtype = torch.float: output of compress interaction network
         """
         direct_list = list()
         hidden_list = list()
 
         # transpose x0 from (B, N, E) to (B, E, N, 1)
-        x0 = inputs.transpose(1, 2)
+        x0 = emb_inputs.transpose(1, 2)
         hidden_list.append(x0)
         x0 = x0.unsqueeze(-1)
 
         # loop through 1d conv layers list
         for i, layer_size in enumerate(self.layer_sizes[:-1]):
-            # get (i - 1)-th hidden layer and expand the shape to (B, N, 1, E_i-1)
+            # get (i - 1)-th hidden layer and expand the shape to (B, N, 1, H_{i-1})
             xi = hidden_list[-1].unsqueeze(2)
 
-            # calculate outer product by matmul, where the shape = (B, N, E_0, E_i-1)
+            # calculate outer product by matmul, where the shape = (B, N, E, H_{i-1})
             out_prod = torch.matmul(x0, xi)
             
-            # then reshape the outer product to (B, E_0 * E_i-1, N)
+            # then reshape the outer product to (B, E * H_{i-1}, N)
             out_prod = out_prod.view(-1, self.embed_size, layer_size * self.layer_sizes[0])
             out_prod = out_prod.transpose(1, 2)
 
             # apply convalution, batchnorm and activation, 
-            # and the shape will be (B, E_i * 2 or E_i, N)
+            # and the shape will be (B, H_i * 2 or H_i, N)
             outputs = self.model[i](out_prod)
             
             if self.is_direct:
                 # pass the whole tensors as hidden value to next step 
-                # and also keep the whole tensors for outputs with shape = (B, N, E_i)
+                # and also keep the whole tensors for outputs with shape = (B, N, H_i)
                 direct = outputs
                 hidden = outputs.transpose(1, 2)
             else:
                 if i != (len(self.layer_sizes) - 1):
                     # pass half tensors to next step and keep half tensors
-                    # for outputs with shape = (B, N, E_i) if not in last step
+                    # for outputs with shape = (B, N, H_i) if not in last step
                     direct, hidden = torch.chunk(outputs, 2, dim=1)
                     hidden = hidden.transpose(1, 2)
                 else:
