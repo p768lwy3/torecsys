@@ -11,7 +11,7 @@ from .attentional_factorization_machine import AttentionalFactorizationMachineMo
 from .deep_and_cross_network import DeepAndCrossNetworkModel
 from .deep_ffm import DeepFieldAwareFactorizationMachineModel
 from .deep_fm import DeepFactorizationMachineModel
-from .deep_mcp import DeepMatchingCorrelationPredictionModel
+# from .deep_mcp import DeepMatchingCorrelationPredictionModel
 from .factorization_machine import FactorizationMachineModel
 from .factorization_machine_supported_neural_network import FactorizationMachineSupportedNeuralNetworkModel
 from .fat_deep_ffm import FieldAttentiveDeepFieldAwareFactorizationMachineModel
@@ -19,4 +19,14 @@ from .field_aware_factorization_machine import FieldAwareFactorizationMachineMod
 from .logistic_regression import LogisticRegressionModel
 from .neural_collaborative_filtering import NeuralCollaborativeFilteringModel
 
+# create shorten name of models
+AFMModel = AttentionalFactorizationMachineModel
+DeepFFMModel = DeepFieldAwareFactorizationMachineModel
+DeepFMModel = DeepFactorizationMachineModel
+FATDeepFFMModel = FieldAttentiveDeepFieldAwareFactorizationMachineModel
 FieldAwareNeuralFactorizationMachineModel = DeepFieldAwareFactorizationMachineModel
+FFMModel = FieldAwareFactorizationMachineModel
+FMModel = FactorizationMachineModel
+FMNNModel = FactorizationMachineSupportedNeuralNetworkModel
+FNFMModel = FieldAwareNeuralFactorizationMachineModel
+NCFModel = NeuralCollaborativeFilteringModel
