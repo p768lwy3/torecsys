@@ -13,6 +13,8 @@ from .single_index_emb import SingleIndexEmbedding
 # from .timestamp_inp import TimestampInputs
 from .value_inp import ValueInputs
 
+from torecsys.utils.decorator import jit_experimental
+
 import torch
 import torch.nn as nn
 from typing import Dict, List, Tuple

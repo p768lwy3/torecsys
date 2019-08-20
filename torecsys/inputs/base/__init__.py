@@ -24,7 +24,7 @@ from .image_inp import ImageInputs
 # from .image_list_inp import ImageListInputs
 from .list_index_emb import ListIndexEmbedding
 from .multiple_index_emb import MultipleIndexEmbedding
-# from .pretrained_image_inp import PretrainedImageInputs
+from .pretrained_image_inp import PretrainedImageInputs
 # from .pretrained_text_inp import PretrainedTextInputs
 from .sequence_index_emb import SequenceIndexEmbedding
 from .single_index_emb import SingleIndexEmbedding
