@@ -13,7 +13,7 @@ r"""torecsys.data is a module to handling data preprocessing before embedding la
 #. create negative sampler to generate negative samples during training process
 """
 
-# from .dataloader import *
+from .dataloader import *
 from .dataset import *
 from .negsampling import *
 from .sampledata import *

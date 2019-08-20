@@ -3,6 +3,7 @@ r"""torecsys.layers.ctr is a sub module of the implementation of layers used in 
 
 from .attentional_factorization_machine import AttentionalFactorizationMachineLayer
 from .bilinear import BilinearNetworkLayer
+from .compose_excitation_network import ComposeExcitationNetworkLayer
 from .compress_interaction_network import CompressInteractionNetworkLayer
 from .cross_network import CrossNetworkLayer
 from .factorization_machine import FactorizationMachineLayer

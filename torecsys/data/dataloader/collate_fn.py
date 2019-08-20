@@ -6,7 +6,7 @@ import torch
 import torch.nn.utils.rnn as rnn_utils
 import torchvision
 import torchvision.transforms as transforms
-from Typing import Dict, List, Tuple
+from typing import Dict, List, Tuple
 
 
 __field_type__ = ["values", "single_index", "list_index", "sequence_index", "image_dir", "image_url", "sentence"]

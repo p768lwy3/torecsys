@@ -39,13 +39,6 @@
     1. .base
         * _CtrModel
     3. .estimators
-        * DeepMCP : https://arxiv.org/abs/1906.04365
-        * FactorizationMachine : https://www.csie.ntu.edu.tw/~b97053/paper/Rendle2010FM.pdf
-        * FactorizationSupportedNeuralNetwork : https://arxiv.org/abs/1601.02376
-        * FATDeepFFM (use conv1d kernel 1x1 to compose kxn field matrix to 1xn vector) : https://arxiv.org/abs/1905.06336
-        * FieldAwareFactorizationMachine : https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf
-        * FieldAwareNeuralFactorizationMachine : https://arxiv.org/abs/1902.09096
-        * LogisticRegression
         * NeuralCollaborativeFiltering: https://arxiv.org/pdf/1708.05031.pdf
         * NeuralFactorizationMachine : https://arxiv.org/pdf/1708.05027.pdf
         * ProductNeuralNetwork : https://arxiv.org/abs/1611.00144

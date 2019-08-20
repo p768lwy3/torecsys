@@ -76,32 +76,25 @@ class DeepFieldAwareFactorizationMachineModel(_CtrModel):
             activation=deep_activation
         ))
 
-        # fully connected layers' input = (B, 1, N + O)
-        # and output's shape = (B, 1, O)
-        cat_size = num_fields + deep_output_size
-        self.fc = nn.Linear(cat_size, output_size)
     
-    def forward(self, feat_inputs: torch.Tensor, field_emb_inputs: torch.Tensor) -> torch.Tensor:
+    def forward(self, field_emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""feed forward of Deep Field-aware Factorization Machine Model
 
         Args:
-            feat_inputs (T), shape = (B, N, 1): first order outputs, i.e. outputs from nn.Embedding(V, 1)
             field_emb_inputs (T), shape = (B, N * N, E): field-aware second order outputs, :math:`x_{i, \text{field}_{j}}`
         
         Returns:
-            torch.Tensor, shape = (B, O), dtype = torch.float: outputs of Deep Field-aware Factorization Machine Model
+            torch.Tensor, shape = (B, 1), dtype = torch.float: outputs of Deep Field-aware Factorization Machine Model
         """
-        # get B
-        batch_size = feat_inputs.size(0)
 
-        # feat_inputs's shape = (B, N, 1)
-        # and the output's shape = (B, N)
-        feat_inputs = feat_inputs.view(batch_size, -1)
+        # feat_inputs's shape = (B, N * N, E)
+        # and the output's shape = (B, 1)
+        first_order = field_emb_inputs.sum(dim=[1, 2]).unsqueeze(-1)
         
         # field_emb_inputs's shape = (B, N * N, E)
-        # and the output's shape = (B, 1, O)
+        # and the output's shape = (B, 1)
         ffm_out = self.second_order(field_emb_inputs)
-        ffm_out = ffm_out.view(batch_size, -1)
+        ffm_out = ffm_out.sum(dim=1)
 
         # cat and feed-forward to nn.Linear
         outputs = torch.cat([ffm_out, feat_inputs], dim=1)

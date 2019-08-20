@@ -14,7 +14,7 @@ class CrossNetworkLayer(nn.Module):
     """
     @jit_experimental
     def __init__(self, 
-                 num_layers: int,
+                 num_layers  : int,
                  embed_size  : int = None,
                  num_fields  : int = None,
                  inputs_size : int = None):
