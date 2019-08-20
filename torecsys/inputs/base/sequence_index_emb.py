@@ -1,13 +1,14 @@
 from . import _Inputs
+from torecsys.utils.decorator import jit_experimental
 from functools import partial
 import torch
 import torch.nn as nn
-import warnings
 
 
 class SequenceIndexEmbedding(_Inputs):
     r"""SequenceIndexEmbedding is a embedding field to pass a sequence of index with order
     process by Recurrent Neural Network, and finally return aggregated embedding tensor"""
+    @jit_experimental
     def __init__(self,
                  embed_size   : int,
                  field_size   : int,
@@ -33,15 +34,11 @@ class SequenceIndexEmbedding(_Inputs):
             bidirectional (bool): boolean flag to use bidirectional recurrent neural network
         
         Raises:
-            warnings: raise warning since RNN module is not compatible to jit now.
             ValueError: when rnn_method is not in ["gru", "lstm", "rnn"].
             ValueError: when output_method is not in ["avg_pooling", "max_pooling", "mean", "sum"].
         """
         super(SequenceIndexEmbedding, self).__init__()
         
-        # raise warnings of jit-incompatible
-        warnings.warn("since rnn layers are not compatible with jit now, this module cannot be called with any jit-related function.")
-
         if nn_embedding is not None:
             self.length = nn_embedding.size(1)
             self.embedding = nn.Embedding.from_pretrained(nn_embedding)
@@ -51,7 +48,7 @@ class SequenceIndexEmbedding(_Inputs):
 
         __rnn_method__ = ["rnn", "lstm", "gru"]
         bidirectional = kwargs.get("bidirectional", False)
-        if bidriectional:
+        if bidirectional:
             hidden_size = embed_size // 2
         else:
             hidden_size = embed_size
@@ -92,19 +89,14 @@ class SequenceIndexEmbedding(_Inputs):
             raise ValueError("output_method only allows [%s]." % (", ".join(__output_method__)))
     
     def forward(self, inputs: torch.Tensor, lengths: torch.Tensor) -> torch.Tensor:
-        """Return aggregated embedding vectors of inputs which passed over Recurrent Neural Network, and take aggregation after that.
-        
-        Notations:
-            B: batch size
-            L: max sequence length
-            E: embedding size
+        r"""Return aggregated embedding vectors of inputs which passed over Recurrent Neural Network, and take aggregation after that.
 
         Args:
-            inputs (torch.Tensor), shape = (B, L), dtype = torch.long: sequence of indices to be embedded
-            lengths (torch.Tensor), shape = (B, ), dtype = torch.long: length of inputs sequence
+            inputs (T), shape = (B, L), dtype = torch.long: sequence of indices to be embedded
+            lengths (T), shape = (B, ), dtype = torch.long: length of inputs sequence
         
         Returns:
-            torch.Tensor, shape = (B, 1 or L, E): (aggregated) embedding vectors
+            T, shape = (B, 1 or L, E): (aggregated) embedding vectors
         """
         # sort inputs with the lengths
         lengths, perm_idx = lengths.sort(0, descending=True)

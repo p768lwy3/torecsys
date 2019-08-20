@@ -1,4 +1,5 @@
 from . import _Inputs
+from torecsys.utils.decorator import jit_experimental
 import torch
 
 class ValueInputs(_Inputs):
@@ -9,6 +10,7 @@ class ValueInputs(_Inputs):
     #. add transforms for value inputs to do preprocessing
 
     """
+    @jit_experimental
     def __init__(self, num_fields: int):
         r"""initialize the value inputs field
         
@@ -23,9 +25,9 @@ class ValueInputs(_Inputs):
         r"""Return values of fields
         
         Args:
-            inputs (torch.Tensor), shape = (batch size, num fields): inputs value tensor
+            inputs (T), shape = (B, N): inputs value tensor
         
         Returns:
-            torch.Tensor, shape = (batch size, 1, number of fields): reshaped inputs value tensor
+            T, shape = (B, 1, N): reshaped inputs value tensor
         """
         return inputs.unsqueeze(1)

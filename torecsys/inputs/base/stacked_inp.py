@@ -23,6 +23,7 @@ __field_type__ = ["image", "list_index", "sequence_index", "single_index",
 class StackedInputs(_Inputs):
     r"""StackedInputs is a field of stacked inputs to stack multiple inputs into a row of features vectors
     """
+    @jit_experimental
     def __init__(self,
                  field_names: List[str],
                  field_types: List[str],
@@ -53,7 +54,7 @@ class StackedInputs(_Inputs):
             raise ValueError("all inputs list must be the same lengths")
 
         for fname, ftype, fsize, esize in zip(field_names, field_types, field_sizes, embed_sizes):
-            fkwargs = kwargs.get(field_name, {})
+            fkwargs = kwargs.get(fname, {})
             if ftype == "image":
                 self.embeddings[fname] = ImageInputs(esize, **fkwargs)
             elif ftype == "list_index":
@@ -65,21 +66,23 @@ class StackedInputs(_Inputs):
             elif ftype == "single_index":
                 self.embeddings[fname] = SingleIndexEmbedding(esize, fsize, **fkwargs)
             elif ftype == "value":
-                self.embeddings[fname] = ValueInputs(num_fields=embed_size)
+                self.embeddings[fname] = ValueInputs(num_fields=esize)
             else:
                 raise ValueError("field_name %s with field_type %s is not allowed, Only allow: [%s]." % (fname, ftype, ", ".join(__field_type__)))    
-    
+        
+        self.field_names = field_names
+
     def forward(self, inputs: Dict[str, Tuple[torch.Tensor]]) -> torch.Tensor:
         r"""Return field-stacked features vectors
         
         Args:
-            inputs (Dict[str, Tuple[torch.Tensor]]): inputs dictionary, where keys are field names, and values are tuple of torch.Tensor
+            inputs (Dict[str, Tuple[T]]): inputs dictionary, where keys are field names, and values are tuple of torch.Tensor
         
         Raises:
-            ValueError: when lengths (i.e. 1-st dimension, batch size) of inputs values are not equal
+            ValueError: when lengths (i.e. 1-st dimension, B) of inputs values are not equal
         
         Returns:
-            torch.Tensor, shape = (batch size, 1, embedding size): 2nd dimensional stacked features vectors
+            T, shape = (B, 1, E): 2nd dimensional stacked features vectors
         """
         # check if all inputs' values are the same length
         batch_size = list(inputs.values())[0][0].size(0)
@@ -88,8 +91,8 @@ class StackedInputs(_Inputs):
 
         # append the embeddings to a list
         outputs = []
-        for field_name in self.field_names:
-            outputs.append(self.embeddings[field_name](*inputs[field_name]))
+        for fname in self.field_names:
+            outputs.append(self.embeddings[fname](*inputs[fname]))
 
         # unsqueeze(1) if output dim = 2, then concatenate with dim = 2 and return
         outputs = [o.unsqueeze(1) if o.dim() == 2 else o for o in outputs]

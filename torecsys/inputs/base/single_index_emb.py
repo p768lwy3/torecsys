@@ -1,4 +1,5 @@
 from . import _Inputs
+from torecsys.utils.decorator import jit_experimental
 import torch
 import torch.nn as nn
 
@@ -7,6 +8,7 @@ class SingleIndexEmbedding(_Inputs):
     r"""SingleIndexEmbedding is a embedding field to pass a single index and lookup 
     the dense embedding vector of it
     """
+    @jit_experimental
     def __init__(self,
                  embed_size   : int,
                  field_size   : int,
@@ -34,10 +36,10 @@ class SingleIndexEmbedding(_Inputs):
         r"""Return embedding vectors of inputs
         
         Args:
-            inputs (torch.Tensor), shape = (batch size, 1), dtype = torch.long: torch.Tensor of inputs, \
+            inputs (T), shape = (B, 1), dtype = torch.long: torch.Tensor of inputs, \
                     where they are the indices of fields
         
         Returns:
-            torch.Tensor, (batch size, 1, embedding size): embedding vectors :math:`\bm{E} = \bm{\Big[} e_{\text{index}_{i}} \footnotesize{\text{, for} \ i = \text{i-th field}} \bm{\Big]}`
+            T, (B, 1, E): embedding vectors :math:`\bm{E} = \bm{\Big[} e_{\text{index}_{i}} \footnotesize{\text{, for} \ i = \text{i-th field}} \bm{\Big]}`
         """
         return self.embedding(inputs)

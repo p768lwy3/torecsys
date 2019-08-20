@@ -13,6 +13,7 @@ from .stacked_inp import StackedInputs
 # from .timeseries_inp import TimeseriesInputs
 # from .timestamp_inp import TimestampInputs
 from .value_inp import ValueInputs
+from torecsys.utils.decorator import jit_experimental
 
 import torch
 import torch.nn as nn
@@ -24,6 +25,7 @@ __field_type__ = ["image", "list_index", "sequence_index", "single_index",
 class EmbeddingDict(_Inputs):
     r"""EmbeddingDict is a field of inputs to build a dictionary for embedding
     """
+    @jit_experimental
     def __init__(self,
                  field_names: List[str],
                  field_types: List[str],
@@ -48,7 +50,7 @@ class EmbeddingDict(_Inputs):
         """
         super(EmbeddingDict, self).__init__()
         self.embeddings = nn.ModuleDict()
-        self.length = sum(embed_sizes)
+        self.length = embed_sizes[0]
 
         if not all(embed_size == self.length for embed_size in embed_sizes):
             raise ValueError("all the embedding sizes must be same.")
@@ -58,7 +60,7 @@ class EmbeddingDict(_Inputs):
             raise ValueError("all inputs list must be the same lengths")
 
         for fname, ftype, fsize, esize in zip(field_names, field_types, field_sizes, embed_sizes):
-            fkwargs = kwargs.get(field_name, {})
+            fkwargs = kwargs.get(fname, {})
             if ftype == "image":
                 self.embeddings[fname] = ImageInputs(esize, **fkwargs)
             elif ftype == "list_index":
@@ -72,10 +74,13 @@ class EmbeddingDict(_Inputs):
             elif ftype == "stacked":
                 self.embeddings[fname] = StackedInputs(**fkwargs)
             elif ftype == "value":
-                self.embeddings[fname] = ValueInputs(num_fields=embed_size)
+                self.embeddings[fname] = ValueInputs(num_fields=esize)
             else:
                 raise ValueError("field_name %s with field_type %s is not allowed, Only allow: [%s]." % (fname, ftype, ", ".join(__field_type__)))    
-    
+        
+        self.field_names = field_names
+        self.field_types = field_types
+
     def forward(self, inputs: Dict[str, Tuple[torch.Tensor]]) -> torch.Tensor:
         r"""Return features matrices
         
@@ -95,13 +100,13 @@ class EmbeddingDict(_Inputs):
 
         # append the embeddings to a list
         outputs = []
-        for field_name, field_type in zip(self.field_names, self.field_types):
-            if field_type == "stacked":
-                emb_field_names = self.embeddings[field_name].field_names
+        for fname, ftype in zip(self.field_names, self.field_types):
+            if ftype == "stacked":
+                emb_field_names = self.embeddings[fname].field_names
                 inputs_dict = {f: inputs.get(f) for f in emb_field_names}
-                outputs.append(self.embeddings[field_name](inputs_dict))
+                outputs.append(self.embeddings[fname](inputs_dict))
             else:
-                outputs.append(self.embeddings[field_name](*inputs[field_name]))
+                outputs.append(self.embeddings[fname](*inputs[fname]))
 
         # unsqueeze(1) if output dim = 2, then concatenate with dim = 2 and return
         outputs = [o.unsqueeze(1) if o.dim() == 2 else o for o in outputs]

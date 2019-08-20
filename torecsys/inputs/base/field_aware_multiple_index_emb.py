@@ -1,11 +1,12 @@
 from . import _Inputs
+from torecsys.utils.decorator import jit_experimental
 import numpy as np
 import torch
 import torch.nn as nn
 from typing import List
 
 
-class FieldAwareSingleIndexEmbedding(_Inputs):
+class FieldAwareMultipleIndexEmbedding(_Inputs):
     r"""FieldAwareSingleIndexEmbedding is a embedding field to pass a list of single index 
     and return a cross field embedding matrix of each vector for a index is :math:`E_{j_{1}, f_{2}}` .
     
@@ -14,6 +15,7 @@ class FieldAwareSingleIndexEmbedding(_Inputs):
     #. `Yuchin Juan et al, 2016. Field-aware Factorization Machines for CTR Prediction <https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf>`_.
     
     """
+    @jit_experimental
     def __init__(self, embed_size: int, field_sizes: List[int]):
         r"""initialize field-aware single index embedding field
         
@@ -21,7 +23,7 @@ class FieldAwareSingleIndexEmbedding(_Inputs):
             embed_size (int): embedding size
             field_sizes (List[int]): list of field sizes
         """
-        super(FieldAwareSingleIndexEmbedding, self).__init__()
+        super(FieldAwareMultipleIndexEmbedding, self).__init__()
         self.num_fields = len(field_sizes)
         self.embeddings = nn.ModuleList([
             nn.Embedding(sum(field_sizes), embed_size) for _ in range(self.num_fields)

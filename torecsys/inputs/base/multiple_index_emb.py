@@ -1,4 +1,5 @@
 from . import _Inputs
+from torecsys.utils.decorator import jit_experimental
 import numpy as np
 import torch
 import torch.nn as nn
@@ -9,6 +10,7 @@ class MultipleIndexEmbedding(_Inputs):
     r"""MultipleIndexEmbedding is a embedding field to pass indices of multiple fields 
     and lookup the embedding vectors at the same time, which will be more efficent
     """
+    @jit_experimental
     def __init__(self, 
                  embed_size   : int,
                  field_sizes  : List[int],
@@ -28,7 +30,7 @@ class MultipleIndexEmbedding(_Inputs):
         else:
             self.embedding = nn.Embedding(sum(field_sizes), embed_size, **kwargs)
 
-        # create a offsets tensor with shape (1, num fields) to be added on inputs for each row
+        # create a offsets tensor with shape (1, N) to be added on inputs for each row
         self.offsets = torch.Tensor((0, *np.cumsum(field_sizes)[:-1])).long().unsqueeze(0)
         self.length = embed_size
     
@@ -36,10 +38,10 @@ class MultipleIndexEmbedding(_Inputs):
         r"""Return embedding vectors of inputs
         
         Args:
-            inputs (torch.Tensor), shape = (batch size, num fields), dtype = torch.long: [description]
+            inputs (T), shape = (B, N), dtype = torch.long: list of indices to be embedded
         
         Returns:
-            torch.Tensor, shape = (batch size, num fields, embedding size), dtype = torch.float: [description]
+            T, shape = (B, N, E), dtype = torch.float: embedded tensors of the inputs' indices
         """
         # add offset to it
         inputs = inputs + self.offsets

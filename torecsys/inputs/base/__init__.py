@@ -19,7 +19,7 @@ class _Inputs(nn.Module):
 
 # from .audio_inp import AudioInputs
 from .emb_dict import EmbeddingDict
-from .field_aware_single_index_emb import FieldAwareSingleIndexEmbedding
+from .field_aware_multiple_index_emb import FieldAwareMultipleIndexEmbedding
 from .image_inp import ImageInputs
 # from .image_list_inp import ImageListInputs
 from .list_index_emb import ListIndexEmbedding
@@ -27,6 +27,7 @@ from .multiple_index_emb import MultipleIndexEmbedding
 # from .pretrained_image_inp import PretrainedImageInputs
 # from .pretrained_text_inp import PretrainedTextInputs
 from .sequence_index_emb import SequenceIndexEmbedding
+from .single_index_emb import SingleIndexEmbedding
 from .stacked_inp import StackedInputs
 # from .text_inp import TextInputs
 # from .timeseries_inp import TimeseriesInputs
