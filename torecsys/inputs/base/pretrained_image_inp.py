@@ -1,4 +1,5 @@
 from . import _Inputs
+from torecsys.utils.decorator import jit_experimental
 import torch
 import torch.nn as nn
 import torchvision
@@ -7,6 +8,7 @@ import torchvision
 class PretrainedImageInputs(_Inputs):
     r"""PretrainedImageInputs is a input field to compute features vectors of images by pre-trained CV-model
     """
+    @jit_experimental
     def __init__(self,
                  embed_size : int,
                  model_name : str,
