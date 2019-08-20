@@ -1,5 +1,5 @@
 from . import _CtrModel
-from torecsys.layers import FactorizationMachineLayer
+from torecsys.layers import FMLayer
 from torecsys.utils.decorator import jit_experimental
 import torch
 import torch.nn as nn
@@ -34,7 +34,7 @@ class FactorizationMachineModel(_CtrModel):
         nn.init.uniform_(self.bias.data)
         
         # initialize fm layer
-        self.fm = FactorizationMachineLayer(dropout_p)
+        self.fm = FMLayer(dropout_p)
     
     def forward(self, feat_inputs: torch.Tensor, emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""feed forward of Factorization Machine Model 
@@ -48,10 +48,10 @@ class FactorizationMachineModel(_CtrModel):
         """
 
         # feat_inputs'shape = (B, N, 1) and reshape to (B, N)
-        fm_first = feat_inputs.squeeze()
+        fm_first = feat_inputs.sum(dim=1)
 
         # pass to fm layer where its returns' shape = (B, E)
-        fm_second = self.fm(emb_inputs).squeeze()
+        fm_second = self.fm(emb_inputs).sum(dim=2)
             
         # sum bias, fm_first, fm_second and get fm outputs with shape = (B, 1)
         outputs = fm_second + fm_first + self.bias

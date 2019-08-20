@@ -47,10 +47,10 @@ class CrossNetworkLayer(nn.Module):
         """feed-forward calculation of cross network layer
         
         Args:
-            emb_inputs (T), shape = (B, N, E), dtype = torch.float: features matrices of inputs
+            emb_inputs (T), shape = (B, N, E) or (B, 1, I), dtype = torch.float: features matrices of inputs
         
         Returns:
-            T, shape = (B, 1, E), dtype = torch.float: output of cross network layer
+            T, shape = (B, 1, N * E) or (B, 1, I), dtype = torch.float: output of cross network layer
         """
         # reshape inputs from 3 dimensiol to 2 dimension with shape = (B, N * E)
         batch_size = emb_inputs.size(0)

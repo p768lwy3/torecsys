@@ -1,5 +1,5 @@
 from . import _CtrModel
-from torecsys.layers import AttentionalFactorizationMachineLayer
+from torecsys.layers import AFMLayer
 from torecsys.utils.decorator import jit_experimental
 import torch
 import torch.nn as nn
@@ -15,6 +15,7 @@ class AttentionalFactorizationMachineModel(_CtrModel):
     #. `Jun Xiao et al, 2017. Attentional Factorization Machines: Learning the Weight of Feature Interactions via Attention Networks∗ <https://arxiv.org/abs/1708.04617>`_.
 
     """
+    @jit_experimental
     def __init__(self,
                  embed_size : int,
                  num_fields : int,
@@ -31,7 +32,7 @@ class AttentionalFactorizationMachineModel(_CtrModel):
         super(AttentionalFactorizationMachineModel, self).__init__()
         
         # initialize attentional factorization machine layer
-        self.afm = AttentionalFactorizationMachineLayer(embed_size, num_fields, attn_size, dropout_p)
+        self.afm = AFMLayer(embed_size, num_fields, attn_size, dropout_p)
 
         # initialize bias parameter
         self.bias = nn.Parameter(torch.zeros(1))
@@ -54,7 +55,8 @@ class AttentionalFactorizationMachineModel(_CtrModel):
         # second_order's shape = (B, N, E)
         # output's shape = (B, 1, E)
         # aggregate afm_out with dim = 2, and the output's shape = (B, 1)
-        afm_out = self.afm(emb_inputs).sum(dim=2)
+        afm_out, _ = self.afm(emb_inputs)
+        afm_out = afm_out.sum(dim=2)
 
         # sum up bias, linear_out and afm_out to output
         outputs = self.bias + linear_out + afm_out

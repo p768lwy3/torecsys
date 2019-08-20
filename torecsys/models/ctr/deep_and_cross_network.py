@@ -15,6 +15,7 @@ class DeepAndCrossNetworkModel(_CtrModel):
     #. `Ruoxi Wang et al, 2017. Deep & Cross Network for Ad Click Predictions <https://arxiv.org/abs/1708.05123>`_.
     
     """
+    @jit_experimental
     def __init__(self, 
                  inputs_size      : int,
                  deep_output_size : int,
@@ -38,7 +39,7 @@ class DeepAndCrossNetworkModel(_CtrModel):
 
         # initialize the layers of module
         # deep output's shape = (B, 1, O_d)
-        self.deep = MultilayerPerceptronLayer(output_size=deep_output_size, layer_sizes=deep_layer_sizes, inputs_size=inputs_size, dropout_p=deep_dropout_p, activation=deep_activation)
+        self.deep = DNNLayer(output_size=deep_output_size, layer_sizes=deep_layer_sizes, inputs_size=inputs_size, dropout_p=deep_dropout_p, activation=deep_activation)
         # cross output's shape = (B, 1, E)
         self.cross = CrossNetworkLayer(num_layers=cross_num_layers, inputs_size=inputs_size)
 

@@ -1,11 +1,12 @@
 from . import _CtrModel
-from torecsys.layers import FactorizationMachineLayer, MultilayerPerceptronLayer
+from torecsys.layers import FMLayer, DNNLayer
 from torecsys.utils.decorator import jit_experimental
 import torch
 import torch.nn as nn
+from typing import Callable, List
 
 
-class FactorizationMachineSupportedNeuralNetwork(_CtrModel):
+class FactorizationMachineSupportedNeuralNetworkModel(_CtrModel):
     r"""FactorizationMachineSupportedNeuralNetwork is a model of Factorization-machine supported Neural
     Network, which is a stack of Factorization Machine and Deep Neural Network, with the following calculation: 
     First calculate features interactions by factorization machine: :math:`y_{FM} = \text{Sigmoid} ( w_{0} + \sum_{i=1}^{N} w_{i} x_{i} + \sum_{i=1}^{N} \sum_{j=i+1}^{N} <v_{i}, v_{j}> x_{i} x_{j} )` .
@@ -30,20 +31,20 @@ class FactorizationMachineSupportedNeuralNetwork(_CtrModel):
         Args:
             embed_size (int): embedding size
             num_fields (int): number of fields in inputs
-            deep_output_size (int): output size of multilayer perceptron layer
-            deep_layer_sizes (List[int]): layer sizes of multilayer perceptron layer
+            deep_output_size (int): output size of deep neural network
+            deep_layer_sizes (List[int]): layer sizes of deep neural network
             fm_dropout_p (float, optional): dropout probability after factorization machine. Defaults to 0.0.
             deep_dropout_p (List[float], optional): dropout probability after activation of each layer. Allow: [None, list of float for each layer]. Defaults to None.
             deep_activation (Callable[[T], T], optional): activation function of each layer. Allow: [None, Callable[[T], T]]. Defaults to nn.ReLU().
         """
-        super(FactorizationMachineSupportedNeuralNetwork, self).__init__()
+        super(FactorizationMachineSupportedNeuralNetworkModel, self).__init__()
 
         # initialize factorization machine layer
-        self.fm = FactorizationMachineLayer(fm_dropout_p)
+        self.fm = FMLayer(fm_dropout_p)
         
         # initialize dense layers
         cat_size = num_fields + embed_size
-        self.deep = MultilayerPerceptronLayer(
+        self.deep = DNNLayer(
             output_size = deep_output_size,
             layer_sizes = deep_layer_sizes,
             inputs_size = cat_size,
@@ -72,7 +73,7 @@ class FactorizationMachineSupportedNeuralNetwork(_CtrModel):
         fm_out = torch.cat([fm_first, fm_second], dim=1)
 
         # feed-forward to deep neural network, return shape = (B, O)
-        outputs = self.deep(fm_out)
+        outputs = self.deep(fm_out).squeeze(-1)
 
         return outputs
     

@@ -1,6 +1,7 @@
 from . import _CtrModel
-from torecsys.layers import ComposeExcitationNetworkLayer, FieldAwareFactorizationMachineLayer, MultilayerPerceptronLayer
+from torecsys.layers import CENLayer, FFMLayer, DNNLayer
 from torecsys.utils.decorator import jit_experimental
+from torecsys.utils import combination
 import torch
 import torch.nn as nn
 from typing import Callable, List
@@ -24,6 +25,7 @@ class FieldAttentiveDeepFieldAwareFactorizationMachineModel(_CtrModel):
     #. `Junlin Zhang et al, 2019. FAT-DeepFFM: Field Attentive Deep Field-aware Factorization Machine <https://arxiv.org/abs/1905.06336>`_.
     
     """
+    @jit_experimental
     def __init__(self,
                  embed_size       : int,
                  num_fields       : int,
@@ -35,17 +37,27 @@ class FieldAttentiveDeepFieldAwareFactorizationMachineModel(_CtrModel):
                  deep_activation  : Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
         super(FieldAttentiveDeepFieldAwareFactorizationMachineModel, self).__init__()
 
-        self.ffm = FieldAwareFactorizationMachineLayer(num_fields=num_fields, dropout_p=ffm_dropout_p)
-        self.deep = MultilayerPerceptronLayer(
+        # initialize compose excitation network
+        self.cen = CENLayer(num_fields, reduction)
+
+        # ffm's input shape = (B, N * N, E)
+        # ffm's output shape = (B, NC2, E)
+        self.ffm = FFMLayer(num_fields=num_fields, dropout_p=ffm_dropout_p)
+        
+        # calculate the output's size of ffm, i.e. inputs' size of DNNLayer
+        inputs_size = combination(num_fields, 2)
+        
+        # deep's input shape = (B, NC2, E)
+        # deep's output shape = (B, 1, O)
+        self.deep = DNNLayer(
             output_size = deep_output_size,
             layer_sizes = deep_layer_sizes,
             embed_size  = embed_size,
-            num_fields  = num_fields,
+            num_fields  = inputs_size,
             dropout_p   = deep_dropout_p,
             activation  = deep_activation
         )
-        self.compose_excitation_network = ComposeExcitationNetworkLayer(num_fields, reduction)
-    
+        
     def forward(self, field_emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""feed forward of FAT-DeepFFM model
         
@@ -57,7 +69,7 @@ class FieldAttentiveDeepFieldAwareFactorizationMachineModel(_CtrModel):
         """
         # calculate attentional embedding matrices with compose excitation network,
         # where the output's shape = (B, N * N, E)
-        aem = self.compose_excitation_network(field_emb_inputs)
+        aem = self.cen(field_emb_inputs)
 
         # sum the attentional embedding matrices into shape = (B, 1)
         first_order = aem.sum(dim=[1, 2]).unsqueeze(-1)
@@ -66,7 +78,7 @@ class FieldAttentiveDeepFieldAwareFactorizationMachineModel(_CtrModel):
         second_order = self.ffm(aem)
 
         # deep part with output's shape = (B, N, O) and sum into shape = (B, N, 1)
-        second_order = self.deep(second_order).sum(dim=1)
+        second_order = self.deep(second_order).sum(dim=2)
 
         # sum the vectors as outputs
         outputs = first_order + second_order

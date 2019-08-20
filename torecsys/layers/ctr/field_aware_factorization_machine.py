@@ -33,7 +33,7 @@ class FieldAwareFactorizationMachineLayer(nn.Module):
             field_emb_inputs (T), shape = (B, N * N, E), dtype = torch.float: features matrices of inputs
         
         Returns:
-            T, shape = (B, 1, O), dtype = torch.float: output of field-aware factorization machine layer
+            T, shape = (B, NC2, E), dtype = torch.float: output of field-aware factorization machine layer
         """
         # chunk inputs' tensor into num_fields parts with shape = (B, N, E)
         field_emb_inputs = torch.chunk(field_emb_inputs, self.num_fields, dim=1)
@@ -47,4 +47,4 @@ class FieldAwareFactorizationMachineLayer(nn.Module):
         # stack outputs into a tensor and pass into dropout layer
         outputs = torch.stack(outputs, dim=1)
         outputs = self.dropout(outputs)
-        return outputs.unsqueeze(1)
+        return outputs

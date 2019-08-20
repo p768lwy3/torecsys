@@ -1,5 +1,5 @@
 from . import _CtrModel
-from torecsys.layers import FieldAwareFactorizationMachineLayer
+from torecsys.layers import FFMLayer
 from torecsys.utils.decorator import jit_experimental
 import torch
 import torch.nn as nn
@@ -30,10 +30,10 @@ class FieldAwareFactorizationMachineModel(_CtrModel):
             
         # initialize bias variable
         self.bias = nn.Parameter(torch.zeros(1))
-        nn.init.xavier_uniform_(self.bias.data)
+        nn.init.uniform_(self.bias.data)
 
         # initialize ffm layer
-        self.ffm = FieldAwareFactorizationMachineLayer(dropout_p=dropout_p)
+        self.ffm = FFMLayer(num_fields, dropout_p=dropout_p)
 
     
     def forward(self, feat_inputs: torch.Tensor, field_emb_inputs: torch.Tensor) -> torch.Tensor:
@@ -48,14 +48,14 @@ class FieldAwareFactorizationMachineModel(_CtrModel):
         """
 
         # feat_inputs'shape = (B, N, 1) and reshape to (B, N)
-        ffm_first = feat_inputs.squeeze()
+        ffm_first = feat_inputs.sum(dim=1)
 
         # inputs' shape = (B, N * N, E) which could be get by ..inputs.base.FieldAwareIndexEmbedding
         # and output shape = (B, N, E)
         ffm_second = self.ffm(field_emb_inputs)
 
         # aggregate ffm_out in dimension [1, 2], where the shape = (B, 1)
-        ffm_second = ffm_out.sum(dim=[1, 2])
+        ffm_second = ffm_second.sum(dim=[1, 2]).unsqueeze(-1)
 
         # sum bias, fm_first and ffm_sceond and getn fmm outputs with shape = (B, 1)
         outputs = ffm_second + ffm_first + self.bias

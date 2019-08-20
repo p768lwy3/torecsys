@@ -31,6 +31,6 @@ class LogisticRegressionModel(_CtrModel):
         Returns:
             T, shape = (B, O), dtype = torch.float: output tensor of logistic regression
         """
-        outputs = self.linear(feat_inputs)
+        outputs = self.linear(feat_inputs.squeeze())
         outputs = self.sigmoid(outputs)
         return outputs

@@ -21,7 +21,15 @@ def load_ml_data(size : str) -> pd.DataFrame:
 
     # file name and file path
     script_dir = os.path.dirname(__file__)
-    data_filepath = os.path.join(script_dir, ("sample_data/ml-%s/ratings.csv" % size))
+    links_path = os.path.join(script_dir, ("sample_data/ml-%s/links.csv" % size))
+    movies_path = os.path.join(script_dir, ("sample_data/ml-%s/movies.csv" % size))
+    ratings_path = os.path.join(script_dir, ("sample_data/ml-%s/ratings.csv" % size))
+    tags_path = os.path.join(script_dir, ("sample_data/ml-%s/tags.csv" % size))
 
-    df = pd.read_csv(data_filepath)
-    return df
+    # read csv file as DataFrame
+    links_df = pd.read_csv(links_path)
+    movies_df = pd.read_csv(movies_path)
+    ratings_df = pd.read_csv(ratings_path)
+    tags_df = pd.read_csv(tags_path)
+
+    return links_df, movies_df, ratings_df, tags_df

@@ -12,3 +12,14 @@ from .inner_product_network import InnerProductNetworkLayer
 from .multilayer_perceptron import MultilayerPerceptronLayer
 from .outer_product_network import OuterProductNetworkLayer
 from .wide import WideLayer
+
+# create shorten name of layers
+AFMLayer = AttentionalFactorizationMachineLayer
+CENLayer = ComposeExcitationNetworkLayer
+CINLayer = CompressInteractionNetworkLayer
+DenseLayer = MultilayerPerceptronLayer
+DNNLayer = MultilayerPerceptronLayer
+FFMLayer = FieldAwareFactorizationMachineLayer
+FMLayer = FactorizationMachineLayer
+FullyConnectLayer = MultilayerPerceptronLayer
+FeedForwardLayer = MultilayerPerceptronLayer

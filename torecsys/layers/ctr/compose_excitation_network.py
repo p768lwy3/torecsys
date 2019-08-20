@@ -4,11 +4,17 @@ import torch.nn as nn
 
 
 class ComposeExcitationNetworkLayer(nn.Module):
-    r"""ComposeExcitationNetwork is a layer used in FAT-DeepFM, which is to compose the field aware 
-    embedding matrix feature-wisely with Convalution 1D layer with :math:`1 * 1` kernel from a 
-    :math:`k * n` matrix of field i into :math:`k * 1` vector, and concatenate all the vectors and 
-    pass to the 
+    r"""ComposeExcitationNetwork is a layer used in FAT-DeepFM, which is to compose the field aware embedding matrix feature-wisely 
+    with Convalution 1D layer with :math:`1 * 1` kernel from a :math:`k * n` matrix of field i into :math:`k * 1` vector, and 
+    concatenate all the vectors and pass to the fully-connect feed foward layers to calculate weights of attention. 
+    Finally, apply the attentional weights on the inputs tensors.
+
+    :Reference:
+
+    #. `Junlin Zhang et al, 2019. FAT-DeepFFM: Field Attentive Deep Field-aware Factorization Machine <https://arxiv.org/abs/1905.06336>`_.
+
     """
+    @jit_experimental
     def __init__(self, 
                  num_fields : int,
                  reduction  : int = 16):

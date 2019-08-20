@@ -1,12 +1,11 @@
 from . import _CtrModel
-from torecsys.layers import MultilayerPerceptronLayer
+from torecsys.layers import DNNLayer
 from torecsys.utils.decorator import jit_experimental
 import torch
 import torch.nn as nn
-from typing import List
+from typing import Callable, List, Tuple
 
 
-# in-development
 class DeepMatchingCorrelationPredictionModel(_CtrModel):
     r"""DeepMatchingCorrelationPredictionModule is a module of Deep Matching, Correlation and 
     Preidction (DeepMCP) proposed by Wentao Ouyang et al of Alibaba Group in 2019, which is a 
@@ -62,7 +61,7 @@ class DeepMatchingCorrelationPredictionModel(_CtrModel):
         super(DeepMatchingCorrelationPredictionModel, self).__init__()
 
         # initialize prediction subnet, which is a dense network with output's size = 1
-        self.prediction = MultilayerPerceptronLayer(
+        self.prediction = DNNLayer(
             output_size = 1,
             layer_sizes = pred_layer_sizes,
             embed_size  = embed_size,
@@ -79,7 +78,7 @@ class DeepMatchingCorrelationPredictionModel(_CtrModel):
         # initialize user part of matching subnet
         self.matching["user"] = nn.Sequential()
         self.matching["user"].add_module(
-            MultilayerPerceptronLayer(
+            DNNLayer(
                 output_size = match_output_size,
                 layer_sizes = match_layer_sizes,
                 embed_size  = embed_size,
@@ -93,7 +92,7 @@ class DeepMatchingCorrelationPredictionModel(_CtrModel):
         # initialize item part of matching subnet 
         self.matching["item"] = nn.Sequential()
         self.matching["item"].add_module(
-            MultilayerPerceptronLayer(
+            DNNLayer(
                 output_size = match_output_size,
                 layer_sizes = match_layer_sizes,
                 embed_size  = embed_size,
@@ -107,7 +106,7 @@ class DeepMatchingCorrelationPredictionModel(_CtrModel):
         # initialize correlation subnet
         self.correlation = nn.Sequential()
         self.correlation.add_module(
-            MultilayerPerceptronLayer(
+            DNNLayer(
                 output_size = corr_output_size,
                 layers_size = corr_layer_sizes,
                 embed_size  = embed_size,
