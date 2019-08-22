@@ -89,11 +89,6 @@ class ListIndexEmbedding(_Inputs):
 
     def forward(self, inputs: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         r"""Return aggregated embedding vectors of inputs by self-attention model
-        
-        Notations:
-            B: batch size
-            L: max sequence length
-            E: embedding size
 
         Args:
             inputs (T), shape = (B, L), dtype = torch.long: list of indices to be embedded

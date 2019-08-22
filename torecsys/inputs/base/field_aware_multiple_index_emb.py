@@ -37,11 +37,10 @@ class FieldAwareMultipleIndexEmbedding(_Inputs):
         r"""Return embedding matrices of inputs
         
         Args:
-            inputs (torch.Tensor), shape = (batch size, num fields), dtype = torch.long: torch.Tensor of inputs, \
-                where they are the indices of fields (i.e. length of column of torch.Tensor = number of fields) for each row
+            inputs (T), shape = (B, N), dtype = torch.long: inputs, where they are the indices of fields (i.e. length of column of T = N) for each row
         
         Returns:
-            torch.Tensor, (batch size, num_fields * num_fields, embedding size): embedding matrices :math:`\bm{E} = \bm{\Big[} e_{\text{index}_{i}, \text{feat}_{j}}  \footnotesize{\text{, for} \ i = \text{i-th field} \ \text{and} \ j = \text{j-th field}} \bm{\Big]}`
+            T, (B, N * N, E): embedding matrices :math:`\bm{E} = \bm{\Big[} e_{\text{index}_{i}, \text{feat}_{j}}  \footnotesize{\text{, for} \ i = \text{i-th field} \ \text{and} \ j = \text{j-th field}} \bm{\Big]}`
         """
         inputs = inputs + inputs.new_tensor(self.offsets).unsqueeze(0)
         outputs = torch.cat([self.embeddings[i](inputs) for i in range(self.num_fields)], dim=1)

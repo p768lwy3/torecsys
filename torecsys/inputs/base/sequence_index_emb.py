@@ -93,7 +93,7 @@ class SequenceIndexEmbedding(_Inputs):
 
         Args:
             inputs (T), shape = (B, L), dtype = torch.long: sequence of indices to be embedded
-            lengths (T), shape = (B, ), dtype = torch.long: length of inputs sequence
+            lengths (T), shape = (B), dtype = torch.long: length of inputs sequence
         
         Returns:
             T, shape = (B, 1 or L, E): (aggregated) embedding vectors

@@ -4,6 +4,9 @@ from typing import Dict, List
 
 
 class InputsWrapper(_Inputs):
+    r"""InputsWrapper is a class to wrap up inputs class into a dictionary, which can be 
+    passed to models directly (with correct schema).
+    """
     def __init__(self, 
                  schema: Dict[str, tuple]):
         r"""InputsWrapper is a wrapper to concatenate numbers of _Inputs of different fields
@@ -22,7 +25,7 @@ class InputsWrapper(_Inputs):
         """
         super(InputsWrapper, self).__init__()
         
-        # store the schema to stack
+        # store the schema to self
         self.schema = schema
     
     def forward(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
@@ -53,8 +56,13 @@ class InputsWrapper(_Inputs):
             # get args if type of embedding is the required type
             if embedding.__class__.__name__ == "SequenceIndexEmbedding":
                 arg_name = args_tuple[2][0]
-                print(arg_name)
                 args.append(inputs[arg_name])
+            
+            elif embedding.__class__.__name__ == "StackedInputs":
+                raise ValueError("")
+
+            elif embedding.__class__.__name__ == "ConcatInputs":
+                raise ValueError("")
             
             # embedding
             outputs[out_name] = embedding(*args)
