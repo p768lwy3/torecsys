@@ -1,15 +1,18 @@
 from ..logging import TqdmHandler
+from torecsys.inputs import InputsWrapper
+from torecsys.models import _Model
 from logging import Logger
 from texttable import Texttable
 import torch
 from torch.utils.tensorboard import SummaryWriter
 from tqdm.autonotebook import tqdm
+from typing import Dict
 
 
 class Trainer(object):
     def __init__(self, 
-                 inputs_wrapper : torecsys.inputs.InputsWrapper, 
-                 model          : torecsys.models._Model, 
+                 inputs_wrapper : InputsWrapper, 
+                 model          : _Model, 
                  regularizer, 
                  loss, 
                  optimizer,

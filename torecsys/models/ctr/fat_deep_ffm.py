@@ -1,7 +1,7 @@
 from . import _CtrModel
 from torecsys.layers import CENLayer, FFMLayer, DNNLayer
 from torecsys.utils.decorator import jit_experimental
-from torecsys.utils import combination
+from torecsys.utils.utils import combination
 import torch
 import torch.nn as nn
 from typing import Callable, List
