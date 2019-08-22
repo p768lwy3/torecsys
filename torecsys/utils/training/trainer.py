@@ -8,8 +8,8 @@ from tqdm.autonotebook import tqdm
 
 class Trainer(object):
     def __init__(self, 
-                 embeddings, 
-                 model, 
+                 inputs_wrapper : torecsys.inputs.InputsWrapper, 
+                 model          : torecsys.models._Model, 
                  regularizer, 
                  loss, 
                  optimizer,
@@ -36,8 +36,24 @@ class Trainer(object):
     def _describe(self):
         return 
         
-    def _iterate(self, batch):
-        return 
+    def _iterate(self, batch_inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
+        # zero the parameter gradients
+        self.optimizer.zero_grad()
+        
+        # calculate forward prediction
+        embed_inputs = self.inputs_wrapper(batch_inputs)
+        outputs = self.model(**embed_inputs)
+
+        # apply regularizer
+
+        # calculate backward and optimize
+        loss = self.loss(outputs)
+        loss.backward()
+        optimizer.step()
+
+        # return loss to log stream and tensorboard
+        return loss
+        
     
     def fit(self, dataloader):
         return
