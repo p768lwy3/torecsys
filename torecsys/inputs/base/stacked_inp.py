@@ -1,6 +1,6 @@
 from . import _Inputs
 import torch
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 
 class StackedInputs(_Inputs):
@@ -21,7 +21,7 @@ class StackedInputs(_Inputs):
         
         # check whether the lengths of embeddings are equal
         self.length = len(schema[0][0])
-        for not all(len(tup[0]) == self.length for tup in sceham):
+        if not all(len(tup[0]) == self.length for tup in schema):
             raise ValueError("all inputs lenght (i.e. embed_size) must be same.")
 
         # store the schema to self
@@ -45,7 +45,7 @@ class StackedInputs(_Inputs):
 
             if embedding.__class__.__name__ == "ConcatInputs":
                 # create dictionary of concat inputs
-                args_dict = {i : inputs[i] for i in inp_names}
+                args_dict = { i : inputs[i] for i in inp_names }
 
                 # create list variable to be passed 
                 args = [args_dict]
@@ -53,8 +53,6 @@ class StackedInputs(_Inputs):
                 # universal inputs' field
                 inp_val = [inputs[i] for i in inp_names]
                 inp_val = torch.cat(inp_val, dim=1)
-
-                # create list variable to be passed 
                 args = [inp_val]
 
                 # append tensor of length to args if SequenceIndexEmbedding

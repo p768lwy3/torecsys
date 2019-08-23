@@ -1,6 +1,6 @@
 from . import _Inputs
 import torch
-from typing import List
+from typing import Dict, List
 
 
 class ConcatInputs(_Inputs):

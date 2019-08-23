@@ -18,7 +18,7 @@ class _Inputs(nn.Module):
 
 
 # from .audio_inp import AudioInputs
-from .emb_dict import EmbeddingDict
+from .concat_inputs import ConcatInputs
 from .field_aware_multiple_index_emb import FieldAwareMultipleIndexEmbedding
 from .image_inp import ImageInputs
 # from .image_list_inp import ImageListInputs

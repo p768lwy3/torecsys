@@ -42,26 +42,25 @@ class InputsWrapper(_Inputs):
         for out_name, args_tuple in self.schema.items():
             # get basic args
             embedding = args_tuple[0]
-            inp_name = args_tuple[1]
+            inp_names = args_tuple[1]
             
-            # get tensor of inputs field from inputs
-            inp_val = [inputs[i] for i in inp_name]
-            
-            # cat the tensors of inputs
-            inp_val = torch.cat(inp_val, dim=1)
-            args = [inp_val]
-            
-            # get args if type of embedding is the required type
-            if embedding.__class__.__name__ == "SequenceIndexEmbedding":
-                arg_name = args_tuple[2][0]
-                args.append(inputs[arg_name])
-            
-            elif embedding.__class__.__name__ == "StackedInputs":
-                raise ValueError("")
+            if embedding.__class__.__name__ in ["ConcatInputs", "StackedInputs"]:
+                # create dictionary of concat inputs
+                args_dict = { i : inputs[i] for i in inp_names }
 
-            elif embedding.__class__.__name__ == "ConcatInputs":
-                raise ValueError("")
+                # create list variable to be passed 
+                args = [args_dict]
+            else:
+                # universal inputs' field
+                inp_val = [inputs[i] for i in inp_names]
+                inp_val = torch.cat(inp_val, dim=1)
+                args = [inp_val]
             
+                # get args if type of embedding is the required type
+                if embedding.__class__.__name__ == "SequenceIndexEmbedding":
+                    arg_name = args_tuple[2][0]
+                    args.append(inputs[arg_name])
+
             # embedding
             outputs[out_name] = embedding(*args)
 
