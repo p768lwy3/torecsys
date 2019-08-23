@@ -25,6 +25,9 @@ class InputsWrapper(_Inputs):
         
         # store the schema to self
         self.schema = schema
+
+        # set length for _Inputs
+        self.length = None
     
     def forward(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         r"""forward process of InputsWrapper to wrap the inputs into a dictionary

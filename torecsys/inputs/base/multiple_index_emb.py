@@ -42,7 +42,8 @@ class MultipleIndexEmbedding(_Inputs):
             self.length = embed_size * len(field_sizes)
         else:
             self.length = embed_size
-    
+        self.flatten = flatten
+
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         r"""Return embedding vectors of inputs
         
@@ -57,7 +58,7 @@ class MultipleIndexEmbedding(_Inputs):
         outputs = self.embedding(inputs)
 
         # flatten to (B, 1, N * E) if flatten is True
-        if flatten:
+        if self.flatten:
             batch_size = outputs.size(0)
             return outputs.view(batch_size, 1, -1)
         else:
