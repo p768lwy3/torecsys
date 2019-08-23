@@ -22,6 +22,9 @@ class ConcatInputs(_Inputs):
 
         # store the schema to self
         self.schema = schema
+
+        # set length to sum of lengths of inputs
+        self.length = sum([len(tup[0]) for tup in self.schema])
     
     def forward(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
         r"""forward process of ConcatInputs
@@ -37,9 +40,9 @@ class ConcatInputs(_Inputs):
         for args_tuple in self.schema:
             # get basic args
             embedding = args_tuple[0]
-            inp_name = args_tuple[1]
+            inp_names = args_tuple[1]
             
-            inp_val = [inputs[i] for i in inp_name]
+            inp_val = [inputs[i] for i in inp_names]
             inp_val = torch.cat(inp_val, dim=1)
             args = [inp_val]
             
@@ -49,6 +52,7 @@ class ConcatInputs(_Inputs):
             
             outputs.append(embedding(*args))
 
+        # concat in the third dimension, hence output's shape = (B, 1, sum(E))
         outputs = torch.cat(outputs, dim=2)
         
         return outputs

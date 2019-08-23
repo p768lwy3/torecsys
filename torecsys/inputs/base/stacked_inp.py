@@ -4,79 +4,67 @@ from typing import Dict, List, Tuple
 
 
 class StackedInputs(_Inputs):
-    r"""StackedInputs is a field of stacked inputs to stack multiple inputs into a row of features vectors
+    r"""StackedInputs is a field of inputs for stacking multiple inputs fields into a (B, N, E) matrix.
     """
-    @jit_experimental
-    def __init__(self,
-                 field_names: List[str],
-                 field_types: List[str],
-                 field_sizes: List[int],
-                 embed_sizes: List[int],
-                 **kwargs):
-        r"""initialize stacked inputs field
+    def __init__(self, schema: List[tuple]):
+        r"""initialize a stacked inputs field
         
         Args:
-            field_names (List[str]): list of string of field name
-            field_types (List[str]): list of string of field type
-            field_sizes (List[int]): list of integer of field size
-            embed_sizes (List[int]): list of integer of embedding size
-        
-        Kwargs:
-            [field_name] (dict): key is field_name string and value = kwargs of dictionary for inputs or embedding field
-        
-        Raises:
-            ValueError: when the length of field_names, field_types, field_sizes and embed_sizes are not same
-            ValueError: when the field types contain strings which is not in __field_type__
+            schema (List[tuple]): a list of tuple of embeddings function and inputs arguments, where the lengths of embeddings must be same
+            e.g. ```python
+            schema = [
+                (trs.inputs.base.SingleIndexEmbedding(4, 10), ["userId"]),
+                (trs.inputs.base.SingleIndexEmbedding(4, 10), ["movieId"])
+            ]```
         """
         super(StackedInputs, self).__init__()
-        self.embeddings = nn.ModuleDict()
-        self.length = sum(embed_sizes)
         
-        num_fields = len(field_names)
-        if not all(len(lst) == num_fields for lst in [field_types, field_sizes, embed_sizes]):
-            raise ValueError("all inputs list must be the same lengths")
+        # check whether the lengths of embeddings are equal
+        self.length = len(schema[0][0])
+        for not all(len(tup[0]) == self.length for tup in sceham):
+            raise ValueError("all inputs lenght (i.e. embed_size) must be same.")
 
-        for fname, ftype, fsize, esize in zip(field_names, field_types, field_sizes, embed_sizes):
-            fkwargs = kwargs.get(fname, {})
-            if ftype == "image":
-                self.embeddings[fname] = ImageInputs(esize, **fkwargs)
-            elif ftype == "list_index":
-                self.embeddings[fname] = ListIndexEmbedding(esize, fsize, **fkwargs)
-            # elif ftype == "pretrained_image":
-            #     self.embeddings[fname] = PretrainedImageInputs(esize, **fkwargs)
-            elif ftype == "sequence_index":
-                self.embeddings[fname] = SequenceIndexEmbedding(esize, fsize, **fkwargs)
-            elif ftype == "single_index":
-                self.embeddings[fname] = SingleIndexEmbedding(esize, fsize, **fkwargs)
-            elif ftype == "value":
-                self.embeddings[fname] = ValueInputs(num_fields=esize)
-            else:
-                raise ValueError("field_name %s with field_type %s is not allowed, Only allow: [%s]." % (fname, ftype, ", ".join(__field_type__)))    
-        
-        self.field_names = field_names
+        # store the schema to self
+        self.schema = schema
 
-    def forward(self, inputs: Dict[str, Tuple[torch.Tensor]]) -> torch.Tensor:
-        r"""Return field-stacked features vectors
+    def forward(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
+        r"""forward process of StackedInputs
         
         Args:
-            inputs (Dict[str, Tuple[T]]): inputs dictionary, where keys are field names, and values are tuple of torch.Tensor
-        
-        Raises:
-            ValueError: when lengths (i.e. 1-st dimension, B) of inputs values are not equal
+            inputs (Dict[str, T]): inputs values or index to be passed to function in trs.inputs.base, where keys should be existed in schema defined in __init__.
         
         Returns:
-            T, shape = (B, 1, E): 2nd dimensional stacked features vectors
+            T, shape = (B, N, E): 2nd dimensional stacked features vectors
         """
-        # check if all inputs' values are the same length
-        batch_size = list(inputs.values())[0][0].size(0)
-        if not all(field_input.size(0) == batch_size for field_inputs in inputs.values() for field_input in field_inputs):
-            raise ValueError("lengths of inputs values must be the same.")
+        outputs = list()
 
-        # append the embeddings to a list
-        outputs = []
-        for fname in self.field_names:
-            outputs.append(self.embeddings[fname](*inputs[fname]))
+        for args_tuple in self.schema:
+            # get basic args
+            embedding = args_tuple[0]
+            inp_names = args_tuple[1]
 
-        # unsqueeze(1) if output dim = 2, then concatenate with dim = 2 and return
-        outputs = [o.unsqueeze(1) if o.dim() == 2 else o for o in outputs]
-        return torch.cat(outputs, dim=2)
+            if embedding.__class__.__name__ == "ConcatInputs":
+                # create dictionary of concat inputs
+                args_dict = {i : inputs[i] for i in inp_names}
+
+                # create list variable to be passed 
+                args = [args_dict]
+            else:
+                # universal inputs' field
+                inp_val = [inputs[i] for i in inp_names]
+                inp_val = torch.cat(inp_val, dim=1)
+
+                # create list variable to be passed 
+                args = [inp_val]
+
+                # append tensor of length to args if SequenceIndexEmbedding
+                if embedding.__class__.__name__ == "SequenceIndexEmbedding":
+                    arg_name = args_tuple[2][0]
+                    args.append(inputs[arg_name])
+            
+            outputs.append(embedding(*args))
+
+        # stack in the second dimension, hence output's shape = (B, sum(N), E)
+        outputs = torch.cat(outputs, dim=1)
+
+        return outputs
