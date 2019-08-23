@@ -1,26 +1,7 @@
 from . import _Inputs
-# from .audio_inp import AudioInputs
-# from .field_aware_single_index_emb import FieldAwareSingleIndexEmbedding
-from .image_inp import ImageInputs
-# from .image_list_inp import ImageListInputs
-from .list_index_emb import ListIndexEmbedding
-# from .pretrained_image_inp import PretrainedImageInputs
-# from .pretrained_text_inp import PretrainedTextInputs
-from .sequence_index_emb import SequenceIndexEmbedding
-from .single_index_emb import SingleIndexEmbedding
-# from .text_inp import TextInputs
-# from .timeseries_inp import TimeseriesInputs
-# from .timestamp_inp import TimestampInputs
-from .value_inp import ValueInputs
-
-from torecsys.utils.decorator import jit_experimental
-
 import torch
-import torch.nn as nn
 from typing import Dict, List, Tuple
 
-__field_type__ = ["image", "list_index", "sequence_index", "single_index", 
-                  "value"]
 
 class StackedInputs(_Inputs):
     r"""StackedInputs is a field of stacked inputs to stack multiple inputs into a row of features vectors

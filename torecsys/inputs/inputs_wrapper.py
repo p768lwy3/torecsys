@@ -19,9 +19,7 @@ class InputsWrapper(_Inputs):
                 "movie" : (trs.inputs.base.SingleIndexEmbedding(4, 10), ["movieId"]),
                 "pair"  : (trs.inputs.base.FieldAwareMultipleIndexEmbedding(4, [10, 10]), ["userId", "movieId"]),
                 "seq"   : (trs.inputs.base.SequenceIndexEmbedding(4, 10), ["seqId"], ["seqLength"])
-            }
-            ```
-        
+            }```
         """
         super(InputsWrapper, self).__init__()
         

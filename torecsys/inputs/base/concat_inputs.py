@@ -3,15 +3,20 @@ import torch
 from typing import List
 
 
-class ConcatInputs(nn.Module):
-    r"""
+class ConcatInputs(_Inputs):
+    r"""ConcatInputs is a field of inputs for concatenating several inputs fields on row-wise,
+    where the output's shape of ConcatInputs will be :math:`( B, 1, E_{1} + ... + E_{k} )` .
     """
     def __init__(self, schema: List[tuple]):
-        r"""[summary]
+        r"""initialize a concat inputs field
         
         Args:
-            nn ([type]): [description]
-            schema (List[tuple]): [description]
+            schema (List[tuple]): a list of tuple of embeddings function and inputs arguments,
+            e.g. ```python
+            schema = [
+                (trs.inputs.base.SingleIndexEmbedding(4, 10), ["userId"]),
+                (trs.inputs.base.SingleIndexEmbedding(4, 10), ["movieId"])
+            ]```
         """
         super(ConcatInputs, self).__init__()
 
@@ -19,13 +24,13 @@ class ConcatInputs(nn.Module):
         self.schema = schema
     
     def forward(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
-        r"""[summary]
+        r"""forward process of ConcatInputs
         
         Args:
-            inputs (Dict[str, torch.Tensor]): [description]
+            inputs (Dict[str, T]): inputs values or index to be passed to function in trs.inputs.base, where keys should be existed in schema defined in __init__.
         
         Returns:
-            torch.Tensor: [description]
+            T, shape = (B, 1, E_{sum}), dtype = torch.float: concatenated outputs of values and embeddings values.
         """
         outputs = list()
 
