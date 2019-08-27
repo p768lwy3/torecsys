@@ -6,9 +6,11 @@ import torch.nn as nn
 from typing import List
 
 
-class FieldAwareMultipleIndexEmbedding(_Inputs):
-    r"""FieldAwareSingleIndexEmbedding is a embedding field to pass a list of single index 
-    and return a cross field embedding matrix of each vector for a index is :math:`E_{j_{1}, f_{2}}` .
+class MultiIndicesFieldAwareEmbedding(_Inputs):
+    r"""Base Inputs class for field-aware embedding of multi-indices, which is used in Field Aware 
+    Factorization (FFM) or its variants. The shape of output is :math:`(B, N * N, E)`, where the 
+    embedding tensor :math"`E_{feat_{i, k}, field_{j}}` are looked up the k-th row from the j-th 
+    matrix of i-th feature.
     
     :Reference: 
 
@@ -17,13 +19,13 @@ class FieldAwareMultipleIndexEmbedding(_Inputs):
     """
     @jit_experimental
     def __init__(self, embed_size: int, field_sizes: List[int]):
-        r"""initialize field-aware single index embedding field
+        r"""Initialize MultiIndicesFieldAwareEmbedding.
         
         Args:
-            embed_size (int): embedding size
-            field_sizes (List[int]): list of field sizes
+            embed_size (int): Size of embedding tensor
+            field_sizes (List[int]): List of inputs fields' sizes
         """
-        super(FieldAwareMultipleIndexEmbedding, self).__init__()
+        super(MultiIndicesFieldAwareEmbedding, self).__init__()
         self.num_fields = len(field_sizes)
         self.embeddings = nn.ModuleList([
             nn.Embedding(sum(field_sizes), embed_size) for _ in range(self.num_fields)
@@ -34,13 +36,14 @@ class FieldAwareMultipleIndexEmbedding(_Inputs):
         self.length = embed_size
     
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
-        r"""Return embedding matrices of inputs
+        r"""Forward calculation of MultiIndicesFieldAwareEmbedding.
         
         Args:
-            inputs (T), shape = (B, N), dtype = torch.long: inputs, where they are the indices of fields (i.e. length of column of T = N) for each row
+            inputs (T), shape = (B, N), dtype = torch.long: Tensor of indices in inputs fields.
         
         Returns:
-            T, (B, N * N, E): embedding matrices :math:`\bm{E} = \bm{\Big[} e_{\text{index}_{i}, \text{feat}_{j}}  \footnotesize{\text{, for} \ i = \text{i-th field} \ \text{and} \ j = \text{j-th field}} \bm{\Big]}`
+            T, (B, N * N, E), dtype = torch.float: Embedded Inputs: :math:`\bm{E} = \bm{\Big[} e_{\text{index}_{i}, \text{feat}_{j}}  
+                \footnotesize{\text{, for} \ i = \text{i-th field} \ \text{and} \ j = \text{j-th field}} \bm{\Big]}`
         """
         inputs = inputs + inputs.new_tensor(self.offsets).unsqueeze(0)
         outputs = torch.cat([self.embeddings[i](inputs) for i in range(self.num_fields)], dim=1)

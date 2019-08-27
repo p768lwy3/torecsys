@@ -11,7 +11,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 from tqdm.autonotebook import tqdm
-from typing import Dict
+from typing import Callable, Dict
 import warnings
 
 
@@ -73,22 +73,50 @@ class Trainer(object):
 
         print(self._describe())
     
-    def _add_embedding(self):
-        return 
+    def _add_embedding(self,
+                       param_name  : str, 
+                       metadata    : list = None,
+                       label_img   : torch.Tensor = None,
+                       global_step : int = None,
+                       tag         : str = None):
+        r"""[summary]
+        
+        Args:
+            param_name (str): [description]
+            metadata (list, optional): [description]. Defaults to None.
+            label_img (torch.Tensor, optional): [description]. Defaults to None.
+            global_step (int, optional): [description]. Defaults to None.
+            tag (str, optional): [description]. Defaults to None.
+        
+        Raises:
+            ValueError: [description]
+        """
+        # get embedding from inputs_wrapper
+        param_dict = dict(self.embeddings.named_parameters())
+        embed_mat = param_dict.get(param_name)
+
+        if embed_mat is not None:
+            if self.verboses >= 2:
+                tag = "%s.step.%d" % (param_name, global_step) if tag is None else tag
+                self.writer.add_embedding(embed_mat, metadata=metadata, label_img=label_img, global_step=global_step, tag=tag)
+            else:
+                self.logger.warn("_add_embedding only can be called when self.verboses >= 2.")
+        else:
+            raise ValueError("parameter %s cannot found." % param_name)
 
     def _add_graph(self, 
                    samples_inputs : Dict[str, torch.Tensor], 
-                   verbose        : bool = True):
+                   verbose        : bool = False):
         r"""Add graph data to summary.
         
         Args:
             samples_inputs (Dict[str, T]): A dictionary of variables to be fed.
             verboses (bool, optional): Whether to print graph structure in console. Defaults to True.
         """
-        raise NotImplementedError("ERROR!!!")
+        warnings.warn("Sorry... _add_graph cannot work well now. It may be updated when torch.utils.tensorboard update...")
         if self.verboses >= 2:
             embed_inputs = self.embeddings(samples_inputs)
-            self.writer.add_graph(self.model, **embed_inputs, verbose=verbose)
+            self.writer.add_graph(self.model, tuple(embed_inputs.values()), verbose=verbose)
         else:
             if self.verboses >= 1:
                 self.logger.warn("_add_graph only can be called when self.verboses >= 2.")
@@ -206,8 +234,52 @@ class Trainer(object):
             if self.verboses >= 2:
                 self.writer.add_scalar("training/epoch_avg_loss", epoch_loss / num_batch, global_step=epoch)
 
-    def predict(self, batch):
-        return
+    def evalaute(self, 
+                 dataloader  : torch.utils.data.DataLoader,
+                 evaluate_fn : Callable[[torch.Tensor, torch.Tensor], torch.Tensor]) -> float:
+        r"""evaulate trained model's performance with a dataset in dataloader, by giving evaluate_fn
+        
+        Args:
+            dataloader (torch.utils.data.DataLoader): dataloader of dataset for evaluation
+            evaluate_fn (Callable[[T, T], T]): function of evaluation by inputing true values and predicted values
+        
+        Returns:
+            float: scores of evaulation
+        """
+        # initialize scores to save the aggregation
+        scores = 0.0
+        for i, batch_data in enumerate(dataloader):
+            # pop labels from batch data
+            labels = batch_data.pop(self.labels_name)
+            
+            # calculate forward calculation
+            yhat = self.predict(batch_data)
+            
+            # calculate evaulate scores, where score's shape = (1, )
+            score = evaluate_fn(yhat, labels)
+
+            # add score to scores
+            scores += score.item()
+
+        avg_scores = float(scores / i)
+        return avg_scores
+    
+    def predict(self, batch_inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
+        r"""Get prediction from the model
+        
+        Args:
+            batch_inputs (Dict[str, T]): batch inputs of model, where key = names of input field and value = tensors of input field
+        
+        Returns:
+            T, shape = (batch size, 1), dtype = torch.float: prediction of the model
+        """
+        # set no gradient to the computation
+        with torch.no_grad():
+            # calculate forward calculation
+            embed_data = self.embeddings(batch_inputs)
+            yhat = self.model(**embed_data)
+
+        return yhat
     
     def save(self):
         return

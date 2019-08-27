@@ -6,8 +6,8 @@ from typing import List
 
 
 class ImageInputs(_Inputs):
-    r"""ImageInputs is a image input field to pass a image tensor, 
-    and process with convalution neural network, and finally return a feed-forwarded features vectors
+    r"""Base Inputs class for image, which embed image by a stack of convalution neural network (CNN) 
+    and fully-connect layer.
     """
     @jit_experimental
     def __init__(self,
@@ -21,20 +21,23 @@ class ImageInputs(_Inputs):
                  use_batchnorm : bool  = True,
                  dropout_p     : float = 0.0,
                  activation    : torch.nn.modules.activation = nn.ReLU()):
-        r"""initialize the image inputs field
+        r"""Initialize ImageInputs
         
         Args:
-            embed_size (int): embedding size
-            in_channel (int): channel size of input
-            layers_size (List[int]): layers size of convalution neural network
-            kernels_size (List[int]): kernel size of convalution neural network
-            strides (List[int]): strides of convalution neural network
-            paddings (List[int]): paddings of convalution neural network
-            pooling (str, optional): pooling layer method. Defaults to avg_pooling.
-            use_batchnorm (bool, optional): boolean flag to use batch norm 2d after conv2d. Defaults to True.
-            dropout_p (float, optional): dropout probability of dropout2d after conv2d or batchnorm2d. Defaults to 0.0.
-            activation (torch.nn.modules.activation, optional): activation function after conv2d. Defaults to nn.ReLU().
-        
+            embed_size (int): Size of embedding tensor
+            in_channel (int): Number of channel of inputs
+            layers_size (List[int]): Layers size of CNN
+            kernels_size (List[int]): Kernels size of CNN
+            strides (List[int]): Strides of CNN
+            paddings (List[int]): Paddings of CNN
+            pooling (str, optional): Method of pooling layer. 
+                Defaults to avg_pooling.
+            use_batchnorm (bool, optional): Whether batch normalization is applied after Conv2d. 
+                Defaults to True.
+            dropout_p (float, optional): Probability of Dropout2d. 
+                Defaults to 0.0.
+            activation (torch.nn.modules.activation, optional): Activation function of Conv2d. 
+                Defaults to nn.ReLU().
         """
         super(ImageInputs, self).__init__()
 
