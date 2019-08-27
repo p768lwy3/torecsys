@@ -20,8 +20,10 @@ class ConcatInputs(_Inputs):
         """
         super(ConcatInputs, self).__init__()
 
-        # store the schema to self
+        # store the schema to self and add_module to the Module
         self.schema = schema
+        for i, tup in enumerate(schema):
+            self.add_module("embedding_%d" % i, tup[0])
 
         # set length to sum of lengths of inputs
         self.length = sum([len(tup[0]) for tup in self.schema])

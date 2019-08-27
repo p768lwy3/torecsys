@@ -23,8 +23,10 @@ class InputsWrapper(_Inputs):
         """
         super(InputsWrapper, self).__init__()
         
-        # store the schema to self
+        # store the schema to self and add_module to the Module
         self.schema = schema
+        for k, tup in schema.items():
+            self.add_module(k, tup[0])
 
         # set length for _Inputs
         self.length = None

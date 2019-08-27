@@ -24,8 +24,10 @@ class StackedInputs(_Inputs):
         if not all(len(tup[0]) == self.length for tup in schema):
             raise ValueError("all inputs lenght (i.e. embed_size) must be same.")
 
-        # store the schema to self
+        # store the schema to self and add_module to the Module
         self.schema = schema
+        for i, tup in enumerate(schema):
+            self.add_module("embedding_%d" % i, tup[0])
 
     def forward(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
         r"""forward process of StackedInputs
