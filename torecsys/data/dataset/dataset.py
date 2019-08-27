@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 import torch
 import torch.utils.data
-from typing import List
+from typing import Dict, List, Union
 
 
 class NdarrayToDataset(torch.utils.data.Dataset):
@@ -48,17 +48,20 @@ class DataFrameToDataset(torch.utils.data.Dataset):
     """
     def __init__(self, 
                  dataframe: pd.DataFrame,
-                 columns  : List[str]):
+                 columns  : List[str],
+                 use_dict : bool = True):
         r"""initialize DataFrameToDataset
         
         Args:
             dataframe (pd.DataFrame): dataset of DataFrame
             columns (List[str]): column names of fields
+            use_dict (bool, optional): boolean flag to control using dictionary or list to response. Default to True.
         """
         # store variables to get row of data
         super(DataFrameToDataset, self).__init__()
         self.data = dataframe
         self.columns = columns
+        self.use_dict = use_dict
 
     def __len__(self) -> int:
         r"""Return number of rows of dataset
@@ -68,7 +71,7 @@ class DataFrameToDataset(torch.utils.data.Dataset):
         """
         return self.data.shape[0]
     
-    def __getitem__(self, idx: int) -> List[list]:
+    def __getitem__(self, idx: int) -> Union[Dict[str, list], List[list]]:
         r"""Get a row in dataset
         
         Args:
@@ -77,8 +80,11 @@ class DataFrameToDataset(torch.utils.data.Dataset):
         Returns:
             List[list]: List of lists which is storing features of a field in dataset
         """
-        row = self.data.iloc[idx][self.columns].tolist()
-        return [[v] for v in row]
+        rows = self.data.iloc[idx][self.columns].tolist()
+        if self.use_dict:
+            return {k : [v] for k, v in zip(self.columns, rows)}
+        else:
+            return [[v] for v in rows]
 
 
 @to_be_tested

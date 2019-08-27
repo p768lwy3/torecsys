@@ -7,12 +7,14 @@ import torch.nn.utils.rnn as rnn_utils
 import torchvision
 import torchvision.transforms as transforms
 from typing import Dict, List, Tuple
+import warnings
 
 
 __field_type__ = ["values", "single_index", "list_index", "sequence_index", "image_dir", "image_url", "sentence"]
 
 
-def trs_collate_fn(batch_data  : List[list],
+# to be modified 
+def list_collate_fn(batch_data  : List[list],
                    field_names : List[str],
                    field_types : List[str],
                    **kwargs) -> Dict[str, Tuple[torch.Tensor]]:
@@ -137,4 +139,30 @@ def trs_collate_fn(batch_data  : List[list],
             # skip if the field_type is not exist
             continue
     
+    return outputs
+
+
+def dict_collate_fn(batch_data: List[Dict[str, list]],
+                    schema    : Dict[str, Tuple[str, str]]) -> Dict[str, torch.Tensor]:
+    
+    # initialize outputs dictionary to store tensors of fields
+    outputs = dict()
+
+    # loop through schema for each input's field
+    for inp_key, (out_key, out_type) in schema.items():
+        # get input's values by using input name as a key
+        inp_value = [data[inp_key] for data in batch_data]
+
+        if out_type == "values":
+            # return tensor with dtype = torch.float()
+            outputs[out_key] = torch.Tensor(inp_value)
+        
+        elif out_type == "single_index":
+            # return tensor with dtype = torch.long()
+            outputs[out_key] = torch.Tensor(inp_value).long()
+        
+        else:
+            # raise warning if the output type is not found
+            warnings.warn("output type : %s doesn't exist.")
+        
     return outputs

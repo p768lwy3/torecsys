@@ -20,6 +20,7 @@ class Trainer(object):
                  inputs_wrapper : _Inputs,
                  model          : _Model,
                  regularizer    : Regularizer = Regularizer(0.1, 2),
+                 labels_name    : str = "labels",
                  loss           : type = nn.MSELoss,
                  optimizer      : type = optim.AdamW,
                  epochs         : int = 10,
@@ -33,6 +34,7 @@ class Trainer(object):
 
         # set regularizer, loss, optimizer, ...
         self.regularizer = regularizer
+        self.labels_name = labels_name
         self.loss = loss()
         self.parameters = list(self.embeddings.parameters()) + list(self.model.parameters())
         self.optimizer = optimizer(self.parameters)
@@ -144,7 +146,6 @@ class Trainer(object):
         loss = self.loss(outputs, labels)
         if self.regularizer is not None:
             named_params = list(self.embeddings.named_parameters()) + list(self.model.named_parameters())
-            print(named_params)
             reg_loss = self.regularizer(named_params)
             loss += reg_loss
 
@@ -160,24 +161,25 @@ class Trainer(object):
         global_step = 0
 
         # number of batches
-        num_batch = len(batch_inputs)
+        num_batch = len(dataloader)
 
         # loop through n epochs
-        for epoch in self.epochs:
+        for epoch in range(self.epochs):
             # initialize loss variables to store aggregated loss
             steps_loss = 0.0
             epoch_loss = 0.0
 
             # logging of the epoch
-            if verboses >= 1:
+            if self.verboses >= 1:
                 self.logger.info("Epoch %s / %s:" % (epoch + 1, self.epochs))
             
             # initialize progress bar of dataloader of this epoch
-            pbar = tqdm(dataloader, desc="step loss : ??.????", ncols=100, ascii=True)
+            pbar = tqdm(dataloader, desc="step loss : ??.????")
 
-            for i, (batch_inputs, labels) in enumerate(pbar):
+            for i, batch_data in enumerate(pbar):
                 # iteration of the batch
-                loss = self._iterate(batch_inputs, labels)
+                labels = batch_data.pop(self.labels_name)
+                loss = self._iterate(batch_data, labels)
                 
                 # add step loss to steps_loss and epoch_loss
                 loss_val = loss.item()
