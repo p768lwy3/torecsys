@@ -5,9 +5,10 @@ import torch
 import torch.nn as nn
 
 
-class SequenceIndexEmbedding(_Inputs):
-    r"""SequenceIndexEmbedding is a embedding field to pass a sequence of index with order
-    process by Recurrent Neural Network, and finally return aggregated embedding tensor"""
+class SequenceIndicesEmbedding(_Inputs):
+    r"""Base Inputs class for embedding of sequence of indices with order, which embed the 
+    sequence by Recurrent Neural Network (RNN) and aggregate before return.
+    """
     @jit_experimental
     def __init__(self,
                  embed_size   : int,
@@ -17,42 +18,65 @@ class SequenceIndexEmbedding(_Inputs):
                  output_method: str = "avg_pooling",
                  nn_embedding : nn.Parameter = None,
                  **kwargs):
-        r"""initialize the sequence index embedding field
+        r"""Initialize SequenceIndicesEmbedding.
         
         Args:
-            embed_size (int): embedding size
-            field_size (int): field size
-            padding_idx (int, optional): padding index of field. Defaults to 0.
-            rnn_method (str, optional): string of rnn method, Allow: ["gru", "lstm", "rnn"]. Defaults to "lstm".
-            output_method (str, optional): string of aggregation method, Allow: ["avg_pooling", "max_pooling", "mean", "sum"]. Defaults to "avg_pooling".
-            nn_embedding (nn.Parameter, optional): pretrained embedding values. Defaults to None.
-        
+            embed_size (int): Size of embedding tensor
+            field_size (int): Size of inputs field
+            padding_idx (int, optional): Padding index. 
+                Defaults to 0.
+            rnn_method (str, optional): Method of RNN.
+                Allow: ["gru", "lstm", "rnn"]. 
+                Defaults to "lstm".
+            output_method (str, optional): Method of aggregation. 
+                Allow: ["avg_pooling", "max_pooling", "mean", "none", "sum"]. 
+                Defaults to "avg_pooling".
+            nn_embedding (nn.Parameter, optional): Pretrained embedding values. 
+                Defaults to None.
+            
         Kwargs:
-            num_layers (int): number of layers of recurrent neural network
-            bias (bool): boolean flag to use bias variable in recurrent neural network
-            dropout (float): dropout ratio of recurrent neural network
-            bidirectional (bool): boolean flag to use bidirectional recurrent neural network
+            num_layers (int): Number of layers of RNN.
+                Default to 1.
+            bias (bool): Whether bias is added to RNN or not.
+                Default to True.
+            dropout (float): Probability of Dropout in RNN.
+                Default to 0.0.
+            bidirectional (bool): Whether bidirectional is used in RNN or not.
+                Default to False.
+        
+        Attributes:
+            length (int): Size of embedding tensor.
+            embedding (torch.nn.Module): Embedding layer.
+            rnn_layers (torch.nn.Module): RNN layers.
+            aggregation (Union[torch.nn.Module, callable]): Pooling layer or aggregation function.
+            output_method (string): Type of output_method.
         
         Raises:
             ValueError: when rnn_method is not in ["gru", "lstm", "rnn"].
             ValueError: when output_method is not in ["avg_pooling", "max_pooling", "mean", "sum"].
         """
-        super(SequenceIndexEmbedding, self).__init__()
+        # refer to parent class
+        super(SequenceIndicesEmbedding, self).__init__()
         
+        # bind embedding to pre-trained embedding module if nn_embedding is not None
         if nn_embedding is not None:
             self.length = nn_embedding.size(1)
             self.embedding = nn.Embedding.from_pretrained(nn_embedding)
+        # else, create a embedding module with the given arguments
         else:
             self.length = embed_size
             self.embedding = nn.Embedding(field_size, embed_size, padding_idx=padding_idx, **kwargs)
 
-        __rnn_method__ = ["rnn", "lstm", "gru"]
+        # parse bidirectinal from kwargs
         bidirectional = kwargs.get("bidirectional", False)
         if bidirectional:
+            # set hidden_size to embed_size // 2 if bidirectional is True
             hidden_size = embed_size // 2
         else:
+            # else, set hidden_size to embed_size
             hidden_size = embed_size
         
+        # parse arguments of RNN layers
         rnn_args = dict(
             input_size    = embed_size,
             hidden_size   = hidden_size,
@@ -63,6 +87,7 @@ class SequenceIndexEmbedding(_Inputs):
             bidirectional = bidirectional
         )
 
+        # initialize RNN layers
         if rnn_method == "rnn":
             self.rnn_layers = nn.RNN(**rnn_args)
         elif rnn_method == "lstm":
@@ -70,33 +95,32 @@ class SequenceIndexEmbedding(_Inputs):
         elif rnn_method == "gru":
             self.rnn_layers = nn.GRU(**rnn_args)
         else:
-            raise ValueError("rnn_method only allows [%s]." % (", ".join(__rnn_method__)))
-
-        __output_method__ = ["avg_pooling", "max_pooling", "mean", "none", "sum"]
+            raise ValueError('rnn_method only allows ["rnn", "lstm", "gru"].')
         
-        self.output_method = output_method
+        # initialize aggregation layer for outputs and bind output_method to output_method
         if output_method == "avg_pooling":
-            self.output_layer = nn.AdaptiveAvgPool1d(1)
+            self.aggregation = nn.AdaptiveAvgPool1d(1)
         elif output_method == "max_pooling":
-            self.output_layer = nn.AdaptiveMaxPool1d(1)
+            self.aggregation = nn.AdaptiveMaxPool1d(1)
         elif output_method == "mean":
-            self.output_layer = partial(torch.mean, dim=1, keepdim=True)
+            self.aggregation = partial(torch.mean, dim=1, keepdim=True)
         elif output_method == "none":
-            self.output_layer = torch.Tensor
+            self.aggregation = torch.Tensor
         elif output_method == "sum":
-            self.output_layer = partial(torch.sum, dim=1, keepdim=True)
+            self.aggregation = partial(torch.sum, dim=1, keepdim=True)
         else:
-            raise ValueError("output_method only allows [%s]." % (", ".join(__output_method__)))
-    
+            raise ValueError('output_method only allows ["avg_pooling", "max_pooling", "mean", "none", "sum"].')
+        self.output_method = output_method
+
     def forward(self, inputs: torch.Tensor, lengths: torch.Tensor) -> torch.Tensor:
-        r"""Return aggregated embedding vectors of inputs which passed over Recurrent Neural Network, and take aggregation after that.
+        r"""Forward calculation of SequenceIndicesEmbedding
 
         Args:
-            inputs (T), shape = (B, L), dtype = torch.long: sequence of indices to be embedded
-            lengths (T), shape = (B), dtype = torch.long: length of inputs sequence
+            inputs (T), shape = (B, L), dtype = torch.long: Sequence of tensor of indices in inputs fields.
+            lengths (T), shape = (B), dtype = torch.long: Length of sequence of tensor of indices.
         
         Returns:
-            T, shape = (B, 1 or L, E): (aggregated) embedding vectors
+            T, shape = (B, 1 or L, E): Outputs of SequenceIndicesEmbedding.
         """
         # sort inputs with the lengths
         lengths, perm_idx = lengths.sort(0, descending=True)
@@ -125,11 +149,12 @@ class SequenceIndexEmbedding(_Inputs):
             # transpose from (B, L, E) to (B, E, L)
             outputs = outputs.transpose(1, 2)
             # shape of outputs = (B, E, 1)
-            outputs = self.output_layer(outputs)
+            outputs = self.aggregation(outputs)
             # transpose from (B, E, 1) to (B, 1, E)
             outputs = outputs.transpose(1, 2)
         else:
             # outputs' shape = (B, 1, E) if output_method == "mean" or "sum"
             # else outputs' shape = (B, L, E) if output_method == "none"
-            outputs = self.output_layer(outputs)
+            outputs = self.aggregation(outputs)
+        
         return outputs

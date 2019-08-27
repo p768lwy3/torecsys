@@ -32,7 +32,7 @@ class ConcatInputs(_Inputs):
         # bind schema to schema
         self.schema = schema
 
-        # add modules in schemas to the Module
+        # add modules in schema to the Module
         for i, tup in enumerate(schema):
             self.add_module("embedding_%d" % i, tup[0])
 

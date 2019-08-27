@@ -3,7 +3,7 @@ from torecsys.utils.decorator import jit_experimental
 import torch
 
 class ValueInputs(_Inputs):
-    r"""ValueInputs is a input field to pass the value directly
+    r"""Base Inputs class for value to be passed directly.
     
     :Todo:
 
@@ -12,22 +12,28 @@ class ValueInputs(_Inputs):
     """
     @jit_experimental
     def __init__(self, num_fields: int):
-        r"""initialize the value inputs field
+        r"""Initialize ValueInputs
         
         Args:
-            num_fields (int): total number of fields of inputs
+            num_fields (int): Number of inputs' fields.
+
+        Attributes:
+            length (int): Number of inputs' fields.
         """
+        # refer to parent class
         super(ValueInputs, self).__init__()
-        self.num_fields = num_fields
+
+        # bind length to num_fields 
         self.length = num_fields
     
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
-        r"""Return values of fields
+        r"""Forward calculation of ValueInputs.
         
         Args:
-            inputs (T), shape = (B, N): inputs value tensor
+            inputs (T), shape = (B, N): Tensor of values in input fields.
         
         Returns:
-            T, shape = (B, 1, N): reshaped inputs value tensor
+            T, shape = (B, 1, N): Outputs of ValueInputs
         """
+        # unsqueeze(1) and return
         return inputs.unsqueeze(1)

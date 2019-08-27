@@ -31,7 +31,7 @@ class ListIndicesEmbedding(_Inputs):
             use_attn (bool, optional): Whether multihead attention is used or not.  
                 Defaults to True.
             output_method (str, optional): Method of aggregation. 
-                Allow: ["avg_pooling", "max_pooling", "mean", "sum"]. 
+                Allow: ["avg_pooling", "max_pooling", "mean", "none", "sum"]. 
                 Defaults to "avg_pooling".
             nn_embedding (nn.Parameter, optional): Pretrained embedding values. 
                 Defaults to None.
@@ -40,15 +40,15 @@ class ListIndicesEmbedding(_Inputs):
             num_heads (int): Number of heads for MultiheadAttention.
                 Required when use_attn is True.
             dropout (float, optional): Probability of Dropout in MultiheadAttention. 
-                Default = 0.0.
+                Default to 0.0.
             bias (bool, optional): Whether bias is added to multihead attention or not. 
-                Default = True.
+                Default to True.
             add_bias_kv (bool, optional): Whether bias is added to the key and value 
                 sequences at dim = 1 in multihead attention or not. 
-                Default = False.
+                Default to False.
             add_zero_attn (bool, optional): Whether a new batch of zeros is added to 
                 the key and value sequences at dim = 1 in multihead attention  or not. 
-                Default = False.
+                Default to False.
         
         Attributes:
             length (int): Size of embedding tensor.
@@ -80,8 +80,6 @@ class ListIndicesEmbedding(_Inputs):
         self.field_size = field_size
         self.length = self.embed_size
 
-        # initialize multihead attention layer and bind use_attn to use_attn
-        self.use_attn = use_attn
         if self.use_attn:
             # parse arguments of multihead attention layer
             self.attn_args = dict(
@@ -92,14 +90,17 @@ class ListIndicesEmbedding(_Inputs):
                 add_bias_kv   = kwargs.get("add_bias_kv", False),
                 add_zero_attn = kwargs.get("add_zero_attn", False)
             )
+            # initialize multihead attention layer
             self.attention = nn.MultiheadAttention(**self.attn_args)
         else:
             # bind attention to a dummy function called dummy_attention 
             # which will return input key directly
             self.attention = dummy_attention
         
+        # bind use_attn to use_attn
+        self.use_attn = use_attn
+        
         # initialize aggregation layer for outputs and bind output_method to output_method
-        __output_method__ = ["avg_pooling", "max_pooling", "mean", "none", "sum"]
         if output_method == "avg_pooling":
             self.aggregation = nn.AdaptiveAvgPool1d(1)
         elif output_method == "max_pooling":
@@ -111,7 +112,7 @@ class ListIndicesEmbedding(_Inputs):
         elif output_method == "sum":
             self.aggregation = partial(torch.sum, dim=1, keepdim=True)
         else:
-            raise ValueError("output_method only allows [%s]." % (", ".join(__output_method__)))
+            raise ValueError('output_method only allows ["avg_pooling", "max_pooling", "mean", "none", "sum"].')
         self.output_method = output_method
 
     def forward(self, inputs: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:

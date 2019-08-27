@@ -5,8 +5,7 @@ import torch.nn as nn
 
 
 class SingleIndexEmbedding(_Inputs):
-    r"""SingleIndexEmbedding is a embedding field to pass a single index and lookup 
-    the dense embedding vector of it
+    r"""Base Inputs class for embedding a single index of a input field.
     """
     @jit_experimental
     def __init__(self,
@@ -15,31 +14,43 @@ class SingleIndexEmbedding(_Inputs):
                  padding_idx  : int = None,
                  nn_embedding : nn.Parameter = None,
                  **kwargs):
-        r"""initialize the single index embedding
+        r"""Initialize SingleIndexEmbedding
         
         Args:
-            embed_size (int): embedding size
-            field_size (int): field size
-            padding_idx (int, optional): padding index of field. Defaults to None.
-            nn_embedding (nn.Parameter, optional): pretrained embedding values. Defaults to None.
+            embed_size (int): Size of embedding tensor
+            field_size (int): Size of inputs field
+            padding_idx (int, optional): Padding index. 
+                Defaults to None.
+            nn_embedding (nn.Parameter, optional): Pretrained embedding values. 
+                Defaults to None.
+        
+        Arguments:
+            length (int): Size of embedding tensor.
+            embedding (torch.nn.Module): Embedding layer.
         """
+        # refer to parent class
         super(SingleIndexEmbedding, self).__init__()
+
+        # bind embedding to pre-trained embedding module if nn_embedding is not None
         if nn_embedding is not None:
-            self.embed_size = nn_embedding.size(1)
+            embed_size = nn_embedding.size(1)
             self.embedding = nn.Embedding.from_pretrained(nn_embedding)
+        # else, create a embedding module with the given arguments
         else:
-            self.embed_size = embed_size
+            embed_size = embed_size
             self.embedding = nn.Embedding(field_size, embed_size, padding_idx=padding_idx, **kwargs)
-        self.length = self.embed_size
+        
+        # bind length to embed_size
+        self.length = embed_size
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
-        r"""Return embedding vectors of inputs
+        r"""Forward calculation of SingleIndexEmbedding
         
         Args:
-            inputs (T), shape = (B, 1), dtype = torch.long: torch.Tensor of inputs, \
-                    where they are the indices of fields
+            inputs (T), shape = (B, 1), dtype = torch.long: Tensor of indices in inputs fields.
         
         Returns:
-            T, (B, 1, E): embedding vectors :math:`\bm{E} = \bm{\Big[} e_{\text{index}_{i}} \footnotesize{\text{, for} \ i = \text{i-th field}} \bm{\Big]}`
+            T, (B, 1, E): Outputs of SingleIndexEmbedding.
         """
+        # get embedding tensor from embedding module
         return self.embedding(inputs)
