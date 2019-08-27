@@ -29,15 +29,15 @@ class ConcatInputs(_Inputs):
         # refer to parent class
         super(ConcatInputs, self).__init__()
 
-        # bind schema to self.schema
+        # bind schema to schema
         self.schema = schema
 
         # add modules in schemas to the Module
         for i, tup in enumerate(schema):
             self.add_module("embedding_%d" % i, tup[0])
 
-        # bind sum of lengths of inputs (i.e. number of fields of inputs, or embedding size of embedding) 
-        # to self.length
+        # bind length to sum of lengths of inputs (i.e. number of fields of inputs, or embedding 
+        # size of embedding) 
         self.length = sum([len(tup[0]) for tup in self.schema])
     
     def forward(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:

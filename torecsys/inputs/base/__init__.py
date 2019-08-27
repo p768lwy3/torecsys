@@ -20,9 +20,9 @@ class _Inputs(nn.Module):
 # from .audio_inp import AudioInputs
 from .concat_inputs import ConcatInputs
 from .image_inp import ImageInputs
-# from .image_list_inp import ImageListInputs
-from .list_index_emb import ListIndexEmbedding
-from .multiple_index_emb import MultipleIndexEmbedding
+# from .images_list_inp import ImageListInputs
+from .list_indices_emb import ListIndicesEmbedding
+from .multi_indices_emb import MultiIndicesEmbedding
 from .multi_indices_field_aware_emb import MultiIndicesFieldAwareEmbedding
 from .pretrained_image_inp import PretrainedImageInputs
 # from .pretrained_text_inp import PretrainedTextInputs

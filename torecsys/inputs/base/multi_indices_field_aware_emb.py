@@ -24,15 +24,33 @@ class MultiIndicesFieldAwareEmbedding(_Inputs):
         Args:
             embed_size (int): Size of embedding tensor
             field_sizes (List[int]): List of inputs fields' sizes
+        
+        Attributes:
+            length (int): Size of embedding tensor.
+            num_fields (int): Number of inputs' fields.
+            embeddings (torch.nn.ModuleList): ModuleList of embedding modules.
+            offsets (T): Tensor of offsets to adjust values of inputs to fit the indices of 
+                embedding tensors.
         """
+        # refer to parent class
         super(MultiIndicesFieldAwareEmbedding, self).__init__()
+
+        # bind num_field to the length of field_sizes
         self.num_fields = len(field_sizes)
+
+        # create ModuleList of nn.Embedding for each field of inputs
         self.embeddings = nn.ModuleList([
             nn.Embedding(sum(field_sizes), embed_size) for _ in range(self.num_fields)
         ])
-        self.offsets = np.array((0, *np.cumsum(field_sizes)[:-1]), dtype=np.long)
+
+        # create offsets to re-index inputs by adding them up
+        self.offsets = torch.Tensor((0, *np.cumsum(field_sizes)[:-1])).long().unsqueeze(0)
+
+        # initialize nn.Embedding with xavier_uniform_ initializer
         for embedding in self.embeddings:
             nn.init.xavier_uniform_(embedding.weight.data)
+        
+        # bind length to embed_size
         self.length = embed_size
     
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
@@ -43,8 +61,11 @@ class MultiIndicesFieldAwareEmbedding(_Inputs):
         
         Returns:
             T, (B, N * N, E), dtype = torch.float: Embedded Inputs: :math:`\bm{E} = \bm{\Big[} e_{\text{index}_{i}, \text{feat}_{j}}  
-                \footnotesize{\text{, for} \ i = \text{i-th field} \ \text{and} \ j = \text{j-th field}} \bm{\Big]}`
+                \footnotesize{\text{, for} \ i = \text{i-th field} \ \text{and} \ j = \text{j-th field}} \bm{\Big]}`.
         """
-        inputs = inputs + inputs.new_tensor(self.offsets).unsqueeze(0)
+        # set offset to adjust values of inputs to fit the indices of embedding tensors
+        inputs = inputs + self.offsets
+
+        # concatenate embedded inputs into a single tensor for outputing
         outputs = torch.cat([self.embeddings[i](inputs) for i in range(self.num_fields)], dim=1)
         return outputs
