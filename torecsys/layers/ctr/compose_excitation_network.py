@@ -4,10 +4,11 @@ import torch.nn as nn
 
 
 class ComposeExcitationNetworkLayer(nn.Module):
-    r"""ComposeExcitationNetwork is a layer used in FAT-DeepFM, which is to compose the field aware embedding matrix feature-wisely 
-    with Convalution 1D layer with :math:`1 * 1` kernel from a :math:`k * n` matrix of field i into :math:`k * 1` vector, and 
-    concatenate all the vectors and pass to the fully-connect feed foward layers to calculate weights of attention. 
-    Finally, apply the attentional weights on the inputs tensors.
+    r"""Layer class of Compose Excitation Network used in FAT-Deep :cite:`Junlin Zhang et al, 2019`[1], which 
+    is to compose field aware embedded tensors by 1D Convalution with a :math:`1 * 1` kernel feature-wisely from 
+    a :math:`k * n` tensor of field i into a :math:`k * 1` tensor, then, concatenate the tensors and forward to 
+    a fully-connect layers to calculate attention weights, finally, inputs' tensor are multiplied by attention 
+    weights, and return outputs tensor with shape = (B, N * N, E).
 
     :Reference:
 
@@ -18,11 +19,18 @@ class ComposeExcitationNetworkLayer(nn.Module):
     def __init__(self, 
                  num_fields : int,
                  reduction  : int = 16):
-        r"""initialize compose excitation network layer
+        r"""Initialize ComposeExcitationNetworkLayer
         
         Args:
-            num_fields (int): [description]
-            reduction (int, optional): [description]. Defaults to 16.
+            num_fields (int): Number of inputs' fields. 
+            reduction (int, optional): Size of reduction in fully-connect layer. 
+                Defaults to 16.
+        
+        Attributes:
+            pooling (torch.nn.Module): Adaptive average pooling layer to compose tensors.
+            fc (torch.nn.Sequential): Sequential of linear and activation to calculate weights of 
+                attention, which the linear layers are: 
+                :math:`[Linear(N^2, \frac{N^2}{reduction}), Linear(\frac{N^2}{reduction}, N^2)]`. 
         """
         super(ComposeExcitationNetworkLayer, self).__init__()
 
@@ -37,17 +45,16 @@ class ComposeExcitationNetworkLayer(nn.Module):
             nn.ReLU()
         )
 
-
     def forward(self, field_emb_inputs: torch.Tensor) -> torch.Tensor:
-        r"""feed forward calculation of compose excitation network layer
+        r"""Forward calculation of ComposeExcitationNetworkLayer
         
         Args:
-            field_emb_inputs (T), shape = (B, N * N, E), dtype = torch.long: field-aware embedding matrices
+            field_emb_inputs (T), shape = (B, N * N, E), dtype = torch.long: Field aware embedded features tensors.
         
         Returns:
-            T, shape = (B, N * N, E), dtype = torch.long: output of compose excitation network
+            T, shape = (B, N * N, E), dtype = torch.long: Output of ComposeExcitationNetworkLayer.
         """
-        # inputs' shape = (B, N * N, E) and output's shape = (B, N * N, 1)
+        # pooling with inputs' shape = (B, N * N, E) to output's shape = (B, N * N, 1)
         pooled_inputs = self.pooling(field_emb_inputs)
 
         # squeeze pooled_inputs into shape = (B, N * N)

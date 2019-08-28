@@ -30,8 +30,8 @@ class BilinearNetworkLayer(nn.Module):
                 Required when embed_size and num_fields are None. 
                 Defaults to None.
         
-        Arguments:
-
+        Attributes:
+            model (torch.nn.ModuleList): Module List of Bilinear Layers.
         
         Raises:
             ValueError: when embed_size or num_fields is missing if using embed_size and num_field pairs, or when inputs_size is missing if using inputs_size
