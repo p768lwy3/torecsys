@@ -32,6 +32,7 @@ class ComposeExcitationNetworkLayer(nn.Module):
                 attention, which the linear layers are: 
                 :math:`[Linear(N^2, \frac{N^2}{reduction}), Linear(\frac{N^2}{reduction}, N^2)]`. 
         """
+        # refer to parent class
         super(ComposeExcitationNetworkLayer, self).__init__()
 
         # initialize 1d pooling layer to compose the embedding vectors

@@ -4,8 +4,9 @@ import torch.nn as nn
 
 
 class FieldAwareFactorizationMachineLayer(nn.Module):
-    r"""FieldAwareFactorizationMachineLayer is a layer used in Field-Aware Factorization Machine 
-    to calculate low dimension cross-features interaction per inputs field.
+    r"""Layer class of Field aware Factorization Machine (FFM) :cite:`Yuchin Juan et al, 2016`[1] 
+    to calculate element-wise cross features interaction per fields for sparse field by using dot 
+    product between field-wise feature tensors.
     
     :Reference:
 
@@ -16,35 +17,49 @@ class FieldAwareFactorizationMachineLayer(nn.Module):
     def __init__(self, 
                  num_fields : int,
                  dropout_p  : float = 0.0):
-        r"""initialize field-aware factorization machine layer module
-        
+        r"""Initialize FieldAwareFactorizationMachineLayer
+
         Args:
-            num_fields (int): number of fields in inputs
-            dropout_p (float, optional): dropout probability after field-aware factorization machine. Defaults to 0.0.
+            num_fields (int): Number of inputs' fields
+            dropout_p (float, optional): Probability of Dropout in FFM. 
+                Defaults to 0.0.
+        
+        Attributes:
+            num_fields (int): Number of inputs' fields.
+            dropout (torch.nn.Module): Dropout layer.
         """
+        # refer to parent class
         super(FieldAwareFactorizationMachineLayer, self).__init__()
+
+        # bind num_fields to num_fields
         self.num_fields = num_fields
+
+        # initialize dropout layer before return
         self.dropout = nn.Dropout(dropout_p)
     
     def forward(self, field_emb_inputs: torch.Tensor) -> torch.Tensor:
-        r"""feed-forward calculation of field-aware factorization machine layer
+        r"""Forward calculation of FieldAwareFactorizationMachineLayer
 
         Args:
-            field_emb_inputs (T), shape = (B, N * N, E), dtype = torch.float: features matrices of inputs
+            field_emb_inputs (T), shape = (B, N * N, E), dtype = torch.float: Field aware embedded features tensors.
         
         Returns:
-            T, shape = (B, NC2, E), dtype = torch.float: output of field-aware factorization machine layer
+            T, shape = (B, NC2, E), dtype = torch.float: Output of FieldAwareFactorizationMachineLayer
         """
+        # initialize list to store tensors temporarily for output 
+        outputs = list()
+
         # chunk inputs' tensor into num_fields parts with shape = (B, N, E)
         field_emb_inputs = torch.chunk(field_emb_inputs, self.num_fields, dim=1)
         
-        # calculate dot-product between efij and efji
-        outputs = []
+        # calculate dot-product between e_{i, fj} and e_{j, fi}
         for i in range(self.num_fields - 1):
             for j in range(i + 1, self.num_fields):
                 outputs.append(field_emb_inputs[j][:, i] * field_emb_inputs[i][:, j])
         
         # stack outputs into a tensor and pass into dropout layer
         outputs = torch.stack(outputs, dim=1)
+
+        # apply dropout before return
         outputs = self.dropout(outputs)
         return outputs

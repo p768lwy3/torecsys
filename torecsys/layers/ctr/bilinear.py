@@ -18,8 +18,8 @@ class BilinearNetworkLayer(nn.Module):
         r"""Initialize BilinearNetworkLayer
 
         Args:
-            output_size (int): Output size of BilinearNetworkLayer
-            num_layers (int): Number of layers of BilinearNetworkLayer
+            output_size (int): Output size of Bilinear Network
+            num_layers (int): Number of layers of Bilinear Network
             embed_size (int, optional): Size of embedding tensor. 
                 Required with num_fields. 
                 Defaults to None.
@@ -31,6 +31,7 @@ class BilinearNetworkLayer(nn.Module):
                 Defaults to None.
         
         Attributes:
+            inputs_size (int): Size of inputs, or Product of embed_size and num_fields.
             model (torch.nn.ModuleList): Module List of Bilinear Layers.
         
         Raises:
@@ -47,6 +48,9 @@ class BilinearNetworkLayer(nn.Module):
             inputs_size = inputs_size
         else:
             raise ValueError("Only allowed:\n    1. embed_size and num_fields is not None, and inputs_size is None\n    2. inputs_size is not None, and embed_size or num_fields is None")
+        
+        # bind inputs_size to inputs_size
+        self.inputs_size = inputs_size
 
         # initialize module list for Bilinear
         self.model = nn.ModuleList()
@@ -64,18 +68,16 @@ class BilinearNetworkLayer(nn.Module):
             Returns:
                 T, shape = (B, 1, N * E) or (B, 1, I), dtype = torch.float: Output of BilinearNetworkLayer.
         """
-        # get batch size from inputs
-        batch_size = emb_inputs.size(0)
-        
         # reshape inputs from (B, N, E) to (B, 1, N * E) if inputs' shape is (B, N, E)
-        emb_inputs = emb_inputs.view(batch_size, -1)
+        # or from (B, 1, I) to (B, I)
+        emb_inputs = emb_inputs.view(-1, self.inputs_size)
 
         # copy emb_inputs to outputs for residual
         outputs = emb_inputs.detach().requires_grad_()
 
         # forward calculation of bilinear and add residual
         for layer in self.model:
-            # return size = (B, 1, N * E)
+            # return size = (B, N * E) or (B, I)
             outputs = layer(emb_inputs, outputs) + emb_inputs
         
-        return outputs
+        return outputs.unsqueeze(1)

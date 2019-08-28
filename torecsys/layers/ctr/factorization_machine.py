@@ -4,8 +4,9 @@ import torch.nn as nn
 
 
 class FactorizationMachineLayer(nn.Module):
-    r"""FactorizationMachineLayer is a layer used in Factorization Machine to calculate low 
-    dimension cross-features interactions.
+    r"""Layer class of Factorization Machine (FM) :cite:`Steffen Rendle, 2010`[1] to calculate 
+    low dimension cross features interactions for sparse field by using a general form of 
+    matrix factorization.
     
     :Reference:
     
@@ -15,22 +16,29 @@ class FactorizationMachineLayer(nn.Module):
     @jit_experimental
     def __init__(self, 
                  dropout_p: float = 0.0):
-        r"""initialize factorization machine layer module
+        r"""Initialize FactorizationMachineLayer
         
         Args:
-            dropout_p (float, optional): dropout probability after factorization machine. Defaults to 0.0.
+            dropout_p (float, optional): Probability of Dropout in FM. 
+                Defaults to 0.0.
+        
+        Arguments:
+            dropout (torch.nn.Module): Dropout layer.
         """
+        # refer to parent class
         super(FactorizationMachineLayer, self).__init__()
+
+        # initialize dropout layer before return
         self.dropout = nn.Dropout(dropout_p)
         
     def forward(self, emb_inputs: torch.Tensor) -> torch.Tensor:
-        r"""feed-forward calculation of factorization machine layer
+        r"""Forward calculation of FactorizationMachineLayer
         
         Args:
-            emb_inputs (T), shape = (B, N, E), dtype = torch.float: features matrices of inputs
+            emb_inputs (T), shape = (B, N, E), dtype = torch.float: Embedded features tensors.
         
         Returns:
-            T, shape = (B, 1, O), dtype = torch.float: output of factorization machine layer
+            T, shape = (B, 1, E), dtype = torch.float: Output of FactorizationMachineLayer
         """
         # squared sum embedding where output shape = (B, E)
         squared_sum_embs = (emb_inputs.sum(dim=1)) ** 2
@@ -40,6 +48,8 @@ class FactorizationMachineLayer(nn.Module):
         
         # calculate output of fm
         outputs = 0.5 * (squared_sum_embs - sum_squared_embs)
+
+        # apply dropout before return
         outputs = self.dropout(outputs)
         return outputs.unsqueeze(1)
         

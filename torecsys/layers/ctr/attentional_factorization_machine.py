@@ -31,8 +31,8 @@ class AttentionalFactorizationMachineLayer(nn.Module):
         
         Arguments:
             attention (torch.nn.Sequential): Sequential of Attention-layers.
-            row_idx (list): 1st indices to index inputs in 2nd dimension for inner product.
-            col_idx (list): 2nd indices to index inputs in 2nd dimension for inner product.
+            rowidx (T), dtype = torch.long: 1st indices to index inputs in 2nd dimension for inner product.
+            colidx (T), dtype = torch.long: 2nd indices to index inputs in 2nd dimension for inner product.
             dropout (torch.nn.Module): Dropout layer.
 
         """
@@ -49,13 +49,15 @@ class AttentionalFactorizationMachineLayer(nn.Module):
         self.attention.add_module("softmax1", nn.Softmax(dim=1))
         self.attention.add_module("dropout1", nn.Dropout(dropout_p))
 
-        # create row_idx and col_idx to index inputs
-        self.row_idx = []
-        self.col_idx = []
+        # create rowidx and colidx to index inputs for inner product
+        self.rowidx = list()
+        self.colidx = list()
         for i in range(num_fields - 1):
             for j in range(i + 1, num_fields):
-                self.row_idx.append(i)
-                self.col_idx.append(j)
+                self.rowidx.append(i)
+                self.colidx.append(j)
+        self.rowidx = torch.LongTensor(rowidx)
+        self.colidx = torch.LongTensor(colidx)
         
         # initialize dropout layer before return
         self.dropout = nn.Dropout(dropout_p)
@@ -71,7 +73,7 @@ class AttentionalFactorizationMachineLayer(nn.Module):
         """
         # calculate inner product between each field,
         # inner's shape = (B, NC2, E)
-        inner = emb_inputs[:, self.row_idx] * emb_inputs[:, self.col_idx]
+        inner = emb_inputs[:, self.rowidx] * emb_inputs[:, self.colidx]
 
         # calculate attention scores by inner product,
         # scores' shape = (B, NC2, 1)

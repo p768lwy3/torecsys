@@ -5,9 +5,9 @@ from typing import Callable, List
 
 
 class CompressInteractionNetworkLayer(nn.Module):
-    r"""CompressInteractionNetworkLayer is a layer used in xDeepFM to calculate element-wise 
-    cross-features interactions which applying outer product to calculate interaction and 
-    1D-convalution to compress cross-features vectors.
+    r"""Layer class of Compress Interation Network used in xDeepFM :cite:`Jianxun Lian et al, 2018`[1], 
+    which is to compress cross-features tensors calculated by element-wise cross features interactions 
+    with outer product by Convalution with a :math:`1 * 1` kernel.
 
     :Reference:
 
@@ -24,25 +24,44 @@ class CompressInteractionNetworkLayer(nn.Module):
                  use_bias      : bool = True,
                  use_batchnorm : bool = True,
                  activation    : Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
-        r"""initialize compress interaction network layer module
+        r"""Initialize CompressInteractionNetworkLayer
         
         Args:
-            embed_size (int): embedding size
-            num_fields (int): number of fields in inputs
-            output_size (int): output size of compress interaction network layer
-            layer_sizes (List[int]): layer sizes of compress interaction network layer
-            is_direct (bool, optional): boolea flag to set whether passing the whole output directly or passing half of output. Defaults to False.
-            use_bias (bool, optional): boolean flag to set whether using bias variable in Conv1d layers. Defaults to True.
-            use_batchnorm (bool, optional): boolean flag to set whether using Batch Norm after Conv1d layers. Defaults to True.
-            activation (Callable[[T], T], optional): activation function of each layer. Allow: [None, Callable[[T], T]]. Defaults to nn.ReLU().
+            embed_size (int): Size of embedding tensor
+            num_fields (int): Number of inputs' fields
+            output_size (int): Output size of compress interaction network
+            layer_sizes (List[int]): Layer sizes of compress interaction network
+            is_direct (bool, optional): Whether outputs is passed to next step directly or not.
+                Defaults to False.
+            use_bias (bool, optional): Whether bias added to Conv1d or not. 
+                Defaults to True.
+            use_batchnorm (bool, optional): Whether batch normalization is applied or not after Conv1d. 
+                Defaults to True.
+            activation (Callable[[T], T], optional): Activation function of Conv1d. 
+                Allow: [None, Callable[[T], T]]. 
+                Defaults to nn.ReLU().
+        
+        Attributes:
+            embed_size (int): Size of embedding tensor.
+            layers_sizes (List[int]): List of integer concatenated by num_fields and layer_sizes.
+            is_direct (bool): Flag to show outputs is passed to next step directly or not.
+            model (torch.nn.ModuleList): Module List of compress interaction network.
+            fc (torch.nn.Module): Fully-connect layer (i.e. Linear layer) of outputs.
         """
+        # refer to parent class
         super(CompressInteractionNetworkLayer, self).__init__()
 
+        # bind embed_size, is_direct to embed_size, is_direct
         self.embed_size = embed_size
-        self.layer_sizes = [num_fields] + layer_sizes
         self.is_direct = is_direct
+        
+        # set layer_sizes to list concatenated by num_fields and layer_sizes
+        self.layer_sizes = [num_fields] + layer_sizes
 
+        # initialize module list of model
         self.model = nn.ModuleList()
+
+        # add modules including conv1d, batchnorm and activation to model
         for i, (s_i, s_j) in enumerate(zip(self.layer_sizes[:-1], self.layer_sizes[1:])):
             cin = nn.Sequential()
             in_c = self.layer_sizes[0] * s_i
@@ -57,18 +76,22 @@ class CompressInteractionNetworkLayer(nn.Module):
                 cin.add_module("activation", activation)
             self.model.append(cin)
         
+        # calculate output size of model for the argument of fc
         model_output_size = int(sum(layer_sizes))
+
+        # initialize linear layer of fully-connect outputs
         self.fc = nn.Linear(model_output_size, output_size)
 
     def forward(self, emb_inputs: torch.Tensor) -> torch.Tensor:
-        r"""feed-forward calculation of compress interaction network
+        r"""Forward calculation of CompressInteractionNetworkLayer
         
         Args:
-            emb_inputs (T), shape = (B, N, E), dtype = torch.float: features vectors of emb_inputs
+            emb_inputs (T), shape = (B, N, E), dtype = torch.float: Embedded features tensors.
         
         Returns:
-            T, shape = (B, 1, O), dtype = torch.float: output of compress interaction network
+            T, shape = (B, 1, O), dtype = torch.float: Output of CompressInteractionNetworkLayer.
         """
+        # initialize lists to store tensors temporarily for outputs and next steps
         direct_list = list()
         hidden_list = list()
 
@@ -109,6 +132,7 @@ class CompressInteractionNetworkLayer(nn.Module):
                     direct = outputs
                     hidden = 0
 
+            # store tensors to direct and hidden
             direct_list.append(direct)
             hidden_list.append(hidden)
         
