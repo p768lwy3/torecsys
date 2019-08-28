@@ -54,7 +54,7 @@ class StackedInputs(_Inputs):
             T, shape = (B, N_{sum}, E), dtype = torch.float: Output of StackedInputs, where the values are 
                 stacked in the seconnd dimension.
         """
-        # initialize list to store tensor temporarily 
+        # initialize list to store tensors temporarily 
         outputs = list()
 
         # loop through schema 
@@ -73,7 +73,7 @@ class StackedInputs(_Inputs):
 
             # else, use the same approch for other inputs class
             else:
-                # convert list of inputs to tensor, with shape = (B, N, 1)
+                # convert list of inputs to tensor, with shape = (B, N, *)
                 inp_val = [inputs[i] for i in inp_names]
                 inp_val = torch.cat(inp_val, dim=1)
                 args = [inp_val]

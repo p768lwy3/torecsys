@@ -1,4 +1,4 @@
-r"""torecsys.layers.ctr is a sub module of the implementation of layers used in CTR model
+r"""torecsys.layers.ctr is a sub module of implementation of layers in click through rate prediction.
 """
 
 from .attentional_factorization_machine import AttentionalFactorizationMachineLayer

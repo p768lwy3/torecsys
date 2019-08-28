@@ -51,7 +51,7 @@ class ConcatInputs(_Inputs):
             T, shape = (B, 1, E_{sum}), dtype = torch.float: Output of ConcatInputs, where the values are
                 concatenated in the third dimension.
         """
-        # initialize list to store tensor temporarily 
+        # initialize list to store tensors temporarily 
         outputs = list()
 
         # loop through schema 
@@ -60,7 +60,7 @@ class ConcatInputs(_Inputs):
             embedding = args_tuple[0]
             inp_names = args_tuple[1]
             
-            # convert list of inputs to tensor, with shape = (B, N, 1)
+            # convert list of inputs to tensor, with shape = (B, N, *)
             inp_val = [inputs[i] for i in inp_names]
             inp_val = torch.cat(inp_val, dim=1)
             args = [inp_val]

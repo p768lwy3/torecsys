@@ -4,51 +4,62 @@ from typing import Dict, List
 
 
 class InputsWrapper(_Inputs):
-    r"""InputsWrapper is a class to wrap up inputs class into a dictionary, which can be 
-    passed to models directly (with correct schema).
+    r"""Inputs class for wrapping a number of Base Inputs class into a dictionary. The output is a 
+    dictionary, which its keys are names of model's inputs and values are tensor of model's inputs.
     """
     def __init__(self, 
                  schema: Dict[str, tuple]):
-        r"""InputsWrapper is a wrapper to concatenate numbers of _Inputs of different fields
+        r"""Initialize InputsWrapper.
         
         Args:
-            schema (Dict[str, tuple]): dictionary of schema, where keys are names of output fields and values are tuples of embeddings function and inputs arguments,
-            e.g. ```python
-            schema = {
-                "user"  : (trs.inputs.base.SingleIndexEmbedding(4, 10), ["userId"]),
-                "movie" : (trs.inputs.base.SingleIndexEmbedding(4, 10), ["movieId"]),
-                "pair"  : (trs.inputs.base.FieldAwareMultipleIndexEmbedding(4, [10, 10]), ["userId", "movieId"]),
-                "seq"   : (trs.inputs.base.SequenceIndexEmbedding(4, 10), ["seqId"], ["seqLength"])
-            }```
+            schema (Dict[str, tuple]): Schema of InputsWrapper. Dictionary, which keys are names of 
+                inputs' fields and values are tensor of those fields. e.g. ```python
+                schema = {
+                    "user"  : (trs.inputs.base.SingleIndexEmbedding(4, 10), ["userId"]),
+                    "movie" : (trs.inputs.base.SingleIndexEmbedding(4, 10), ["movieId"]),
+                    "pair"  : (trs.inputs.base.FieldAwareMultipleIndexEmbedding(4, [10, 10]), ["userId", "movieId"]),
+                    "seq"   : (trs.inputs.base.SequenceIndexEmbedding(4, 10), ["seqId"], ["seqLength"])
+                }```
+        
+        Attributes:
+            schema (Dict[str, tuple]): Schema of InputsWrapper.
+            length (int): None.
+
         """
+        # refer to parent class
         super(InputsWrapper, self).__init__()
         
-        # store the schema to self and add_module to the Module
+        # bind schema to schema
         self.schema = schema
+
+        # add modules in schema to the Module
         for k, tup in schema.items():
             self.add_module(k, tup[0])
 
-        # set length for _Inputs
+        # set length to None
         self.length = None
     
     def forward(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        r"""forward process of InputsWrapper to wrap the inputs into a dictionary
+        r"""Forward calculation of InputsWrapper.
         
         Args:
-            inputs (Dict[str, T]): inputs values or index to be passed to function in trs.inputs.base, where keys should be existed in schema defined in __init__.
-        
+            inputs (Dict[str, T]): Dictionary of inputs, where key is name of input fields, and value is 
+                tensor pass to Input class. Remark: key should exist in schema.
+            
         Returns:
-            Dict[str, T]: a dictionary of outputs, where keys are output field name and values are (embedding) values.
+            Dict[str, T], dtype = torch.float: Output of InputsWrapper, which is a dictionary where keys 
+                are names of model's inputs and values are tensor of model's inputs.
         """
-        # init outputs dictionary to store outputs' tensor
+        # initialize dictionary to store tensors
         outputs = dict()
 
-        # loop through schema for each output field
+        # loop through schema
         for out_name, args_tuple in self.schema.items():
-            # get basic args
+            # get basic args from tuple in schema
             embedding = args_tuple[0]
             inp_names = args_tuple[1]
             
+            # create inputs in different format if the inputs class is ConcatInputs or StackedInputs
             if embedding.__class__.__name__ in ["ConcatInputs", "StackedInputs"]:
                 # create dictionary of concat inputs
                 args_dict = { i : inputs[i] for i in inp_names }
@@ -56,17 +67,17 @@ class InputsWrapper(_Inputs):
                 # create list variable to be passed 
                 args = [args_dict]
             else:
-                # universal inputs' field
+                # convert list of inputs to tensor, with shape = (B, N, *)
                 inp_val = [inputs[i] for i in inp_names]
                 inp_val = torch.cat(inp_val, dim=1)
                 args = [inp_val]
             
-                # get args if type of embedding is the required type
+                # set args for specific input
                 if embedding.__class__.__name__ == "SequenceIndexEmbedding":
                     arg_name = args_tuple[2][0]
                     args.append(inputs[arg_name])
 
-            # embedding
+            # set out_name in outputs to transformed tensors or embedded tensors
             outputs[out_name] = embedding(*args)
 
         return outputs

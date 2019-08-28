@@ -1,18 +1,19 @@
-r"""torecsys.inputs.base is a sub-module of base class to be called for inputs
+r"""torecsys.inputs.base is a sub-module of base inputs class.
 """
 
 import torch.nn as nn
 
 class _Inputs(nn.Module):
-    r"""Base Modle Class of inputs or embedding field"""
+    r"""General Input class.
+    """
     def __init__(self):
         super(_Inputs, self).__init__()
     
     def __len__(self) -> int:
-        r"""Return output size of _Input field
+        r"""Return outputs size.
         
         Returns:
-            int: embedding size for embedding field, or number of fields for input
+            int: Size of embedding tensor, or Number of inputs' fields.
         """
         return self.length
 
