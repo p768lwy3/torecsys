@@ -28,7 +28,7 @@ from .multi_indices_emb import MultiIndicesEmbedding
 from .multi_indices_field_aware_emb import MultiIndicesFieldAwareEmbedding
 from .pretrained_image_inp import PretrainedImageInputs
 # from .pretrained_text_inp import PretrainedTextInputs
-from .sequence_index_emb import SequenceIndexEmbedding
+from .sequence_indices_emb import SequenceIndicesEmbedding
 from .single_index_emb import SingleIndexEmbedding
 from .stacked_inp import StackedInputs
 # from .text_inp import TextInputs

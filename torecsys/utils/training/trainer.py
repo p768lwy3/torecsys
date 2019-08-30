@@ -1,4 +1,5 @@
 from ..logging import TqdmHandler
+from ..sequential import Sequential
 from torecsys.functional.regularization import Regularizer
 from torecsys.inputs.base import _Inputs
 from torecsys.models import _Model
@@ -6,6 +7,7 @@ from logging import Logger
 from os import path
 from pathlib import Path
 from texttable import Texttable
+# from tensorboardX import SummaryWriter
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -26,21 +28,27 @@ class Trainer(object):
                  epochs         : int = 10,
                  verboses       : int = 2,
                  log_step       : int = 500,
-                 log_dir        : str = "logdir"):
+                 log_dir        : str = "logdir", 
+                 use_jit        : bool = False,
+                 **kwargs):
         
-        # set embeddings and model of the trainer
-        self.embeddings = inputs_wrapper
-        self.model = model
+        # initialize sequential by inputs wrapper and mdel
+        if use_jit:
+            warnings.warn("Using torch.jit.trace is in experimental in this package. There will be errors from torch.jit.")
+            self.sequential = torch.jit.trace(Sequential(inputs_wrapper=inputs_wrapper, model=model), kwargs.get("example_inputs"))
+        else:
+            self.sequential = Sequential(inputs_wrapper=inputs_wrapper, model=model)
 
-        # set regularizer, loss, optimizer, ...
+        # set regularizer, loss, optimizer and other things
         self.regularizer = regularizer
         self.labels_name = labels_name
         self.loss = loss()
-        self.parameters = list(self.embeddings.parameters()) + list(self.model.parameters())
+        self.parameters = list(self.sequential.parameters())
         self.optimizer = optimizer(self.parameters)
         self.epochs = epochs
         self.verboses = verboses
         self.log_step = log_step
+        self.use_jit = use_jit
 
         # count number of parameters in model
         self.num_params = sum(p.numel() for p in self.parameters if p.requires_grad)
@@ -73,26 +81,26 @@ class Trainer(object):
 
         print(self._describe())
     
+    def _to_jit(self, example_inputs: Dict[str, torch.Tensor]):
+        """Trace sequential (i.e. stack of input wrappers and model) into torch.jit module for a better computation performance.
+        
+        Args:
+            example_inputs (Dict[str, T]): Example of batch inputs passed to model, where key = names of input field and value 
+                = tensors of input field
+        """
+        warnings.warn("Using torch.jit.trace is in experimental in this package. There will be errors from torch.jit.")
+        self.use_jit = True
+        self.sequential = torch.jit.trace(self.sequential, example_inputs)
+    
     def _add_embedding(self,
                        param_name  : str, 
                        metadata    : list = None,
                        label_img   : torch.Tensor = None,
                        global_step : int = None,
                        tag         : str = None):
-        r"""[summary]
         
-        Args:
-            param_name (str): [description]
-            metadata (list, optional): [description]. Defaults to None.
-            label_img (torch.Tensor, optional): [description]. Defaults to None.
-            global_step (int, optional): [description]. Defaults to None.
-            tag (str, optional): [description]. Defaults to None.
-        
-        Raises:
-            ValueError: [description]
-        """
         # get embedding from inputs_wrapper
-        param_dict = dict(self.embeddings.named_parameters())
+        param_dict = dict(self.sequential.inputs_wrapper.named_parameters())
         embed_mat = param_dict.get(param_name)
 
         if embed_mat is not None:
@@ -105,18 +113,17 @@ class Trainer(object):
             raise ValueError("parameter %s cannot found." % param_name)
 
     def _add_graph(self, 
-                   samples_inputs : Dict[str, torch.Tensor], 
+                   example_inputs : Dict[str, torch.Tensor], 
                    verbose        : bool = False):
         r"""Add graph data to summary.
         
         Args:
-            samples_inputs (Dict[str, T]): A dictionary of variables to be fed.
+            example_inputs (Dict[str, T]): Example inputs, which is a dictionary of tensors feed to inputs wrapper.
             verboses (bool, optional): Whether to print graph structure in console. Defaults to True.
         """
-        warnings.warn("Sorry... _add_graph cannot work well now. It may be updated when torch.utils.tensorboard update...")
+        raise ValueError("_add_graph is not work well now. \nFor reference: https://github.com/lanpa/tensorboardX/issues/483.")
         if self.verboses >= 2:
-            embed_inputs = self.embeddings(samples_inputs)
-            self.writer.add_graph(self.model, tuple(embed_inputs.values()), verbose=verbose)
+            self.writer.add_graph(self.sequential, example_inputs, verbose=verbose)
         else:
             if self.verboses >= 1:
                 self.logger.warn("_add_graph only can be called when self.verboses >= 2.")
@@ -127,8 +134,8 @@ class Trainer(object):
         r"""Show summary of trainer
         """
         # getattr from self 
-        embed_name = self.embeddings.__class__.__name__ if getattr(self, "embeddings", None) is not None else None
-        model_name = self.model.__class__.__name__ if getattr(self, "model", None) is not None  else None
+        inputs_name = self.sequential.inputs_wrapper.__class__.__name__ if getattr(self, "sequential", None) is not None else None
+        model_name = self.sequential.model.__class__.__name__ if getattr(self, "sequential", None) is not None  else None
         loss_name = self.loss.__class__.__name__ if getattr(self, "loss", None) is not None  else None
         optim_name = self.optimizer.__class__.__name__ if getattr(self, "optimizer", None) is not None  else None
         regul_norm = self.regularizer.norm if getattr(self, "regularizer", None) is not None  else None
@@ -138,7 +145,7 @@ class Trainer(object):
         
         # initialize _vars of parameters 
         _vars = {
-            "embeddings"    : embed_name,
+            "inputs"        : inputs_name,
             "model"         : model_name,
             "loss"          : loss_name,
             "optimizer"     : optim_name,
@@ -167,13 +174,12 @@ class Trainer(object):
         self.optimizer.zero_grad()
         
         # calculate forward prediction
-        embed_inputs = self.embeddings(batch_inputs)
-        outputs = self.model(**embed_inputs)
+        outputs = self.sequential(batch_inputs)
 
         # calculate loss and regularized loss
         loss = self.loss(outputs, labels)
         if self.regularizer is not None:
-            named_params = list(self.embeddings.named_parameters()) + list(self.model.named_parameters())
+            named_params = list(self.sequential.named_parameters())
             reg_loss = self.regularizer(named_params)
             loss += reg_loss
 
@@ -276,14 +282,29 @@ class Trainer(object):
         # set no gradient to the computation
         with torch.no_grad():
             # calculate forward calculation
-            embed_data = self.embeddings(batch_inputs)
-            yhat = self.model(**embed_data)
+            outputs = self.sequential(batch_inputs)
+        return outputs
+    
+    def save(self, save_path: str, file_name: str):
+        # make directory to save model if the directory is not exist
+        Path(save_path).mkdir(parents=True, exist_ok=True)
 
-        return yhat
+        # save jit module if use_jit is True
+        if self.use_jit:
+            save_file = path.join(save_path, "%s.pt" % (file_name))
+            torch.jit.save(self.sequential, save_file)
+        # else, save module in the usual way
+        else:
+            save_file = path.join(save_path, "%s.tar" % (file_name))
+            torch.save(self.sequential.state_dict(), save_path)
     
-    def save(self):
-        return
-    
-    def load(self):
-        return
+    def load(self, load_path: str, file_name: str):
+        # load jit module if use_jit is True
+        if self.use_jit:
+            load_file = path.join(load_path, "%s.pt" % (file_name))
+            self.sequential = torch.jit.load(load_file)
+        # else, load module in the usual way
+        else:
+            load_file = path.join(load_path, "%s.tar" % (file_name))
+            self.sequential.load_state_dict(torch.load(load_file))
     
