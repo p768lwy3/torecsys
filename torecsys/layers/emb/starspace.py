@@ -4,11 +4,10 @@ from typing import Callable
 
 
 class StarSpaceLayer(nn.Module):
-    r"""StarSpace is a general purpose embedding algorithm proposed by Facebook in 2017, and it 
-    is implemented in C++ originally. As a general purpose model, StarSpace can embed different 
-    kinds of relations between different pairs, like (word, tag), (user-group) etc. StarSpace 
-    is calculated in the following way: 
-    
+    r"""Layer class of Starspace :cite:`Ledell Wu et al, 2017`[1] proposed by Facebook in 2017. It was 
+    implemented in C++ originally for a general purpose to embed different kinds of relations between 
+    different pairs, like (word, tag), (user-group) etc. Starspace is calculated in the following way: 
+
     #. calculate similarity between context and positive samples or negative samples 
     
     #. calculate margin ranking loss between similarity of positive samples and those of negative samples 
@@ -20,22 +19,29 @@ class StarSpaceLayer(nn.Module):
     """
     def __init__(self, 
                  similarity: Callable[[torch.Tensor, torch.Tensor], torch.Tensor]):
-        r"""initialize a StarSpace Layer of similartiy calculation
+        r"""Initialize StarSpaceLayer
         
         Args:
-            similarity (Callable[[T, T], T]): function to calculate similarity between two vectors, e.g. F.cosine_similarity.
+            similarity (Callable[[T, T], T]): Function of similarity between two tensors. 
+                e.g. torch.nn.functional.cosine_similarity.
+        
+        Attributes:
+            similarity (Callable[[T, T], T]): Function of similarity between two tensors. 
         """
+        # refer to parent class
         super(StarSpaceLayer, self).__init__()
+
+
         self.similarity = similarity
     
     def forward(self, samples_inputs: torch.Tensor) -> torch.Tensor:
-        r"""feed forward of StatSpace Embedding
+        r"""Forward calculation of StarSpaceLayer
         
         Args:
-            samples_inputs (T), shape = (B, 1 + S, E), dtype = torch.float: stacked tensors of context (in [:, 0]) and samples (in [:, 1:])
+            samples_inputs (T), shape = (B, 1 + S, E), dtype = torch.float: Embedded features tensors of context (in [:, 0]) and samples (in [:, 1:]).
         
         Returns:
-            T, shape = (B, S), dtype = torch.float: similarity between context and samples
+            T, shape = (B, S), dtype = torch.float: Output of StarSpaceLayer.
         """
         # get context in index 0 of second dimension, where the output's shape = (B, E)
         # hence, .squeeze(1) to change the shape into (B, 1, E)

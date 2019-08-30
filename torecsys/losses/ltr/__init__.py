@@ -1,4 +1,4 @@
-r"""torecsys.losses.ltr is a sub module of loss functions used in Learning to Rank model
+r"""torecsys.losses.ltr is a sub module of implementation of losses in learning-to-rank.
 """
 
 from .. import _Loss

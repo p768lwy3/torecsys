@@ -7,6 +7,7 @@ class _Inputs(nn.Module):
     r"""General Input class.
     """
     def __init__(self):
+        # refer to parent class
         super(_Inputs, self).__init__()
     
     def __len__(self) -> int:

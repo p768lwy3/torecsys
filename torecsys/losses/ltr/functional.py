@@ -1,31 +1,36 @@
+r"""torecsys.losses.ltr.functional is a sub module of functions for the implementation of losses in 
+learning-to-ranking.
+"""
+
 import torch
 from typing import Dict
 
 
+# loss masking
 def apply_mask(loss: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
-    r"""masking training loss with a boolean tensor, which is to remove parts of samples' training loss
+    r"""Masking training loss by a boolean tensor to drop parts of training loss.
     
     Args:
-        loss (torch.Tensor), shape = (batch size, None), dtype = torch.float: training loss of model
-        mask (torch.Tensor), shape = (batch size, ), dtype = torch.bool: boolean tensor to mask training loss
+        loss (T), shape = (B, None), dtype = torch.float: Training loss.
+        mask (T), shape = (B, ), dtype = torch.bool: Boolean tensor for masking.
     
     Returns:
-        torch.Tensor: aggregated masked loss
+        T, shape = (1, ), dtype = torch.float: Aggregated masked loss.
     """
-    loss = loss[masking]
+    loss = loss[mask]
     return loss.sum() / mask.sum()
 
 
 # pointwise ranking loss
 def pointwise_logistic_ranking_loss(pout: torch.Tensor, nout: torch.Tensor) -> torch.Tensor:
-    r"""logistic loss function
+    r"""Calculation of Pairwise Logistic Ranking Loss.
     
     Args:
-        pout (torch.Tensor), shape = (batch size, 1): scores of positive items
-        nout (torch.Tensor), shape = (batch size, number of negative samples): scores of sampled negative items
+        pout (T), shape = (B, 1), dtype = torch.float: Predicted scores of positive samples.
+        nout (T), shape = (B, Nneg), dtype = torch.float: Predicted scores of negative samples.
     
     Returns:
-        torch.Tensor, shape = (batch size, number of negative samples): loss for each negative samples
+        T, shape = (B, Nneg), dtype = torch.float: Output of pointwise_logistic_ranking_loss.
     """
     loss = (1.0 - torch.sigmoid(pout)) + torch.sigmoid(nout)
     return loss
@@ -33,14 +38,14 @@ def pointwise_logistic_ranking_loss(pout: torch.Tensor, nout: torch.Tensor) -> t
 
 # pairwise ranking loss
 def bayesian_personalized_ranking_loss(pout: torch.Tensor, nout: torch.Tensor) -> torch.Tensor:
-    r"""bayesian personalized ranking loss function
+    r"""Calculation of Bayesian Personalized Ranking Loss.
     
     Args:
-        pout (torch.Tensor), shape = (batch size, 1): scores of positive items
-        nout (torch.Tensor), shape = (batch size, number of negative samples): scores of sampled negative items
+        pout (T), shape = (B, 1), dtype = torch.float: Predicted scores of positive samples.
+        nout (T), shape = (B, Nneg), dtype = torch.float: Predicted scores of negative samples.
     
     Returns:
-        torch.Tensor, shape = (batch size, number of negative samples): loss for each negative samples
+        T, shape = (B, Nneg), dtype = torch.float: Output of bayesian_personalized_ranking_loss.
     
     :Reference:
 
@@ -51,27 +56,27 @@ def bayesian_personalized_ranking_loss(pout: torch.Tensor, nout: torch.Tensor) -
     return loss
 
 def hinge_loss(pout: torch.Tensor, nout: torch.Tensor) -> torch.Tensor:
-    r"""hinge pairwise loss function
+    r"""Calculation of Hinge Loss.
     
     Args:
-        pout (torch.Tensor), shape = (batch size, 1): scores of positive items
-        nout (torch.Tensor), shape = (batch size, number of negative samples): scores of sampled negative items
+        pout (T), shape = (B, 1): Predicted scores of positive samples.
+        nout (T), shape = (B, Nneg): Predicted scores of negative samples.
     
     Returns:
-        torch.Tensor, shape = (batch size, number of negative samples): loss for each negative samples
+        T, shape = (B, Nneg), dtype = torch.float: Output of hinge_loss.
     """
     loss = torch.clamp(1.0 - pout + nout, min=0.0)
     return loss
 
 def adaptive_hinge_loss(pout: torch.Tensor, nout: torch.Tensor) -> torch.Tensor:
-    r"""adaptive hinge pairwise loss function
+    r"""Calculation of Adaptive Hinge Loss.
     
     Args:
-        pout (torch.Tensor), shape = (batch size, 1): scores of positive items
-        nout (torch.Tensor), shape = (batch size, number of negative samples): scores of sampled negative items
+        pout (T), shape = (B, 1): Predicted scores of positive samples.
+        nout (T), shape = (B, Nneg): Predicted scores of negative samples.
     
     Returns:
-        torch.Tensor, shape = (batch size, 1): loss for each negative samples
+        T, shape = (B, 1), dtype = torch.float: Output of adaptive_hinge_loss.
     
     :Reference:
 
@@ -86,41 +91,41 @@ def adaptive_hinge_loss(pout: torch.Tensor, nout: torch.Tensor) -> torch.Tensor:
 def margin_ranking_loss_parser(pout  : torch.Tensor, 
                                nout  : torch.Tensor, 
                                target: torch.Tensor) -> Dict[str, torch.Tensor]:
-    r"""to parse positive outputs, negative outputs and target to a dictionary as a kwargs inputs
+    r"""Parse positive outputs, negative outputs and target to a dictionary as a kwargs inputs
     for nn.MarginRankingLoss
     
     Args:
-        pout (torch.Tensor), shape = (batch size, 1): scores of positive items
-        nout (torch.Tensor)), shape = (batch size, number of negative samples): scores of sampled negative items
-        target (torch.Tensor), shape = (batch size, number of negative samples): one likes tensor created by torch.ones_like(nout)
+        pout (T), shape = (B, 1): Predicted scores of positive samples.
+        nout (T)), shape = (B, Nneg): Predicted scores of negative samples.
+        target (T), shape = (B, Nneg): Tensors of ones created by torch.ones_like(nout).
     
     Returns:
-        Dict[str, torch.Tensor]: dictionary to be passed to nn.MarginRankingLoss
+        Dict[str, T]: Dictionary to be passed to nn.MarginRankingLoss.
     
     Key-Values:
-        input1: pout, shape = (batch size, 1)
-        input2: nout, shape = (batch size, number of negative samples)
-        target: target, shape = (batch size, number of negative samples)
+        input1: pout, shape = (B, 1)
+        input2: nout, shape = (B, Nneg)
+        target: target, shape = (B, Nneg)
     """
     return {"input1": pout, "input2": nout, "target": target}
 
 def soft_margin_loss_parser(pout  : torch.Tensor, 
                             nout  : torch.Tensor, 
                             target: torch.Tensor) -> Dict[str, torch.Tensor]:
-    r"""to parse positive outputs, negative outputs and target to a dictionary as a kwargs inputs
+    r"""Parse positive outputs, negative outputs and target to a dictionary as a kwargs inputs
     for nn.SoftMarginLoss
     
     Args:
-        pout (torch.Tensor), shape = (batch size, 1): scores of positive items
-        nout (torch.Tensor)), shape = (batch size, number of negative samples): scores of sampled negative items
-        target (torch.Tensor), shape = (batch size, number of negative samples): one likes tensor created by torch.ones_like(nout)
+        pout (T), shape = (B, 1): Predicted scores of positive samples.
+        nout (T)), shape = (B, Nneg): Predicted scores of negative samples.
+        target (T), shape = (B, Nneg): Tensors of ones created by torch.ones_like(nout).
     
     Returns:
-        Dict[str, torch.Tensor]: dictionary to be passed to nn.SoftMarginLoss
+        Dict[str, T]: Dictionary to be passed to nn.SoftMarginLoss.
     
     Key-Values:
-        input: (pout - nout), shape = (batch size, number of negative samples)
-        target: target, shape = (batch size, number of negative samples)
+        input: (pout - nout), shape = (B, Nneg)
+        target: target, shape = (B, Nneg)
     """
     return {"input": pout - nout, "target": target}
 
@@ -131,11 +136,11 @@ def listnet_loss(yhat: torch.Tensor, ytrue: torch.Tensor) -> torch.Tensor:
     :math:`loss = \sum \text{Softmax} (y_{true}) * \text{log} (\text{Softmax} (\^{y}))` .
     
     Args:
-        yhat (torch.Tensor), shape = (batch size, sequence len), dtype = torch.float: Predicted Ranking scores
-        ytrue (torch.Tensor), shape = (batch size, sequence len ), dtype = torch.float: True Ranking scores, e.g. [Excellent(4), Perfect(3), Good(2), Fair(1), Bad(0)] 
+        yhat (T), shape = (B, sequence len), dtype = torch.float: Predicted Ranking scores
+        ytrue (T), shape = (B, sequence len ), dtype = torch.float: True Ranking scores, e.g. [Excellent(4), Perfect(3), Good(2), Fair(1), Bad(0)] 
     
     Returns:
-        torch.Tensor: cross-entropy loss 
+        T: cross-entropy loss 
     
     :Reference:
 
