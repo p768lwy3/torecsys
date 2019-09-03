@@ -14,7 +14,9 @@ setup(
     # Required: project name
     name    = "torecsys",
     # Required: tag
-    version = "0.0.1-dev",
+    version = "0.0.1",
+    # Optional: short description
+    description="Pure PyTorch Recommender System Module",
     # Optional: long description
     long_description=long_description,
     # Optional: long description type
@@ -48,4 +50,3 @@ setup(
         "Source": "https://github.com/p768lwy3/torecsys"
     }
 )
-
