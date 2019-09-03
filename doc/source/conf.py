@@ -50,6 +50,8 @@ exclude_patterns = []
 
 autoclass_content = "both"
 
+autodoc_mock_imports = ["torch", "torchaudio", "torchvision", "torchtext"]
+
 
 # -- Options for HTML output -------------------------------------------------
 

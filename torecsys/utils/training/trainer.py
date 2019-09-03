@@ -7,17 +7,18 @@ from logging import Logger
 from os import path
 from pathlib import Path
 from texttable import Texttable
-# from tensorboardX import SummaryWriter
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from tqdm.autonotebook import tqdm
 from typing import Callable, Dict
 import warnings
 
+# ignore import warnings of the below packages
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
+    # from tensorboardX import SummaryWriter
     from torch.utils.tensorboard import SummaryWriter
+    from tqdm.autonotebook import tqdm
 
 class Trainer(object):
     def __init__(self,
