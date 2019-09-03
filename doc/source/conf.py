@@ -49,7 +49,6 @@ templates_path = ['_templates']
 exclude_patterns = []
 
 # Configuration of sphinx 
-add_module_names = False
 autoclass_content = "both"
 autodoc_mock_imports = ["torch", "torchaudio", "torchvision", "torchtext"]
 master_doc = 'index'
