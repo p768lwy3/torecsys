@@ -19,47 +19,73 @@ architecture of models. It's open-source software, released under the MIT licens
 Minimial Requirements
 =====================
 
-* (on planning...)
+* Numpy >= 1.17.0
+* Pandas >= 0.24.2
+* PyTorch >= 1.2
 
 Installation
 ============
 
 Install with pip:
 
-    pip install torecsys (planning to develop on 0.1.0...)
+.. code-block:: console
 
-Notations
-=========
-+---------+--------------------------------------------------+
-| Symbol: | To refer:                                        |
-+=========+==================================================+
-| **T**   | torch.Tensor                                     |
-| **B**   | batch size                                       |
-| **E**   | embedding size                                   |
-| **H_i** | output size of i-th hidden layer                 |
-| **N**   | number of fields                                 |
-| **I**   | input sizes of any layers required *inputs_size* |
-| **O**   | output size of any layers requried *output_size* |
-| **V**   | total number of words in a vocabulary set        |
-| **S**   | total number of samples, e.g. negative samples   |
-+---------+--------------------------------------------------+
+    pip install torecsys
+
+Install with source code:
+
+.. code-block:: console
+
+    git clone https://github.com/p768lwy3/torecsys.git
+    cd ./torecsys
+    python setup.py build
+    python setup.py install
+
+Notations in documentation
+==========================
+.. list-table:: notations
+    :widths: 50 50
+    :header-rows: 1
+
+    * - Notation
+      - Refer to
+    * - **T**
+      - torch.Tensor
+    * - **B**
+      - batch size
+    * - **E**
+      - embedding size
+    * - **H_i**
+      - output size of i-th hidden layer
+    * - **N**
+      - number of fields
+    * - **I**
+      - input sizes of any layers required *inputs_size*
+    * - **O**
+      - output size of any layers requried *output_size*
+    * - **V**
+      - total number of words in a vocabulary set
+    * - **S**
+      - total number of samples, e.g. negative samples
 
 
 API documentation
 =================
 
 .. toctree::
-    :maxdepth: 1
-    :caption: Package Reference
-    source/torecsys.data
-    source/torecsys.functional
-    source/torecsys.inputs
-    source/torecsys.layers
-    source/torecsys.inputs
-    source/torecsys.losses
-    source/torecsys.metrics
-    source/torecsys.models
-    source/torecsys.utils
+   :maxdepth: 1
+   :caption: Package Reference
+   
+   modules.rst
+   torecsys.data.rst
+   torecsys.functional.rst
+   torecsys.inputs.rst
+   torecsys.layers.rst
+   torecsys.inputs.rst
+   torecsys.losses.rst
+   torecsys.metrics.rst
+   torecsys.models.rst
+   torecsys.utils.rst
 
 
 Indices and tables

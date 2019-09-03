@@ -13,18 +13,20 @@ class InputsWrapper(_Inputs):
         
         Args:
             schema (Dict[str, tuple]): Schema of InputsWrapper. Dictionary, which keys are names of 
-                inputs' fields and values are tensor of those fields. e.g. ```python
-                schema = {
-                    "user"  : (trs.inputs.base.SingleIndexEmbedding(4, 10), ["userId"]),
-                    "movie" : (trs.inputs.base.SingleIndexEmbedding(4, 10), ["movieId"]),
-                    "pair"  : (trs.inputs.base.FieldAwareMultipleIndexEmbedding(4, [10, 10]), ["userId", "movieId"]),
-                    "seq"   : (trs.inputs.base.SequenceIndexEmbedding(4, 10), ["seqId"], ["seqLength"])
-                }```
+                inputs' fields and values are tensor of those fields. e.g. 
+                
+                .. code-block:: python
+                
+                    schema = {
+                        "user"  : (trs.inputs.base.SingleIndexEmbedding(4, 10), ["userId"]),
+                        "movie" : (trs.inputs.base.SingleIndexEmbedding(4, 10), ["movieId"]),
+                        "pair"  : (trs.inputs.base.FieldAwareMultipleIndexEmbedding(4, [10, 10]), ["userId", "movieId"]),
+                        "seq"   : (trs.inputs.base.SequenceIndexEmbedding(4, 10), ["seqId"], ["seqLength"])
+                    }
         
         Attributes:
             schema (Dict[str, tuple]): Schema of InputsWrapper.
             length (int): None.
-
         """
         # refer to parent class
         super(InputsWrapper, self).__init__()
@@ -43,11 +45,11 @@ class InputsWrapper(_Inputs):
         r"""Forward calculation of InputsWrapper.
         
         Args:
-            inputs (Dict[str, T]): Dictionary of inputs, where key is name of input fields, and value is 
+            inputs (Dict[str, T]): Dictionary of inputs, where key is name of input fields, and value is \
                 tensor pass to Input class. Remark: key should exist in schema.
             
         Returns:
-            Dict[str, T], dtype = torch.float: Output of InputsWrapper, which is a dictionary where keys 
+            Dict[str, T], dtype = torch.float: Output of InputsWrapper, which is a dictionary where keys \
                 are names of model's inputs and values are tensor of model's inputs.
         """
         # initialize dictionary to store tensors

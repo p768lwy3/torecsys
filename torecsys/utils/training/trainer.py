@@ -11,11 +11,13 @@ from texttable import Texttable
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.tensorboard import SummaryWriter
 from tqdm.autonotebook import tqdm
 from typing import Callable, Dict
 import warnings
 
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    from torch.utils.tensorboard import SummaryWriter
 
 class Trainer(object):
     def __init__(self,

@@ -4,7 +4,7 @@ from typing import Callable
 
 
 class StarSpaceLayer(nn.Module):
-    r"""Layer class of Starspace :cite:`Ledell Wu et al, 2017`[1] proposed by Facebook in 2017. It was 
+    r"""Layer class of Starspace :title:`Ledell Wu et al, 2017`[1], proposed by Facebook in 2017. It was 
     implemented in C++ originally for a general purpose to embed different kinds of relations between 
     different pairs, like (word, tag), (user-group) etc. Starspace is calculated in the following way: 
 

@@ -5,7 +5,7 @@ from typing import Callable, List
 
 
 class CompressInteractionNetworkLayer(nn.Module):
-    r"""Layer class of Compress Interation Network used in xDeepFM :cite:`Jianxun Lian et al, 2018`[1], 
+    r"""Layer class of Compress Interation Network used in xDeepFM :title:`Jianxun Lian et al, 2018`[1], 
     which is to compress cross-features tensors calculated by element-wise cross features interactions 
     with outer product by Convalution with a :math:`1 * 1` kernel.
 

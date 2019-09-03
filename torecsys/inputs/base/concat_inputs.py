@@ -15,11 +15,13 @@ class ConcatInputs(_Inputs):
         Args:
             schema (List[tuple]): Schema of ConcatInputs. List of Tuple of Inputs class (i.e. class in 
                 trs.inputs.base) and list of string of input fields. e.g. 
-                ```python
-                schema = [
-                    (trs.inputs.base.SingleIndexEmbedding(4, 10), ["userId"]),
-                    (trs.inputs.base.SingleIndexEmbedding(4, 10), ["movieId"])
-                ]```
+                
+                .. code-block:: python
+
+                    schema = [
+                        (trs.inputs.base.SingleIndexEmbedding(4, 10), ["userId"]),
+                        (trs.inputs.base.SingleIndexEmbedding(4, 10), ["movieId"])
+                    ]
         
         Attributes:
             schema (List[tuple]): Schema of ConcatInputs.

@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 
 class CrossNetworkLayer(nn.Module):
-    r"""Layer class of Cross Network used in Deep & Cross Network :cite:`Ruoxi Wang et al, 2017`[1], 
+    r"""Layer class of Cross Network used in Deep & Cross Network :title:`Ruoxi Wang et al, 2017`[1], 
     to calculate cross-feature interaction element-wise by the following equation: for i-th layer, 
     math:`x_{i} = x_{0} * (w_{i} * x_{i-1} + b_{i}) + x_{0}`
 

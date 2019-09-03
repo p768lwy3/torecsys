@@ -9,13 +9,13 @@ from typing import List
 class MultiIndicesFieldAwareEmbedding(_Inputs):
     r"""Base Inputs class for field-aware embedding of multi-indices, which is used in Field Aware 
     Factorization (FFM) or its variants. The shape of output is :math:`(B, N * N, E)`, where the 
-    embedding tensor :math"`E_{feat_{i, k}, field_{j}}` are looked up the k-th row from the j-th 
+    embedding tensor :math:`E_{feat_{i, k}, field_{j}}` are looked up the k-th row from the j-th 
     matrix of i-th feature.
     
-    :Reference: 
+    :Reference:
 
     #. `Yuchin Juan et al, 2016. Field-aware Factorization Machines for CTR Prediction <https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf>`_.
-    
+
     """
     @jit_experimental
     def __init__(self, embed_size: int, field_sizes: List[int]):

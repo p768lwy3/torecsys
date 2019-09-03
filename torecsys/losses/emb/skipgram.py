@@ -7,7 +7,7 @@ import torch.nn.functional as F
 
 class SkipGramLoss(_EmbLoss):
     r"""SkipGramLoss is a module to calculate the loss used in SkipGram algorithm 
-    :cite:`Tomas Mikolov et al, 2013`[1] which isto calculate the loss by the following formula: 
+    :title:`Tomas Mikolov et al, 2013`[1] which isto calculate the loss by the following formula: 
     :math:`loss = - \sum_{c=1}^{C} u_{j_{c}^{*}} + C log ( \sum_{j'=1}^{v} e^{u_{j'}} )` .
     
     :Reference:

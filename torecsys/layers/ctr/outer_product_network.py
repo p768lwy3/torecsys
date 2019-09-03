@@ -3,9 +3,8 @@ import torch
 import torch.nn as nn
 
 class OuterProductNetworkLayer(nn.Module):
-    r"""Layer class of Outer Product Network, which is used in Product-based Neural Network
-    :cite:`Yanru Qu et at, 2016`[1], by calculating outer product between embedded tensors 
-    element-wisely and compressing by a kernel to get cross features interactions.
+    r"""Layer class of Outer Product Network, which is used in Product-based Neural Network :title:`Yanru Qu et at, 2016`[1], 
+    by calculating outer product between embedded tensors element-wisely and compressing by a kernel to get cross features interactions.
     
     :Reference:
 

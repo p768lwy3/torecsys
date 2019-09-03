@@ -18,19 +18,24 @@ and Items Embedding.
 
 ## Installation
 --------------------------------------------------------------------------------
-## (!!!Planning)
 
 ### by pip package
 ```bash
-# on planning
 $ pip install torecsys 
 ```
 
 ### from source
-```
+```bash
 git clone https://...
 python setup.py build
 python setup.py install
+```
+
+## Build Documentation
+--------------------------------------------------------------------------------
+```bash
+cd ./doc
+./make html
 ```
 
 ## Implemented Models
@@ -50,7 +55,6 @@ python setup.py install
 
 ## Documentation
 --------------------------------------------------------------------------------
-## (!!!Developing)
 The complete documentation for ToR[e]cSys is avaiable via [ReadTheDocs website].  
 Thank you for ReadTheDocs!
 
@@ -63,7 +67,7 @@ Thank you for ReadTheDocs!
 | [**torecsys.data**] | download sample data, build dataloader, and other functions for convenience |
 | [**torecsys.estimators**] | models with embedding, which can be trained with ```.fit(dataloader)``` directly |
 | [**torecsys.functional**] | functions used in recommendation system |
-| [**torecsys.inputs] | inputs' functions, including embedding, image transformations |
+| [**torecsys.inputs**] | inputs' functions, including embedding, image transformations |
 | [**torecsys.layers**] | layers-level implementation of algorithms |
 | [**torecsys.losses**] | loss functions used in recommendation system |
 | [**torecsys.metrics**] | metrics to evaluate recommendation system |

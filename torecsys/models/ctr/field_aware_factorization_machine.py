@@ -19,7 +19,7 @@ class FieldAwareFactorizationMachineModel(_CtrModel):
                  embed_size    : int,
                  num_fields    : int,
                  dropout_p     : float = 0.0):
-        r"""initialize Field-Aware Factorization Machine Model
+        r"""Initialize Field-Aware Factorization Machine Model
         
         Args:
             embed_size (int): embedding size

@@ -4,7 +4,7 @@ import torch.nn as nn
 
 
 class FactorizationMachineLayer(nn.Module):
-    r"""Layer class of Factorization Machine (FM) :cite:`Steffen Rendle, 2010`[1] to calculate 
+    r"""Layer class of Factorization Machine (FM) :title:`Steffen Rendle, 2010`[1], to calculate 
     low dimension cross features interactions for sparse field by using a general form of 
     matrix factorization.
     

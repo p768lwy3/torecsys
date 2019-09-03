@@ -11,13 +11,15 @@ class StackedInputs(_Inputs):
         r"""Initialize StackedInputs
         
         Args:
-            schema (List[tuple]): Schema of StackedInputs. List of Tuple of Inputs class (i.e. class in 
+            schema (List[tuple]): Schema of StackedInputs. List of Tuple of Inputs class (i.e. class in \
                 trs.inputs.base) and list of string of input fields. e.g. 
-                ```python
-                schema = [
-                    (trs.inputs.base.SingleIndexEmbedding(4, 10), ["userId"]),
-                    (trs.inputs.base.SingleIndexEmbedding(4, 10), ["movieId"])
-                ]```
+                
+                .. code-block:: python
+                
+                    schema = [
+                        (trs.inputs.base.SingleIndexEmbedding(4, 10), ["userId"]),
+                        (trs.inputs.base.SingleIndexEmbedding(4, 10), ["movieId"])
+                    ]
         
         Attributes:
             schema (List[tuple]): Schema of ConcatInputs.
@@ -47,11 +49,11 @@ class StackedInputs(_Inputs):
         r"""Foward calculation of StackedInputs
         
         Args:
-            inputs (Dict[str, T]): Dictionary of inputs, where key is name of input fields, and value is 
+            inputs (Dict[str, T]): Dictionary of inputs, where key is name of input fields, and value is \
                 tensor pass to Input class. Remark: key should exist in schema.
             
         Returns:
-            T, shape = (B, N_{sum}, E), dtype = torch.float: Output of StackedInputs, where the values are 
+            T, shape = (B, N_{sum}, E), dtype = torch.float: Output of StackedInputs, where the values are \
                 stacked in the seconnd dimension.
         """
         # initialize list to store tensors temporarily 

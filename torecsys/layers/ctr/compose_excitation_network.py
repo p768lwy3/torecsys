@@ -4,7 +4,7 @@ import torch.nn as nn
 
 
 class ComposeExcitationNetworkLayer(nn.Module):
-    r"""Layer class of Compose Excitation Network used in FAT-Deep :cite:`Junlin Zhang et al, 2019`[1], which 
+    r"""Layer class of Compose Excitation Network used in FAT-Deep :title:`Junlin Zhang et al, 2019`[1], which 
     is to compose field aware embedded tensors by 1D Convalution with a :math:`1 * 1` kernel feature-wisely from 
     a :math:`k * n` tensor of field i into a :math:`k * 1` tensor, then, concatenate the tensors and forward to 
     a fully-connect layers to calculate attention weights, finally, inputs' tensor are multiplied by attention 
