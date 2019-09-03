@@ -1,18 +1,21 @@
 from . import __ml_size__
 import math
 import os
+from pathlib import Path
 import requests
 from tqdm.autonotebook import tqdm
 import zipfile
 
 
-def download_ml_data(size : str):
+def download_ml_data(size : str,
+                     dir  : str = None):
     r"""Download movielens data from grouplens to directory ../sample_data/,
     and the source url of movielens is : https://grouplens.org/datasets/movielens/
     
     Args:
-        size (str): movielens dataset size, allows: 20m, latest-small, latest, 100k, 1m, 10m
-    
+        size (str): Movielens dataset size, allows: 20m, latest-small, latest, 100k, 1m, 10m
+        dir (str, optional): Directory to save downloaded data. Default to None.
+
     Raises:
         ValueError: when size is not in allowed values 
         RuntimeError: when download face trouble 
@@ -21,9 +24,15 @@ def download_ml_data(size : str):
     if size not in __ml_size__:
         raise ValueError("size must be in [%s]." % (", ".join(__ml_size__)))
     
-    # file name and file path
-    script_dir = os.path.dirname(__file__)
-    samples_dir = os.path.join(script_dir, "sample_data")
+    # set directory name and create directory if not exist
+    if dir is None:
+        script_dir = os.path.dirname(__file__)
+        samples_dir = os.path.join(script_dir, "sample_data")
+    else:
+        samples_dir = dir
+    Path(samples_dir).mkdir(parents=True, exist_ok=True)
+
+    # set file name to download data
     unzip_folderdir = ("ml-%s" % size)
     zip_filename = ("ml-%s.zip" % size)
     zip_fileurl = ("http://files.grouplens.org/datasets/movielens/%s" % zip_filename)
