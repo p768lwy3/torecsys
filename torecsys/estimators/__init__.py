@@ -3,62 +3,80 @@ r"""[In development] torecsys.estimators is a sub module of estimators, which ca
 
 from torecsys.utils.logging import TqdmHandler
 from logging import Logger
+from os import path
+from pathlib import Path
 from texttable import Texttable
-import torch
-import torch.nn as nn
-import torch.utils.data
-from torch.utils.tensorboard import SummaryWriter
-from typing import Callable
+from typing import Callable, Dict
+import warnings
 
-class _Estimator(nn.Module):
+# ignore import warnings of the below packages
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    # from tensorboardX import SummaryWriter
+    from torch.utils.tensorboard import SummaryWriter
+    from tqdm.autonotebook import tqdm
+
+class _Estimator(object):
     r"""Base class of estimator provide several function would be used in training and 
     inference."""
-    def __init__(self, 
-                 model    : Callable,
-                 loss     : Callable,
-                 optimizer: Callable, 
-                 epochs   : int,
-                 verbose  : int,
-                 logdir   : str = None):
-        self.model = model
-        self.loss = loss
-        self.optimizer = optimizer
-        self.epcohs = epochs
-        self.verbose = verbose
+    def _init_logger(self, 
+                     name    : str,
+                     level   : str  = "DEBUG",
+                     handler : list = [TqdmHandler()],
+                     log_dir : str  = "./log"):
+        r"""Initialize loggers' variables.
         
-        if verbose >= 1:
-            self.logger = Logger()
-            handler = TqdmHandler()
-            self.logger.addHandler(handler)
-            self.logger.setLevel("DEBUG")
-        
-        if verbose == 2:
-            self.writer = SummaryWriter(logdir=logdir)
+        Args:
+            name (str): Name of logging.Logger
+            level (str): Level of logging.Logger. Default to DEBUG.
+            handler (list): List of logging handler. Default to [TqdmHandler()].
+            log_dir (str): Directory to save the log of tensorboard summary writer. Default to ./log.
+        """
+        if self.verboses >= 1:
+            # initialize logger of trainer
+            self.logger = Logger(name)
 
-        super(_Estimator, self).__init__()
+            # set level to logger
+            self.logger.setLevel(level)
+            
+            # set handler to logger
+            for h in handler:
+                self.logger.addHandler(h)
+            
+            # print statement
+            self.logger.info("logger has been initialized.")
+        
+        if self.verboses >= 2:
+            # initialize tensorboard
+            # to be confirmed if this is correct
+            self.log_dir = path.join(path.dirname(__file__), log_dir)
+
+            # create the folder if log_dir is not exist
+            Path(log_dir).mkdir(parents=True, exist_ok=True)
+
+            # initialize tensorboard summary writer with the given log_dir
+            self.writer = SummaryWriter(log_dir=log_dir)
+
+            # print statement
+            self.logger.info("tensorboard summary writter has been initialized and the log directory is set to %s." % (self.log_dir))
     
     def _describe(self):
+        r"""Summary summary of estimator
+        """
         return
-
-    def _add_graph(self):
-        return
-
-    def _iteration(self, batch_data):
-        return 
 
     def fit(self, dataloader: torch.utils.data.DataLoader):
         for e in self.epochs:
             for i, (batch_x, batch_y) in enumerate(dataloader):
                 break
     
-    def predict(self, batch_data):
-        return
-    
     def save(self):
         return
     
     def load(self):
         return
+    
+    # required functions: _iterate, predict, evaluate, _add_embedding, _add_graph, to_cuda, to_jit
 
 from .ctr import *
 from .emb import *

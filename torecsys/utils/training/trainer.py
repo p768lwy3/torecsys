@@ -63,10 +63,10 @@ class Trainer(object):
 
             # set logger config, including level and handler
             self.logger.setLevel("DEBUG")
-            handelr = TqdmHandler()
-            self.logger.addHandler(handelr)
+            handler = TqdmHandler()
+            self.logger.addHandler(handler)
 
-            self.logger.info("logger have been initialized.")
+            self.logger.info("logger has been initialized.")
         
         # log in tensorboard will be initialized 
         if verboses >= 2:
@@ -76,11 +76,11 @@ class Trainer(object):
             # create the folder if log_dir is not exist 
             Path(log_dir).mkdir(parents=True, exist_ok=True)
 
-            # intitialize tensorboard summary writer with given log_dir
+            # intitialize tensorboard summary writer with the given log_dir
             self.writer = SummaryWriter(log_dir=log_dir)
 
             # print the summary writer's location
-            self.logger.info("tensorboard summary writter have been created and the log directory is set to %s." % (self.log_dir))
+            self.logger.info("tensorboard summary writter has been initialized and the log directory is set to %s." % (self.log_dir))
 
         print(self._describe())
     
