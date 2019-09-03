@@ -46,7 +46,7 @@ setup(
     # Optional: extra project url
     projects_url = {
         "Bug Reports": "https://github.com/p768lwy3/torecsys/issues",
-        "Documentation": "https://github.com/p768lwy3/torecsys",
+        "Documentation": "https://torecsys.readthedocs.io/en/latest/",
         "Source": "https://github.com/p768lwy3/torecsys"
     }
 )
