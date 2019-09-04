@@ -78,28 +78,10 @@ Thank you for ReadTheDocs!
 ```torecsys.models``` is a part of model excluding embedding part, so you can choose \
 a suitable embedding method for your model with the following codes:
 
-```python
-import torecsys as trs
-
-emb = trs.inputs.EmbeddingDict(...)
-model = trs.models.WideAndDeepModule(...)
-trainer = trs.Trainer(emb, model, ...)
-trainer.fit(dataloader)
-trainer.predict(test_data)
-```
-
 ### torecsys.estimators
 
 ```torecsys.estimators``` is another type of model to be used directly if the input \
 fields and features implemented in the papers are suitable for you:
-
-```python
-import torecsys as trs
-
-est = trs.estimators.MatrixFactorization(...)
-est.fit(dataloader)
-est.predict(test_data)
-```
 
 ## Getting Started
 
@@ -109,50 +91,13 @@ est.predict(test_data)
 
 load the movielens dataset, for example:
 
-```python
-import torecsys as trs
-
-# Load the movielens dataset
-trs.data.download_ml_data(size="latest-small")
-ratings, _ = trs.data.load_ml_data(size="latest-small")
-```
-
 ### Build Dataset and DataLoader with Sample data
-
-```python
-import torch
-import torch.data.utils
-from torecsys.data.dataset import DataFrameToDataset
-from torecsys.data.dataloader import trs_collate_fn
-
-# build dataset
-dataset = DataFrameToDataset(ratings, ["userId", "movieId"])
-
-# build dataloader
-collate_fn = trs_collate_fn(...)
-dataloader = torch.utils.data.DataLoader(dataset, collate_fn=collate_fn)
-
-for batch in dataloader:
-    print(batch) # RETUNRS: ...
-```
 
 ### Use Estimators to train a model
 
-```python
-est = trs.estimators.MatrixFactorizationEstimator(...)
-est.fit(dataloader)
-```
-
 ### Make prediction with estimators
 
-```python
-print(est.predict(torch.Tensor([...]))) # RETURNS: torch.Tensor([...])
-print(ytrue)
-```
-
 ## Examples
-
-- [Example 1. Trainer of Field-aware Factorization Machine](example/notebook/Trainer%20of%20Field-aware%20Factorization%20Machine.ipynb)
 
 ## Authors
 

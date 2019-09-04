@@ -9,12 +9,11 @@ rootdir = path.abspath(path.dirname(__file__))
 with open(path.join(rootdir, "README.md"), encoding="utf-8") as readme:
     long_description = readme.read()
 
-
 setup(
     # Required: project name
     name    = "torecsys",
     # Required: tag
-    version = "0.0.1",
+    version = "0.0.2",
     # Optional: short description
     description="Pure PyTorch Recommender System Module",
     # Optional: long description
