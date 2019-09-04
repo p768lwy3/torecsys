@@ -27,6 +27,9 @@ class MultiIndicesEmbedding(_Inputs):
             nn_embedding (nn.Parameter, optional): Pretrained embedding values. 
                 Defaults to None.
         
+        Kwargs:
+            device (str): Device of torch
+        
         Arguments:
             length (int): Size of embedding tensor multiply by number of fields if flatten is 
                 True, else Size of embedding tensor.
@@ -48,7 +51,9 @@ class MultiIndicesEmbedding(_Inputs):
 
         # create offsets to re-index inputs by adding them up
         self.offsets = torch.Tensor((0, *np.cumsum(field_sizes)[:-1])).long().unsqueeze(0)
-        
+        if kwargs.get("device"):
+            self.offsets.to(kwargs.get("device"))
+
         # bind length to embed_size * length of field_sizes (i.e. num_fields) if flatten is True
         if flatten:
             self.length = embed_size * len(field_sizes)
