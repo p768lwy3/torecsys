@@ -143,8 +143,23 @@ def list_collate_fn(batch_data  : List[list],
 
 
 def dict_collate_fn(batch_data: List[Dict[str, list]],
-                    schema    : Dict[str, Tuple[str, str]]) -> Dict[str, torch.Tensor]:
+                    schema    : Dict[str, Tuple[str, str]],
+                    device    : str = "cpu") -> Dict[str, torch.Tensor]:
+    r"""Collate function to transform data from dataset to batch in dataloader.
     
+    Args:
+        batch_data (List[Dict[str, list]]): List of dictionary, where its keys are inputs' field names
+        schema (Dict[str, Tuple[str, str]]): Schema to transform the raw inputs to the form of inputting to model
+        device (str, optional): Device of torch. 
+            Defaults to "cpu".
+    
+    Raises:
+        warning: when output type defined in schema does not exist.
+    
+    Returns:
+        Dict[str, T]: Dictionary of input of model, where its keys are the name of arguments of model, and the values are \
+            tensors which their device types should be equal to the model.
+    """
     # initialize outputs dictionary to store tensors of fields
     outputs = dict()
 
@@ -155,14 +170,14 @@ def dict_collate_fn(batch_data: List[Dict[str, list]],
 
         if out_type == "values":
             # return tensor with dtype = torch.float()
-            outputs[out_key] = torch.Tensor(inp_value)
+            outputs[out_key] = torch.Tensor(inp_value).to(device)
         
         elif out_type == "single_index":
             # return tensor with dtype = torch.long()
-            outputs[out_key] = torch.Tensor(inp_value).long()
+            outputs[out_key] = torch.Tensor(inp_value).long().to(device)
         
         else:
             # raise warning if the output type is not found
-            warnings.warn("output type : %s doesn't exist.")
+            warnings.warn("output type : %s doesn't exist." % out_type)
         
     return outputs
