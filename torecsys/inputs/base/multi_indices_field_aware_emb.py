@@ -18,15 +18,17 @@ class MultiIndicesFieldAwareEmbedding(_Inputs):
 
     """
     @jit_experimental
-    def __init__(self, embed_size: int, field_sizes: List[int], **kwargs):
+    def __init__(self, 
+                 embed_size  : int, 
+                 field_sizes : List[int], 
+                 device      : str = "cpu"):
         r"""Initialize MultiIndicesFieldAwareEmbedding.
         
         Args:
             embed_size (int): Size of embedding tensor
             field_sizes (List[int]): List of inputs fields' sizes
-
-        Kwargs:
-            device (str): Device of torch
+            device (str): Device of torch.
+                Default to cpu.
         
         Attributes:
             length (int): Size of embedding tensor.
@@ -48,8 +50,7 @@ class MultiIndicesFieldAwareEmbedding(_Inputs):
 
         # create offsets to re-index inputs by adding them up
         self.offsets = torch.Tensor((0, *np.cumsum(field_sizes)[:-1])).long().unsqueeze(0)
-        if kwargs.get("device"):
-            self.offsets.to(kwargs.get("device"))
+        self.offsets.to(device)
 
         # initialize nn.Embedding with xavier_uniform_ initializer
         for embedding in self.embeddings:

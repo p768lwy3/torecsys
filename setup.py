@@ -13,7 +13,7 @@ setup(
     # Required: project name
     name    = "torecsys",
     # Required: tag
-    version = "0.0.2",
+    version = "0.0.4",
     # Optional: short description
     description="Pure PyTorch Recommender System Module",
     # Optional: long description
