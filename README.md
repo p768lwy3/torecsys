@@ -26,7 +26,7 @@ pip install torecsys
 ### From source
 
 ```bash
-git clone https://...
+git clone https://github.com/p768lwy3/torecsys.git
 python setup.py build
 python setup.py install
 ```
@@ -34,14 +34,15 @@ python setup.py install
 ### Build Documentation
 
 ```bash
-cd ./doc
+git clone https://github.com/p768lwy3/torecsys.git
+cd ./torecsys/doc
 ./make html
 ```
 
 ## Documentation
 
 The complete documentation for ToR[e]cSys is avaiable via [ReadTheDocs website](https://torecsys.readthedocs.io/en/latest/).  
-Thank you for ReadTheDocs!
+Thank you for ReadTheDocs!!!
 
 ## Implemented Models
 
