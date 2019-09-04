@@ -23,7 +23,7 @@ class NeuralFactorizationMachineLayer(_CtrModel):
                  fm_dropout_p     : float = 0.0,
                  deep_dropout_p   : List[float] = None,
                  deep_activation  : Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
-        r"""Initialize Neural Factorization MachineLayer.
+        r"""Initialize NeuralFactorizationMachineLayer.
         
         Args:
             embed_size (int): Size of embedding tensor
@@ -67,7 +67,7 @@ class NeuralFactorizationMachineLayer(_CtrModel):
             emb_inputs (T), shape = (B, N, E), dtype = torch.float: Embedded features tensors.
         
         Returns:
-            T, shape = (B, 1), dtype = torch.float: Output of NeuralFactorizationMachineLayer
+            T, shape = (B, 1), dtype = torch.float: Output of NeuralFactorizationMachineLayer.
         """
 
         # calculate sequential part, with emb_inputs and outputs' shape = (B, 1, O)

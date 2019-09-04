@@ -11,7 +11,7 @@ class CompressInteractionNetworkLayer(nn.Module):
 
     :Reference:
 
-    #. `Jianxun Lian et al, 2018. xDeepFM: Combining Explicit and Implicit Feature Interactions for Recommender Systems <https://arxiv.org/pdf/1803.05170.pdf>`_.
+    #. `Jianxun Lian et al, 2018. xDeepFM: Combining Explicit and Implicit Feature Interactions for Recommender Systems <https://arxiv.org/abs/1803.05170.pdf>`_.
 
     """
     @jit_experimental

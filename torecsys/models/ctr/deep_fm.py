@@ -32,8 +32,7 @@ class DeepFactorizationMachineModel(_CtrModel):
                  deep_layer_sizes : List[int],
                  fm_dropout_p     : float = 0.0,
                  deep_dropout_p   : List[float] = None,
-                 deep_activation  : Callable[[torch.Tensor], torch.Tensor] = nn.ReLU(),
-                 output_size      : int = 1):
+                 deep_activation  : Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
         r"""initialize Deep Factorization Machine Model
         
         Args:
@@ -43,7 +42,6 @@ class DeepFactorizationMachineModel(_CtrModel):
             fm_dropout_p (float, optional): dropout probability after factorization machine. Defaults to 0.0.
             deep_dropout_p (List[float], optional): dropout probability after activation of each layer. Allow: [None, list of float for each layer]. Defaults to None.
             deep_activation (Callable[[T], T], optional): activation function of each layer. Allow: [None, Callable[[T], T]]. Defaults to nn.ReLU().
-            output_size (int, optional): output size of linear transformation after concatenate. Defaults to 1.
         """
         # initialize nn.Module class
         super(DeepFactorizationMachineModel, self).__init__()
