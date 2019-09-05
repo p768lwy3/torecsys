@@ -4,9 +4,9 @@ import torch.nn as nn
 
 
 class InnerProductNetworkLayer(nn.Module):
-    r"""Layer class of Inner Product Network, which is used in Product-based Neural Network
+    r"""Layer class of Inner Product Network used in Product based Neural Network 
     :title:`Yanru Qu et at, 2016`[1], by calculating inner product between embedded tensors 
-    element-wisely to get cross features interactions.
+    element-wisely to get cross features interactions
     
     :Reference:
 

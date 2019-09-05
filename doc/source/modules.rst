@@ -2,6 +2,6 @@ torecsys
 ========
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 4
 
    torecsys

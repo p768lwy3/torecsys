@@ -6,7 +6,7 @@ import torch.nn as nn
 class FieldAwareFactorizationMachineLayer(nn.Module):
     r"""Layer class of Field aware Factorization Machine (FFM) :title:`Yuchin Juan et al, 2016`[1],  
     to calculate element-wise cross features interaction per fields for sparse field by using dot 
-    product between field-wise feature tensors.
+    product between field-wise feature tensors
     
     :Reference:
 
