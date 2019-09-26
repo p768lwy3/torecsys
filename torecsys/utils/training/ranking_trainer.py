@@ -144,11 +144,8 @@ class RankingTrainer(Trainer):
         # split outputs into pos_outputs and neg_outputs
         pos_outputs, neg_outputs = outputs.view(batch_size, -1, 1).split(
             (1, num_samples), dim=1)
-        pos_outputs = pos_outputs.squeeze()
+        pos_outputs = pos_outputs.squeeze(-1)
         neg_outputs = neg_outputs.squeeze()
-
-        print(pos_outputs)
-        print(neg_outputs)
         
         # calculate loss and regularized loss
         loss = self.loss(pos_outputs, neg_outputs)
