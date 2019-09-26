@@ -10,6 +10,7 @@ from texttable import Texttable
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torch.utils.data
 from typing import Callable, Dict
 import warnings
 

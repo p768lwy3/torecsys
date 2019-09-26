@@ -1,11 +1,28 @@
 from trainer import Trainer
+from torecsys.data.negsampling import _NegativeSampler
+from torecsys.functional.regularization import Regularizer
+from torecsys.inputs.base import _Inputs
+from torecsys.models import _Model
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import torch.utils.data
+from typing import Dict
+import warnings
 
+# ignore import warnings of the below packages
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    from tqdm.autonotebook import tqdm
 
 class RankingTrainer(Trainer):
+    r"""Object for training a sequential of transformation and embedding of inputs and model of
+    click through rate prediction with a negative sampler (i.e. in a pairwise way).
+    """
     def __init__(self,
                  inputs_wrapper : _Inputs,
                  model          : _Model,
-                 neg_sampler    : callable,
+                 neg_sampler    : _NegativeSampler,
                  regularizer    : Regularizer = Regularizer(0.1, 2),
                  loss           : type = nn.MSELoss,
                  optimizer      : type = optim.AdamW,
@@ -15,6 +32,55 @@ class RankingTrainer(Trainer):
                  log_dir        : str = "logdir", 
                  use_jit        : bool = False,
                  **kwargs):
+        r"""Initialize ranking trainer object.
+        
+        Args:
+            inputs_wrapper (_Inputs): Defined object of trs.inputs.InputWrapper, where its outputs' \
+                fields should be equal to the model forward's arguments.
+            model (_Model): Object of nn.Module, which is allowed to calculate foward propagation 
+                and gradients.
+            neg_sampler (_NegativeSampler): Object of trs.data.negsampling._NegativeSampler to 
+                generate negative samples to train the given model in pairwise ranking way, with 
+                a callable function `generate`, which return Dict[str, T] by inputing pos_samples 
+                which is a Dict[str, T] of positive samples.
+            regularizer (Regularizer, optional): Callable to calculate regularization. 
+                Defaults to Regularizer(0.1, 2).
+            loss (type, optional): Callable to calculate loss. 
+                Defaults to nn.MSELoss.
+            optimizer (type, optional):  Object to optimize the model. 
+                Defaults to optim.AdamW.
+            epochs (int, optional): Number of training epochs. 
+                Defaults to 10.
+            verboses (int, optional): Mode of logging. 0 = slient, 1 = progress bar, 2 = tensorboard.
+                Defaults to 2.
+            log_step (int, optional): Number of global steps for each log. 
+                Defaults to 500.
+            log_dir (str, optional): Directory to store the log of tensorboard. 
+                Defaults to "logdir".
+            use_jit (bool, optional): Whether jit.trace is applyed to the sequential or not.
+                In experimental.
+                Defaults to False.
+        Kawrgs:
+            example_inputs (Dict[str, T]): Example inputs for jit.trace to trace the sequential.
+        
+        Attributes:
+            sequential (Union[nn.modules, jit.TopLevelTracedModule]): Sequential of inputs wrapper 
+                and model, which can do the forward calculation directly with the batch inputs.
+            neg_sampler (callable): Function to generate negative samples to train the given model \
+                in pairwise ranking way.
+            regularizer (callable): Callable to calculate regularization.
+            loss (callable): Callable to calculate loss.
+            parameters (List[nn.Paramter]): List of trainable tensors of parameters.
+            optimizer (class): Object to optimize model.
+            epochs (int): Number of training epochs.
+            verboses (int): Mode of logging.
+            log_step (int): Number of global steps for each log.
+            use_jit (bool): Flag to show whether jit.trace is applyed to the sequential or not.
+            num_params (int): Total number of trainable parameters in the sequential.
+            logger (class): Object of logging.Logger to log the process.
+            log_dir (str):  Directory to store the log of tensorboard.
+            writer (class): Object of tensorboard.writer.SummaryWriter to log the process in tensorboard.
+        """
         # refer to parent class
         super(RankingTrainer, self).__init__(
             inputs_wrapper = inputs_wrapper,
@@ -37,6 +103,19 @@ class RankingTrainer(Trainer):
     def _iterate(self, 
                  pos_inputs: Dict[str, torch.Tensor], 
                  neg_inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
+        r"""Iteration for each batch of inputs.
+        
+        Args:
+            pos_inputs (Dict[str, T]): Dictionary of tensors of positive samples, where its keys 
+                are the name of inputs' fields in inputs wrapper, and its values are tensors of 
+                those fields, with shape = (B, N, E).
+            neg_inputs (Dict[str, T]): Dictionary of tensors of negative samples, where its keys 
+                are the name of inputs' fields in inputs wrapper, and its values are tensors of 
+                those fields, with shape = (B * Nneg, N, E).
+        
+        Returns:
+            T: Loss of the model.
+        """
         # zero the parameter gradients
         self.optimizer.zero_grad()
 
@@ -76,6 +155,12 @@ class RankingTrainer(Trainer):
         return loss
     
     def fit(self, dataloader: torch.utils.data.DataLoader):
+        r"""Callable to fit the model with a dataloader
+        
+        Args:
+            dataloader (torch.utils.data.DataLoader): Dataloader, where its iteration is a dictionary 
+                of batch of positive samples and negative samples
+        """
         # initialize global_step = 0 for logging
         global_step = 0
 
