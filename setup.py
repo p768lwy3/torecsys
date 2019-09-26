@@ -13,7 +13,7 @@ setup(
     # Required: project name
     name    = "torecsys",
     # Required: tag
-    version = "0.0.4",
+    version = "0.0.5.dev1",
     # Optional: short description
     description="Pure PyTorch Recommender System Module",
     # Optional: long description
@@ -38,8 +38,10 @@ setup(
     keywords = "recommendationsystem machinelearning research",
     # Required: packages
     packages = find_packages(exclude=["contrib", "docs", "tests"]),
-    # Optional: install_required
-    install_required = ["torch"],
+    # Optional: install_requires
+    install_requires = ["torch"],
+    # Optional: python_requires,
+    python_requires  = ">=3.7",
     # Optional: extras_required 
     # extras_required = {},
     # Optional: extra project url
