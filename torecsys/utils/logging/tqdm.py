@@ -2,7 +2,12 @@ r"""torecsys.utils.tqdm is a sub module of utils for logging during training
 """
 
 import logging
-from tqdm.autonotebook import tqdm
+import warnings
+
+# ignore import warnings of the below packages
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    from tqdm.autonotebook import tqdm
 
 
 class TqdmHandler(logging.StreamHandler):

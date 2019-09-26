@@ -1,5 +1,6 @@
 from . import _NegativeSampler
 import torch
+from typing import Dict
 
 class UniformSamplerWithReplacement(_NegativeSampler):
     r"""UniformSamplerWithReplacement is to generate negative samplers by uniform distribution with replacement, i.e. draw samples uniformlly with replacement

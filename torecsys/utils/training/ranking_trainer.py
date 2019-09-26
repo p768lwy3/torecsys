@@ -1,7 +1,9 @@
-from trainer import Trainer
+from .trainer import Trainer
 from torecsys.data.negsampling import _NegativeSampler
 from torecsys.functional.regularization import Regularizer
 from torecsys.inputs.base import _Inputs
+from torecsys.losses.ltr import _RankingLoss
+from torecsys.losses.ltr.pairwise_ranking_loss import BayesianPersonalizedRankingLoss
 from torecsys.models import _Model
 import torch
 import torch.nn as nn
@@ -23,8 +25,9 @@ class RankingTrainer(Trainer):
                  inputs_wrapper : _Inputs,
                  model          : _Model,
                  neg_sampler    : _NegativeSampler,
+                 neg_number     : int,
                  regularizer    : Regularizer = Regularizer(0.1, 2),
-                 loss           : type = nn.MSELoss,
+                 loss           : _RankingLoss = BayesianPersonalizedRankingLoss(),
                  optimizer      : type = optim.AdamW,
                  epochs         : int = 10,
                  verboses       : int = 2,
@@ -43,6 +46,7 @@ class RankingTrainer(Trainer):
                 generate negative samples to train the given model in pairwise ranking way, with 
                 a callable function `generate`, which return Dict[str, T] by inputing pos_samples 
                 which is a Dict[str, T] of positive samples.
+            neg_number (int): An integer of number of negative samples to be drawn.
             regularizer (Regularizer, optional): Callable to calculate regularization. 
                 Defaults to Regularizer(0.1, 2).
             loss (type, optional): Callable to calculate loss. 
@@ -99,6 +103,7 @@ class RankingTrainer(Trainer):
 
         # bind neg_sampler to neg_sampler
         self.neg_sampler = neg_sampler
+        self.neg_number = neg_number
 
     def _iterate(self, 
                  pos_inputs: Dict[str, torch.Tensor], 
@@ -119,19 +124,19 @@ class RankingTrainer(Trainer):
         # zero the parameter gradients
         self.optimizer.zero_grad()
 
-        # set batch size and number of negative samples for reshaping
-        batch_size = pos_inputs.size(0)
-        num_samples = neg_inputs.size(0)
-
         # cat pos_inputs and neg_inputs into a dictionary of tensors - batch_inputs
         batch_inputs = dict()
         for inp_name in pos_inputs:
+            # set batch size and number of negative samples for reshaping
+            batch_size = pos_inputs[inp_name].size(0)
+            num_samples = int(neg_inputs[inp_name].size(0) / batch_size)
+
+            # reshape tensors and concat them into one tensor
             num_fields = neg_inputs[inp_name].size(1)
-            embed_size = neg_inputs[inp_name].size(2)
-            pos_tensors = pos_inputs[inp_name].squeeze(1)
-            neg_tensors = neg_inputs[inp_name].view(
-                batch_size, num_samples, num_fields, embed_size)
+            pos_tensors = pos_inputs[inp_name].view(batch_size, 1, num_fields)
+            neg_tensors = neg_inputs[inp_name].view(batch_size, num_samples, num_fields)
             batch_inputs[inp_name] = torch.cat((pos_tensors, neg_tensors), dim=1)
+            batch_inputs[inp_name] = batch_inputs[inp_name].view(batch_size * (1 + num_samples), num_fields)
         
         # calculate forward prediction, where outputs' shape = (B * (1 + Nneg), 1)
         outputs = self.sequential(batch_inputs)
@@ -139,6 +144,11 @@ class RankingTrainer(Trainer):
         # split outputs into pos_outputs and neg_outputs
         pos_outputs, neg_outputs = outputs.view(batch_size, -1, 1).split(
             (1, num_samples), dim=1)
+        pos_outputs = pos_outputs.squeeze()
+        neg_outputs = neg_outputs.squeeze()
+
+        print(pos_outputs)
+        print(neg_outputs)
         
         # calculate loss and regularized loss
         loss = self.loss(pos_outputs, neg_outputs)
@@ -182,10 +192,7 @@ class RankingTrainer(Trainer):
 
             for i, pos_inputs in enumerate(pbar):
                 # generate negative samples
-                neg_inputs = dict()
-                """
-                <!--- code --->
-                """
+                neg_inputs = self.neg_sampler(pos_inputs, self.neg_number)
                 
                 # iteration of the batch
                 loss = self._iterate(pos_inputs, neg_inputs)

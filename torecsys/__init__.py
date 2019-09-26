@@ -11,5 +11,6 @@ from .layers import *
 from .losses import *
 from .metrics import *
 from .models import *
+from .utils.training.ranking_trainer import RankingTrainer
 from .utils.training.trainer import Trainer
 import torecsys.utils
