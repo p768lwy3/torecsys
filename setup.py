@@ -39,7 +39,21 @@ setup(
     # Required: packages
     packages = find_packages(exclude=["contrib", "docs", "tests"]),
     # Optional: install_requires
-    install_requires = ["torch"],
+    install_requires = [
+        "matplotlib>=3.1.1", 
+        "numpy>=1.17.0",
+        "pandas>=0.25.0",
+        "scipy>=1.3.1",
+        "scikit-learn>=0.21.3",
+        "sqlalchemy>=1.3.6",
+        "tensorboard==1.14.0",
+        "texttable>=1.6.2",
+        "torch==1.2.0",
+        "torchaudio==0.3.0",
+        "torchtext==0.4.0",
+        "torchvision==0.4.0",
+        "tqdm>=4.33.0"
+    ],
     # Optional: python_requires,
     python_requires  = ">=3.7",
     # Optional: extras_required 
