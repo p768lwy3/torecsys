@@ -404,3 +404,14 @@ class Trainer(object):
         else:
             load_file = path.join(load_path, "%s.tar" % (file_name))
             self.sequential.load_state_dict(torch.load(load_file))
+
+    def to(self, device: str):
+        """Set all attributes of torch to the given device.
+        
+        Args:
+            device (str): [description]
+        
+        Raises:
+            NotImplementedError: not yet implemented.
+        """
+        raise NotImplementedError("to be implemented.")

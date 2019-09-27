@@ -49,8 +49,9 @@ class HingeLoss(_PairwiseRankingLoss):
     r"""HingeLoss is a pairwise ranking loss function which calculated loss with the following equation: 
     :math:`loss = max ( 0.0, 1.0 + y_{pos} - y_{neg} )` .
     """
-    def __init__(self):
+    def __init__(self, margin: float = 1.0):
         super(HingeLoss, self).__init__()
+        self.margin = margin
 
     def forward(self,
                 pos_outputs: torch.Tensor,
@@ -66,7 +67,7 @@ class HingeLoss(_PairwiseRankingLoss):
         Returns:
             torch.Tensor: aggregated (masked) loss
         """
-        loss = hinge_loss(pos_outputs, neg_outputs)
+        loss = hinge_loss(pos_outputs, neg_outputs, self.margin)
         return apply_mask(loss, mask) if mask is not None else loss.mean()
 
 
@@ -80,8 +81,9 @@ class AdaptiveHingeLoss(_PairwiseRankingLoss):
     #. `Jason Weston el at, 2011. WSABIE: Scaling Up To Large Vocabulary Image Annotation <http://www.thespermwhale.com/jaseweston/papers/wsabie-ijcai.pdf>`_.
 
     """
-    def __init__(self):
+    def __init__(self, margin: float = 1.0):
         super(AdaptiveHingeLoss, self).__init__()
+        self.margin = margin
     
     def forward(self,
                 pos_outputs: torch.Tensor,
@@ -97,7 +99,7 @@ class AdaptiveHingeLoss(_PairwiseRankingLoss):
         Returns:
             torch.Tensor: aggregated (masked) loss
         """
-        loss = adaptive_hinge_loss(pos_outputs, neg_outputs)
+        loss = adaptive_hinge_loss(pos_outputs, neg_outputs, self.margin)
         return apply_mask(loss, mask) if mask is not None else loss.mean()
 
 

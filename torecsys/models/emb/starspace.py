@@ -45,3 +45,4 @@ class StarSpaceModel(_EmbModel):
         negsim = self.starspace(context_inputs, negative_inputs)
         
         return possim, negsim
+        

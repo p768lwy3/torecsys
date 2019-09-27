@@ -30,8 +30,7 @@ class StarSpaceLayer(nn.Module):
         """
         # refer to parent class
         super(StarSpaceLayer, self).__init__()
-
-
+        
         self.similarity = similarity
     
     def forward(self, samples_inputs: torch.Tensor) -> torch.Tensor:
