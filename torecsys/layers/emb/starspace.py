@@ -37,19 +37,18 @@ class StarSpaceLayer(nn.Module):
         r"""Forward calculation of StarSpaceLayer
         
         Args:
-            samples_inputs (T), shape = (B, 1 + S, E), dtype = torch.float: Embedded features tensors of context (in [:, 0]) and samples (in [:, 1:]).
+            samples_inputs (T), shape = (B, 2, E), dtype = torch.float: Embedded context and target tensors.
         
         Returns:
             T, shape = (B, S), dtype = torch.float: Output of StarSpaceLayer.
         """
         # get context in index 0 of second dimension, where the output's shape = (B, E)
-        # hence, .squeeze(1) to change the shape into (B, 1, E)
-        context = samples_inputs[:, 0].squeeze(1)
+        context = samples_inputs[:, 0, :].unsqueeze(1)
 
-        # get samples after index 1 of second dimension, where the output's shape = (B, N, E)
-        samples = samples_inputs[:, 1:]
+        # get target in index 1 of second dimension, where the output's shape = (B, E)
+        target = samples_inputs[:, 1, :].unsqueeze(1)
 
-        # calculate the similarity of context and samples
-        outputs = self.similarity(context, samples)
+        # calculate the similarity of context and target
+        outputs = self.similarity(context, target)
         
         return outputs

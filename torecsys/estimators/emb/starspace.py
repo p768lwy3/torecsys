@@ -36,13 +36,12 @@ class StarSpaceEstimator(RankingTrainer):
         # Initialize InputsWrapper for embeddings
         embedding_schema = {
             "context_inputs": (SingleIndexEmbedding(embedding_size, content_size), [content_label]),
-            "positive_inputs": (SingleIndexEmbedding(embedding_size, target_size), [target_label]),
-            "negative_inputs": (SingleIndexEmbedding(embedding_size, target_size), [target_label])
+            "target_inputs": (SingleIndexEmbedding(embedding_size, target_size), [target_label])
         }
         inputs_wrapper = InputsWrapper(embedding_schema)
 
-        # Initialize StarSpaceModel. TO BE UPDATED: similarity.
-        model = StarSpaceModel()
+        # Initialize StarSpaceModel.
+        model = StarSpaceModel(embed_size=embedding_size, num_neg=neg_number)
 
         # Initialize Regularizer.
         regularizer = Regularizer(regularizer, 2)
