@@ -1,6 +1,11 @@
-# TODO:
+# TODO
+
+## -1. Update from PyTorch 1.2 to PyTorch 1.3
+
+1. `Named Tensor` is a extremely cool feature to make the code much more readable and debuggable. Planning to change the parts which can be written in `Named Tensor`. And Hope everything can be written in `Named Tensor` in the near future! (Especially, `.unsqueeze()` etc).
 
 ## 0. Project
+
 1. Finish the module
 2. Examples to use the module
 3. Setup of pypl
@@ -9,11 +14,13 @@
 ## 1. Module
 
 ### torecsys
+
 1. .layers.* -> .models.\*.layers.\*
 2. .estimators.* -> .models.\*.estimators.\*
 3. .losses.* -> .models.\*.losses.\*
 
 ### torecsys.data
+
 1. .sampledata
 2. .dataset
 3. .dataloader
@@ -21,6 +28,7 @@
 5. .subsampling
 
 ### torecsys.models
+
 1. .inputs
     * .AudioInputs
     * .EmbeddingDict
@@ -38,7 +46,7 @@
 2. .ctr (Click Through Rate Prediction)
     1. .base
         * _CtrModel
-    3. .estimators
+    2. .estimators
         * NeuralCollaborativeFiltering: https://arxiv.org/pdf/1708.05031.pdf
         * NeuralFactorizationMachine : https://arxiv.org/pdf/1708.05027.pdf
         * ProductNeuralNetwork : https://arxiv.org/abs/1611.00144
@@ -86,6 +94,7 @@
     4. .nauc
 
 ### torecsys.utils
+
 1. .logging.tqdm
     * .TqdmHandler
 2. .cli
@@ -97,4 +106,3 @@
         * ```torecsys --model="test" --filepath="./dataset/example.csv" --model="./model/modeldir"```
     * .serve
         * ```torecsys --model="serve" --filepath="./dataset/example.csv" --model="./model/modeldir" --host="localhost" --port=8080```
-    
