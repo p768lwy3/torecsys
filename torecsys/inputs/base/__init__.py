@@ -1,7 +1,9 @@
 r"""torecsys.inputs.base is a sub-module of base inputs class.
 """
 
+from collections import namedtuple
 import torch.nn as nn
+
 
 class _Inputs(nn.Module):
     r"""General Input class.
@@ -17,6 +19,12 @@ class _Inputs(nn.Module):
             int: Size of embedding tensor, or Number of inputs' fields.
         """
         return self.length
+    
+    def get_schema(self) -> namedtuple:
+        return self.schema
+    
+    def set_schema(self, *args):
+        raise NotImplementedError("set_schema cannot be called in the base class.")
 
 
 # from .audio_inp import AudioInputs
