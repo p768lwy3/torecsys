@@ -1,8 +1,57 @@
 # TODO
 
+## -3. Build another new sample dataset for debugging and testing
+
+but what should i build?
+
+## -2. Planning of `Estimator` and `Trainer`
+
+### 1. Estimator would be a class like scikit-learn, and user can use them in a easy way, like the following:
+
+    ```python
+    import numpy as np
+    import torecsys as trs
+
+    # create training data
+    x_train = np.array(...) # or even a pandas.DataFrame
+    y_train = np.array(...)
+
+    # initialize a model with the specific arguments
+    model = trs.estimator.WideAndDeepEstimator(...)
+
+    # fit the model by numpy.array / pandas.DataFrame / torch.tensor
+    model.fit(x_train, y_train)
+
+    # make inference
+    y_pred = model.predict(x_pred)
+    ```
+
+### 2. Trainer would be a class more flexible, and user can modify the model in their own way, like the following:
+
+    ```python
+
+    import torecsys as trs
+
+    # initialize a dataloadaer to iterate training data
+    dataloader = trs.data.build_dataloader(x=x_train, y=y_train, ...)
+
+    # initialize a inputs class with a schema and a model class with a structure
+    inputs = trs.inputs.InputWrapper(...)
+    model = trs.models.WideAndDeep(...)
+
+    # initialize a trainer class with the inputs class and the model class
+    trainer = trs.Trainer(inputs=inputs, model=model)
+
+    # train the model by the dataloader
+    trainer.train(dataloader)
+
+    # make inference
+    y_pred = trainer.predict(x_pred)
+    ```
+
 ## -1. Update from PyTorch 1.2 to PyTorch 1.3
 
-1. `Named Tensor` is a extremely cool feature to make the code much more readable and debuggable. Planning to change the parts which can be written in `Named Tensor`. And Hope everything can be written in `Named Tensor` in the near future! (Especially, `.unsqueeze()` etc).
+1. `Named Tensor` is a extremely cool feature to make the code much more readable and debuggable. Planning to change the parts which can be written in `Named Tensor`. And Hope everything can be written in `Named Tensor` in the near future!
 
 ## 0. Project
 
