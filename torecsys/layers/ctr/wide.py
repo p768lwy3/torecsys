@@ -65,15 +65,18 @@ class WideLayer(nn.Module):
             emb_inputs (T), shape = (B, N, E), dtype = torch.float: Embedded features tensors.
         
         Returns:
-            T, shape = (B, 1, O), dtype = torch.float: Output of wide layer.
+            T, shape = (B, O), dtype = torch.float: Output of wide layer.
         """
         # reshape inputs from (B, N, E) to (B, N * E) 
         # or from (B, 1, I) to (B, I)
-        emb_inputs = emb_inputs.view(-1, self.inputs_size)
+        ## emb_inputs = emb_inputs.view(-1, self.inputs_size)
+        emb_inputs = emb_inputs.flatten(["N", "E"], "E")
 
         # forward to model and return output with shape = (B, O)
-        outputs = self.model(outputs)
+        outputs = self.model(emb_inputs.rename(None))
 
-        # unsqueeze(1) to transform the shape into (B, 1, O) before return
-        return outputs.unsqueeze(1)
+        # .unsqueeze(1) to transform the shape into (B, 1, O) before return
+        ## outputs = outputs.unsqueeze(1)
+        outputs.names = ("B", "O")
+        return outputs
     

@@ -123,8 +123,10 @@ class SequenceIndicesEmbedding(_Inputs):
             T, shape = (B, 1 or L, E): Outputs of SequenceIndicesEmbedding.
         """
         # sort inputs with the lengths
-        lengths, perm_idx = lengths.sort(0, descending=True)
-        inputs = inputs[perm_idx]
+        ## lengths, perm_idx = lengths.sort(0, descending=True)
+        lengths, perm_idx = lengths.rename(None).sort(0, descending=True)
+        ## inputs = inputs[perm_idx]
+        inputs = inputs.rename(None)[perm_idx]
         
         # sort for the desort index
         _, desort_idx = perm_idx.sort()
@@ -147,14 +149,22 @@ class SequenceIndicesEmbedding(_Inputs):
         # calculate aggregation of outputs
         if self.output_method in ["avg_pooling" or "max_pooling"]:
             # transpose from (B, L, E) to (B, E, L)
-            outputs = outputs.transpose(1, 2)
+            ## outputs = outputs.transpose(1, 2)
+            outputs.names = ("B", "L", "E")
+            outputs = outputs.align_to("B", "E", "L")
+
             # shape of outputs = (B, E, 1)
-            outputs = self.aggregation(outputs)
+            outputs = self.aggregation(outputs.rename(None))
+
             # transpose from (B, E, 1) to (B, 1, E)
-            outputs = outputs.transpose(1, 2)
+            ## outputs = outputs.transpose(1, 2)
+            outputs.names = ("B", "E", "N")
+            outputs = outputs.align_to("B", "N", "E")
+
         else:
             # outputs' shape = (B, 1, E) if output_method == "mean" or "sum"
             # else outputs' shape = (B, L, E) if output_method == "none"
-            outputs = self.aggregation(outputs)
+            outputs = self.aggregation(outputs.rename(None))
+            outputs.names = ("B", "N", "E")
         
         return outputs

@@ -36,4 +36,6 @@ class ValueInputs(_Inputs):
             T, shape = (B, 1, N): Outputs of ValueInputs
         """
         # unsqueeze(1) and return
-        return inputs.unsqueeze(1)
+        inputs = inputs.unsqueeze(1)
+        inputs.names = ("B", "N", "E")
+        return inputs

@@ -38,18 +38,24 @@ class FactorizationMachineLayer(nn.Module):
             emb_inputs (T), shape = (B, N, E), dtype = torch.float: Embedded features tensors.
         
         Returns:
-            T, shape = (B, 1, E), dtype = torch.float: Output of FactorizationMachineLayer
+            T, shape = (B, O), dtype = torch.float: Output of FactorizationMachineLayer
         """
         # squared sum embedding where output shape = (B, E)
-        squared_sum_embs = (emb_inputs.sum(dim=1)) ** 2
+        ## squared_sum_embs = (emb_inputs.sum(dim=1)) ** 2
+        squared_sum_embs = (emb_inputs.sum(dim="N")) ** 2
         
         # sum squared embedding where output shape = (B, E)
-        sum_squared_embs = (emb_inputs ** 2).sum(dim=1)
+        ## sum_squared_embs = (emb_inputs ** 2).sum(dim=1)
+        sum_squared_embs = (emb_inputs ** 2).sum(dim="N")
         
         # calculate output of fm
         outputs = 0.5 * (squared_sum_embs - sum_squared_embs)
 
         # apply dropout before return
         outputs = self.dropout(outputs)
-        return outputs.unsqueeze(1)
+
+        # .unsqueeze(1) to transform the shape into (B, 1, O) before return
+        ## outputs.unsqueeze(1)
+        outputs.names = ("B", "O")
+        return outputs
         

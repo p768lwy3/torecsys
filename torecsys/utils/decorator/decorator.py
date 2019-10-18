@@ -13,7 +13,7 @@ def to_be_tested(func: callable):
     """
     @wraps(func)
     def wrapper(*args, **kwargs):
-        warnings.warn("this module is in developemnt, and will be tested in the near futures.")
+        warnings.warn("This function is in developing.", UserWarning)
         return func(*args, **kwargs)
     return wrapper
 
@@ -27,7 +27,7 @@ def no_jit_experimental(func: callable):
     """
     @wraps(func)
     def wrapper(*args, **kwargs):
-        warnings.warn("The module is checked that it is not compatible with torch.jit.trace.")
+        warnings.warn("This function is not allowed to used in jit-mode.", UserWarning)
         return func(*args, **kwargs)
     return wrapper
 
@@ -41,11 +41,7 @@ def jit_experimental(func: callable):
     """
     @wraps(func)
     def wrapper(*args, **kwargs):
-        msg = (
-            "the module have been checked with torch.jit.trace, but the feature is in experimemtal."
-            "!!! Remark. It is not allow to use dropout at this stage, since inferences of the "
-            "same inputs will be different after dropout layer. So, Please use dropout_p = 0.0 or None."
-        )
-        warnings.warn(msg)
+        warnings.warn("This function is allowed to used in jit-mode, but the feature is in experimental." + 
+            "Please do not use it for anything important until they are released as stable.", UserWarning)
         return func(*args, **kwargs)
     return wrapper

@@ -1,8 +1,11 @@
 from . import _Inputs
 from torecsys.utils.decorator import jit_experimental
 import torch
-from typing import Dict, List
+import torch.nn as nn
+from typing import Dict, List, Union
 
+## TODO
+## change schema to namedtuple 
 
 class ConcatInputs(_Inputs):
     r"""Base Inputs class for concatenation of list of Base Inputs class in rowwise. The shape of output 
@@ -42,6 +45,40 @@ class ConcatInputs(_Inputs):
         # size of embedding) 
         self.length = sum([len(tup[0]) for tup in self.schema])
     
+    def __getitem__(self, idx: Union[int, slice, str]) -> Union[nn.Module, List[nn.Module]]:
+        """Get Embedding Layer by index of the schema.
+        
+        Args:
+            idx (Union[int, slice, str]): index to get embedding layer from the schema.
+        
+        Returns:
+            Union[nn.Module, List[nn.Module]]: Embedding layer(s) of the given index
+        """
+        if isinstance(idx, int):
+            emb_layers = self.schema[idx][0]
+
+        elif isinstance(idx, slice):
+            emb_layers = []
+            
+            # parse the slice object into integers used in range()
+            start = idx.start if idx.start is not None else 0
+            stop = idx.stop if idx.stop is not None else len(self.schema)
+            step = idx.step if idx.step is not None else 1
+
+            for i in range(start, stop, step):
+                emb_layers.append(self.schema[i][0])
+
+        elif isinstance(idx, str):
+            emb_layers = []
+            for i in self.schema:
+                if idx in i[1]:
+                    emb_layers.append(i[0])
+        
+        else:
+            raise ValueError("getitem only accept int, slice, and str.")
+        
+        return emb_layers
+    
     def forward(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
         r"""Foward calculation of ConcatInputs.
         
@@ -64,19 +101,26 @@ class ConcatInputs(_Inputs):
             
             # convert list of inputs to tensor, with shape = (B, N, *)
             inp_val = [inputs[i] for i in inp_names]
-            inp_val = torch.cat(inp_val, dim=1)
+            ## inp_val = torch.cat(inp_val, dim=1)
+            inp_val = torch.cat(inp_val, dim="N")
+            inp_val = inp_val.rename(None)
             args = [inp_val]
             
             # set args for specific input
-            if embedding.__class__.__name__ == "SequenceIndexEmbedding":
+            if embedding.__class__.__name__ == "SequenceIndicesEmbedding":
                 arg_name = args_tuple[2][0]
-                args.append(inputs[arg_name])
+                args.append(inputs[arg_name].rename(None))
             
+            # embed / transform tensors
+            embedded = embedding(*args)
+            ## embedded.names = ("B", "N", "E")
+
             # append tensor to outputs
-            outputs.append(embedding(*args))
+            outputs.append(embedded)
 
         # concat in the third dimension, and the shape of output = (B, 1, sum(E))
-        outputs = torch.cat(outputs, dim=2)
+        ## outputs = torch.cat(outputs, dim=2)
+        outputs = torch.cat(outputs, dim="E")
         
         return outputs
         

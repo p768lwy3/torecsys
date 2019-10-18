@@ -53,4 +53,7 @@ class SingleIndexEmbedding(_Inputs):
             T, (B, 1, E): Outputs of SingleIndexEmbedding.
         """
         # get embedding tensor from embedding module
-        return self.embedding(inputs)
+        outputs = self.embedding(inputs.rename(None))
+
+        outputs.names = ("B", "N", "E")
+        return outputs
