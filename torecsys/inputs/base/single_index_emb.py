@@ -1,5 +1,5 @@
 from . import _Inputs
-from torecsys.utils.decorator import jit_experimental
+from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 import torch
 import torch.nn as nn
 
@@ -7,7 +7,7 @@ import torch.nn as nn
 class SingleIndexEmbedding(_Inputs):
     r"""Base Inputs class for embedding a single index of a input field.
     """
-    @jit_experimental
+    @no_jit_experimental_by_namedtensor
     def __init__(self,
                  embed_size   : int,
                  field_size   : int,

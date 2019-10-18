@@ -56,16 +56,21 @@ class ComposeExcitationNetworkLayer(nn.Module):
             T, shape = (B, N * N, E), dtype = torch.long: Output of ComposeExcitationNetworkLayer.
         """
         # pooling with inputs' shape = (B, N * N, E) to output's shape = (B, N * N, 1)
-        pooled_inputs = self.pooling(field_emb_inputs)
+        pooled_inputs = self.pooling(field_emb_inputs.rename(None))
+        pooled_inputs.names = ("B", "N", "E")
 
         # squeeze pooled_inputs into shape = (B, N * N)
-        pooled_inputs = pooled_inputs.squeeze()
+        ## pooled_inputs = pooled_inputs.squeeze()
+        pooled_inputs = pooled_inputs.flatten(["N", "E"], "N")
 
-        # output's shape of attn_weights = (B, N * N)
-        attn_weights = self.fc(pooled_inputs)
+        # output's shape of attn_w = (B, N * N)
+        attn_w = self.fc(pooled_inputs.rename(None))
+        attn_w.names = ("B", "N")
 
         # unsqueeze to (B, N * N, 1) and expand as x's shape = (B, N * N, E)
-        attn_weights = attn_weights.unsqueeze(-1)
-        outputs = field_emb_inputs * attn_weights.expand_as(field_emb_inputs)
+        ## attn_w = attn_w.unsqueeze(-1)
+        attn_w = attn_w.unflatten("N", (("N", attn_w.size("N")), ("E", 1)))
+        ## outputs = field_emb_inputs * attn_w.expand_as(field_emb_inputs)
+        outputs = field_emb_inputs * attn_w
 
         return outputs

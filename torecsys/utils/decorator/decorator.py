@@ -31,6 +31,17 @@ def no_jit_experimental(func: callable):
         return func(*args, **kwargs)
     return wrapper
 
+def no_jit_experimental_by_namedtensor(func: callable):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        warnings.warn(
+            "The module is checked that it is not compatible with torch.jit.trace " + 
+            "due to the NamedTensor method. This will be updated to compatibilized " + 
+            "when PyTorch update.", UserWarning
+        )
+        return func(*args, **kwargs)
+    return wrapper
+
 
 def jit_experimental(func: callable):
     r"""a decorator to write a message in a layer or a estimator where they have been checked 
