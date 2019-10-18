@@ -56,8 +56,11 @@ class AttentionalFactorizationMachineLayer(nn.Module):
             for j in range(i + 1, num_fields):
                 self.rowidx.append(i)
                 self.colidx.append(j)
-        self.rowidx = torch.LongTensor(rowidx)
-        self.colidx = torch.LongTensor(colidx)
+        
+        self.rowidx = torch.LongTensor(self.rowidx)
+        ## self.rowidx.names = ("I", )
+        self.colidx = torch.LongTensor(self.colidx)
+        ## self.colidx.names = ("I", )
         
         # initialize dropout layer before return
         self.dropout = nn.Dropout(dropout_p)
@@ -73,16 +76,21 @@ class AttentionalFactorizationMachineLayer(nn.Module):
         """
         # calculate inner product between each field,
         # inner's shape = (B, NC2, E)
-        inner = emb_inputs[:, self.rowidx] * emb_inputs[:, self.colidx]
+        ## inner = emb_inputs[:, self.rowidx] * emb_inputs[:, self.colidx]
+        inner = emb_inputs.rename(None)[:, self.rowidx] * emb_inputs.rename(None)[:, self.colidx]
+        inner.names = ("B", "N", "E")
 
         # calculate attention scores by inner product,
         # scores' shape = (B, NC2, 1)
         attn_scores = self.attention(inner)
+        attn_scores.names = ("B", "N", "E")
         
         # apply attention scores on inner-product
-        outputs = torch.sum(attn_scores * inner, dim=1)
+        ## outputs = torch.sum(attn_scores * inner, dim=1)
+        outputs = (attn_scores * inner).sum(dim="N", keepdim=True)
 
         # apply dropout before return
         outputs = self.dropout(outputs)
-        return outputs.unsqueeze(1), attn_scores
+
+        return outputs, attn_scores
     

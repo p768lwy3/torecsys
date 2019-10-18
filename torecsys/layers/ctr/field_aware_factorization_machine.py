@@ -50,6 +50,7 @@ class FieldAwareFactorizationMachineLayer(nn.Module):
         outputs = list()
 
         # chunk inputs' tensor into num_fields parts with shape = (B, N, E)
+        field_emb_inputs = field_emb_inputs.rename(None)
         field_emb_inputs = torch.chunk(field_emb_inputs, self.num_fields, dim=1)
         
         # calculate dot-product between e_{i, fj} and e_{j, fi}
@@ -62,4 +63,8 @@ class FieldAwareFactorizationMachineLayer(nn.Module):
 
         # apply dropout before return
         outputs = self.dropout(outputs)
+
+        # set names to the outputs' tensor
+        outputs.names = ("B", "N", "E")
+        
         return outputs

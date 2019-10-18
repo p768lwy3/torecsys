@@ -70,7 +70,8 @@ class BilinearNetworkLayer(nn.Module):
         """
         # reshape inputs from (B, N, E) to (B, 1, N * E) if inputs' shape is (B, N, E)
         # or from (B, 1, I) to (B, I)
-        emb_inputs = emb_inputs.view(-1, self.inputs_size)
+        ## emb_inputs = emb_inputs.view(-1, self.inputs_size)
+        emb_inputs = emb_inputs.flatten(["N", "E"], "O")
 
         # copy emb_inputs to outputs for residual
         outputs = emb_inputs.detach().requires_grad_()
@@ -78,6 +79,12 @@ class BilinearNetworkLayer(nn.Module):
         # forward calculation of bilinear and add residual
         for layer in self.model:
             # return size = (B, N * E) or (B, I)
-            outputs = layer(emb_inputs, outputs) + emb_inputs
+            ## outputs = layer(emb_inputs, outputs) + emb_inputs
+            outputs = layer(emb_inputs.rename(None), outputs.rename(None))
+            outputs.names = ("B", "O")
+            outputs = outputs + emb_inputs
         
-        return outputs.unsqueeze(1)
+        # .unsqueeze(1) to transform the shape into (B, 1, O) before return
+        ## outputs = outputs.unsqueeze(1)
+
+        return outputs

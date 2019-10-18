@@ -56,7 +56,7 @@ class ComposeExcitationNetworkLayer(nn.Module):
             T, shape = (B, N * N, E), dtype = torch.long: Output of ComposeExcitationNetworkLayer.
         """
         # pooling with inputs' shape = (B, N * N, E) to output's shape = (B, N * N, 1)
-        pooled_inputs = self.pooling(field_emb_inputs)
+        pooled_inputs = self.pooling(field_emb_inputs.rename(None))
 
         # squeeze pooled_inputs into shape = (B, N * N)
         pooled_inputs = pooled_inputs.squeeze()
@@ -64,8 +64,12 @@ class ComposeExcitationNetworkLayer(nn.Module):
         # output's shape of attn_weights = (B, N * N)
         attn_weights = self.fc(pooled_inputs)
 
-        # unsqueeze to (B, N * N, 1) and expand as x's shape = (B, N * N, E)
+        # unsqueeze attn_weights to (B, N * N, 1) 
         attn_weights = attn_weights.unsqueeze(-1)
-        outputs = field_emb_inputs * attn_weights.expand_as(field_emb_inputs)
+        attn_weights.names = ("B", "N", "E")
+        
+        ### expand attn_weights as field_emb_inputs's shape = (B, N * N, E)
+        ## outputs = field_emb_inputs * attn_weights.expand_as(field_emb_inputs)
+        outputs = field_emb_inputs * attn_weights
 
         return outputs
