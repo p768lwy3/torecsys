@@ -1,7 +1,8 @@
 from . import _Inputs
 import torch
+import torch.nn as nn
 from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
-from typing import Dict, List
+from typing import Dict, List, Union
 
 
 class StackedInputs(_Inputs):
@@ -96,7 +97,7 @@ class StackedInputs(_Inputs):
             emb_layers = []
             for inp in self.inputs:
                 if idx in inp.schema.inputs:
-                    emb_layers.append(i)
+                    emb_layers.append(inp)
         
         else:
             raise ValueError("getitem only accept int, slice, and str.")
@@ -142,10 +143,6 @@ class StackedInputs(_Inputs):
             # check if output dimension is less than 3, then .unsqueeze(1)
             if output.dim() < 3:
                 output = output.unflatten("E", [("N", 1), ("E", output.size("E"))])
-            
-            # embed / transform tensors
-            embedded = embedding(*args)
-            ## embedded.names = ("B", "N", "E")
             
             # append tensor to outputs
             outputs.append(output)

@@ -35,7 +35,8 @@ class BilinearNetworkLayer(nn.Module):
             model (torch.nn.ModuleList): Module List of Bilinear Layers.
         
         Raises:
-            ValueError: when embed_size or num_fields is missing if using embed_size and num_field pairs, or when inputs_size is missing if using inputs_size
+            ValueError: when embed_size or num_fields is missing if using embed_size and 
+                num_field pairs, or when inputs_size is missing if using inputs_size
         """
         # refer to parent class
         super(BilinearNetworkLayer, self).__init__()
@@ -47,7 +48,9 @@ class BilinearNetworkLayer(nn.Module):
         elif inputs_size is not None and (embed_size is None or num_fields is None):
             inputs_size = inputs_size
         else:
-            raise ValueError("Only allowed:\n    1. embed_size and num_fields is not None, and inputs_size is None\n    2. inputs_size is not None, and embed_size or num_fields is None")
+            raise ValueError("Only allowed:\n    1. embed_size and num_fields is not None, " + 
+                "and inputs_size is None.\n    2. inputs_size is not None, and embed_size " + 
+                "or num_fields is None.")
         
         # bind inputs_size to inputs_size
         self.inputs_size = inputs_size

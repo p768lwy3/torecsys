@@ -63,17 +63,28 @@ class CompressInteractionNetworkLayer(nn.Module):
 
         # add modules including conv1d, batchnorm and activation to model
         for i, (s_i, s_j) in enumerate(zip(self.layer_sizes[:-1], self.layer_sizes[1:])):
+            # create a nn.Sequential to store a layer of cin
             cin = nn.Sequential()
+
+            # calculate in channel and out channel of the 1D convalutional in cin
             in_c = self.layer_sizes[0] * s_i
             if is_direct or i == (len(self.layer_sizes) - 1):
                 out_c = s_j
             else:
                 out_c = s_j * 2
+            
+            # add 1D convalutional to the sequential module
             cin.add_module("conv1d", nn.Conv1d(in_c, out_c, kernel_size=1, bias=use_bias))
+
+            # add batch norm to the sequential module
             if use_batchnorm:
                 cin.add_module("batchnorm", nn.BatchNorm1d(out_c))
+            
+            # add activation to the sequential module
             if activation is not None:
                 cin.add_module("activation", activation)
+            
+            # add cin to the module list
             self.model.append(cin)
         
         # calculate output size of model for the argument of fc
@@ -95,38 +106,50 @@ class CompressInteractionNetworkLayer(nn.Module):
         direct_list = list()
         hidden_list = list()
 
-        # transpose x0 from (B, N, E) to (B, E, N, 1)
-        x0 = emb_inputs.transpose(1, 2)
+        # transpose x0 from (B, N, E) to (B, E, N)
+        ## x0 = emb_inputs.transpose(1, 2)
+        x0 = emb_inputs.align_to("B", "E", "N")
         hidden_list.append(x0)
-        x0 = x0.unsqueeze(-1)
+        
+        # expand x0 to (B, E, N_x, H = 1)
+        ## x0 = x0.unsqueeze(-1)
+        x0 = x0.unflatten("N", [("Nx", x0.size("N")), ("H", 1)])
 
         # loop through 1d conv layers list
         for i, layer_size in enumerate(self.layer_sizes[:-1]):
-            # get (i - 1)-th hidden layer and expand the shape to (B, N, 1, H_{i-1})
-            xi = hidden_list[-1].unsqueeze(2)
+            # get (i - 1) th hidden layer with shape = (B, E, N),
+            # then expand the shape to (B, E, H = 1, N_y)
+            ## xi = hidden_list[-1].unsqueeze(2)
+            xi = hidden_list[-1]
+            xi = xi.unflatten("N", [("H", 1), ("Ny", xi.size("N"))])
 
-            # calculate outer product by matmul, where the shape = (B, N, E, H_{i-1})
+            # calculate outer product,  where the shape = (B, E, N_x, N_y), by torch.matmul
             out_prod = torch.matmul(x0, xi)
             
-            # then reshape the outer product to (B, E * H_{i-1}, N)
-            out_prod = out_prod.view(-1, self.embed_size, layer_size * self.layer_sizes[0])
-            out_prod = out_prod.transpose(1, 2)
+            # then reshape the outer product to (B, N_x * N_y, E)
+            ## out_prod = out_prod.view(-1, self.embed_size, layer_size * self.layer_sizes[0])
+            ## out_prod = out_prod.transpose(1, 2)
+            out_prod = out_prod.flatten(["Nx", "Ny"], "N")
+            out_prod = out_prod.align_to("B", "N", "E")
 
             # apply convalution, batchnorm and activation, 
             # and the shape will be (B, H_i * 2 or H_i, N)
-            outputs = self.model[i](out_prod)
+            outputs = self.model[i](out_prod.rename(None))
+            outputs.names = ("B", "N", "E")
             
             if self.is_direct:
                 # pass the whole tensors as hidden value to next step 
                 # and also keep the whole tensors for outputs with shape = (B, N, H_i)
                 direct = outputs
-                hidden = outputs.transpose(1, 2)
+                ## hidden = outputs.transpose(1, 2)
+                hidden = outputs.align_to("B", "E", "N")
             else:
                 if i != (len(self.layer_sizes) - 1):
                     # pass half tensors to next step and keep half tensors
                     # for outputs with shape = (B, N, H_i) if not in last step
                     direct, hidden = torch.chunk(outputs, 2, dim=1)
-                    hidden = hidden.transpose(1, 2)
+                    ## hidden = hidden.transpose(1, 2)
+                    hidden = hidden.align_to("B", "E", "N")
                 else:
                     # keep the whole tensors for the outputs
                     direct = outputs
@@ -137,10 +160,15 @@ class CompressInteractionNetworkLayer(nn.Module):
             hidden_list.append(hidden)
         
         # concatenate direct_list into a tensor for output with shape = (B, E_1 + ... + E_k, N)
-        outputs = torch.cat(direct_list, dim=1)
+        ## outputs = torch.cat(direct_list, dim=1)
+        outputs = torch.cat(direct_list, dim="N")
 
         # aggregate outputs into (B, E_1 + ... + E_k) and pass into output fc layer
-        outputs = self.fc(outputs.sum(dim=-1))
+        ## outputs = self.fc(outputs.sum(dim=-1))
+        outputs = self.fc(outputs.sum("E"))
+        outputs.names = ("B", "O")
 
-        # return outputs with shape = (B, 1, O)
-        return outputs.unsqueeze(1)
+        # unsqueeze outputs to (B, 1, O)
+        ## outputs = outputs.unsqueeze(1)
+
+        return outputs
