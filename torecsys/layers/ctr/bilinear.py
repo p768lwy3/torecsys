@@ -1,4 +1,4 @@
-from torecsys.utils.decorator import jit_experimental
+from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 import torch
 import torch.nn as nn
 
@@ -8,9 +8,8 @@ class BilinearNetworkLayer(nn.Module):
     calculation is: for i-th layer, :math:`x_{i} = (x_{0} * A_{i} * x_{i - 1}) + b_{i} + x_{0}`, 
     where :math:`A_{i}` is the weight of module of shape :math:`(O_{i}, I_{i1}, I_{i2})`.
     """
-    @jit_experimental
+    @no_jit_experimental_by_namedtensor
     def __init__(self,
-                 output_size : int, 
                  num_layers  : int,
                  embed_size  : int = None, 
                  num_fields  : int = None,
@@ -18,7 +17,6 @@ class BilinearNetworkLayer(nn.Module):
         r"""Initialize BilinearNetworkLayer
 
         Args:
-            output_size (int): Output size of Bilinear Network
             num_layers (int): Number of layers of Bilinear Network
             embed_size (int, optional): Size of embedding tensor. 
                 Required with num_fields. 

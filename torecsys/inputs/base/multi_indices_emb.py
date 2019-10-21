@@ -52,7 +52,7 @@ class MultiIndicesEmbedding(_Inputs):
         # create offsets to re-index inputs by adding them up
         ## self.offsets = torch.Tensor((0, *np.cumsum(field_sizes)[:-1])).long().unsqueeze(0)
         self.offsets = torch.Tensor((0, *np.cumsum(field_sizes)[:-1])).long()
-        self.offsets.names = ("N")
+        self.offsets.names = ("N", )
         self.offsets = self.offsets.unflatten("N", [("B", 1), ("N", self.offsets.size("N"))])
         self.offsets.to(device)
 

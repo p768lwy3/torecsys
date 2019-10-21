@@ -1,4 +1,4 @@
-from torecsys.utils.decorator import jit_experimental
+from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 import torch
 import torch.nn as nn
 
@@ -15,16 +15,16 @@ class ComposeExcitationNetworkLayer(nn.Module):
     #. `Junlin Zhang et al, 2019. FAT-DeepFFM: Field Attentive Deep Field-aware Factorization Machine <https://arxiv.org/abs/1905.06336>`_.
 
     """
-    @jit_experimental
+    @no_jit_experimental_by_namedtensor
     def __init__(self, 
                  num_fields : int,
-                 reduction  : int = 16):
+                 reduction  : int = 1):
         r"""Initialize ComposeExcitationNetworkLayer
         
         Args:
             num_fields (int): Number of inputs' fields. 
             reduction (int, optional): Size of reduction in fully-connect layer. 
-                Defaults to 16.
+                Defaults to 1.
         
         Attributes:
             pooling (torch.nn.Module): Adaptive average pooling layer to compose tensors.

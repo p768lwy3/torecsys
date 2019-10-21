@@ -1,4 +1,4 @@
-from torecsys.utils.decorator import jit_experimental
+from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 import torch
 import torch.nn as nn
 
@@ -12,7 +12,7 @@ class CrossNetworkLayer(nn.Module):
     #. `Ruoxi Wang et al, 2017. Deep & Cross Network for Ad Click Predictions <https://arxiv.org/abs/1708.05123>`_.
 
     """
-    @jit_experimental
+    @no_jit_experimental_by_namedtensor
     def __init__(self, 
                  num_layers  : int,
                  embed_size  : int = None,
@@ -65,21 +65,27 @@ class CrossNetworkLayer(nn.Module):
         """Forward calculation of CrossNetworkLayer
         
         Args:
-            emb_inputs (T), shape = (B, N, E) or (B, 1, I), dtype = torch.float: Embedded features tensors.
+            emb_inputs (T), shape = (B, N, E), dtype = torch.float: Embedded features tensors.
         
         Returns:
-            T, shape = (B, 1, N * E) or (B, 1, I), dtype = torch.float: Output of CrossNetworkLayer
+            T, shape = (B, N * E), dtype = torch.float: Output of CrossNetworkLayer
         """
-        # reshape inputs from (B, N, E) to (B, N * E) 
-        # or from (B, 1, I) to (B, I)
-        emb_inputs = emb_inputs.view(-1, self.inputs_size)
+        # reshape inputs from (B, N, E) to (B, N * E)
+        ## emb_inputs = emb_inputs.view(-1, self.inputs_size)
+        emb_inputs = emb_inputs.flatten(["N", "E"], "E")
 
         # copy emb_inputs to outputs for residual
         outputs = emb_inputs.detach().requires_grad_()
 
         # forward calculation of bilinear and add residual
         for layer in self.model:
-            # return size = (B, N * E) or (B, I)
+            # shape = (B, N * E)
             outputs = emb_inputs * layer(outputs) + emb_inputs
         
-        return outputs.unsqueeze(1)
+        # rename tensor names
+        outputs.names = ("B", "O")
+
+        # unsqueeze outputs to (B, 1, O)
+        ## outputs = outputs.unsqueeze(1)
+
+        return outputs

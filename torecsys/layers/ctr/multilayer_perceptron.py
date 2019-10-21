@@ -1,4 +1,4 @@
-from torecsys.utils.decorator import jit_experimental
+from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 import torch
 import torch.nn as nn
 from typing import Callable, List
@@ -9,7 +9,7 @@ class MultilayerPerceptronLayer(nn.Module):
     layer, dense layer, deep neural network, etc, to calculate high order non linear 
     relations of features with a stack of linear, dropout and activation.
     """
-    @jit_experimental
+    @no_jit_experimental_by_namedtensor
     def __init__(self, 
                  output_size : int,
                  layer_sizes : List[int],

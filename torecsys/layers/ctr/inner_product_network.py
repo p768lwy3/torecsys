@@ -1,4 +1,4 @@
-from torecsys.utils.decorator import jit_experimental
+from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 import torch
 import torch.nn as nn
 
@@ -13,7 +13,7 @@ class InnerProductNetworkLayer(nn.Module):
     #. `Yanru Qu et at, 2016. Product-based Neural Networks for User Response Prediction <https://arxiv.org/abs/1611.00144>`_.
     
     """
-    @jit_experimental
+    @no_jit_experimental_by_namedtensor
     def __init__(self, 
                  num_fields: int):
         r"""Initialize InnerProductNetworkLayer
@@ -45,12 +45,17 @@ class InnerProductNetworkLayer(nn.Module):
             emb_inputs (T), shape = (B, N, E), dtype = torch.float: Embedded features tensors.
         
         Returns:
-            T, shape = (B, 1, NC2), dtype = torch.float: Output of InnerProductNetworkLayer
+            T, shape = (B, NC2), dtype = torch.float: Output of InnerProductNetworkLayer
         """
         # calculate inner product between each field,
         # inner's shape = (B, NC2, E)
+        emb_inputs = emb_inputs.rename(None)
         inner = emb_inputs[:, self.rowidx] * emb_inputs[:, self.colidx]
+        inner.names = ("B", "N", "E")
 
         # sum by third dimension, outputs' shape = (B, NC2, 1)
-        outputs = torch.sum(inner, dim=2, keepdim=True)
+        ## outputs = torch.sum(inner, dim=2)
+        outputs = torch.sum(inner, dim="E")
+
+        outputs.names = ("B", "O")
         return outputs

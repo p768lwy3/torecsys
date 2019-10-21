@@ -1,4 +1,4 @@
-from torecsys.utils.decorator import jit_experimental
+from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 import torch
 import torch.nn as nn
 from typing import Callable, List
@@ -14,7 +14,7 @@ class CompressInteractionNetworkLayer(nn.Module):
     #. `Jianxun Lian et al, 2018. xDeepFM: Combining Explicit and Implicit Feature Interactions for Recommender Systems <https://arxiv.org/abs/1803.05170.pdf>`_.
 
     """
-    @jit_experimental
+    @no_jit_experimental_by_namedtensor
     def __init__(self, 
                  embed_size    : int,
                  num_fields    : int,
@@ -100,7 +100,7 @@ class CompressInteractionNetworkLayer(nn.Module):
             emb_inputs (T), shape = (B, N, E), dtype = torch.float: Embedded features tensors.
         
         Returns:
-            T, shape = (B, 1, O), dtype = torch.float: Output of CompressInteractionNetworkLayer.
+            T, shape = (B, O), dtype = torch.float: Output of CompressInteractionNetworkLayer.
         """
         # initialize lists to store tensors temporarily for outputs and next steps
         direct_list = list()

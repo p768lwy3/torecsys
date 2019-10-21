@@ -77,12 +77,13 @@ class AttentionalFactorizationMachineLayer(nn.Module):
         # calculate inner product between each field,
         # inner's shape = (B, NC2, E)
         ## inner = emb_inputs[:, self.rowidx] * emb_inputs[:, self.colidx]
-        inner = emb_inputs.rename(None)[:, self.rowidx] * emb_inputs.rename(None)[:, self.colidx]
+        emb_inputs = emb_inputs.rename(None)
+        inner = emb_inputs[:, self.rowidx] * emb_inputs[:, self.colidx]
         inner.names = ("B", "N", "E")
 
         # calculate attention scores by inner product,
         # scores' shape = (B, NC2, 1)
-        attn_scores = self.attention(inner)
+        attn_scores = self.attention(inner.rename(None))
         attn_scores.names = ("B", "N", "E")
         
         # apply attention scores on inner-product

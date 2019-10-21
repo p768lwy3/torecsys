@@ -1,4 +1,4 @@
-from torecsys.utils.decorator import jit_experimental
+from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 import torch
 import torch.nn as nn
 
@@ -12,7 +12,7 @@ class FactorizationMachineLayer(nn.Module):
     #. `Steffen Rendle, 2010. Factorization Machine <https://www.csie.ntu.edu.tw/~b97053/paper/Rendle2010FM.pdf>`_.
     
     """
-    @jit_experimental
+    @no_jit_experimental_by_namedtensor
     def __init__(self, 
                  dropout_p: float = 0.0):
         r"""Initialize FactorizationMachineLayer
@@ -55,6 +55,7 @@ class FactorizationMachineLayer(nn.Module):
 
         # .unsqueeze(1) to transform the shape into (B, 1, O) before return
         ## outputs.unsqueeze(1)
+        
         outputs.names = ("B", "O")
         return outputs
         
