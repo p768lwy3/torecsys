@@ -51,6 +51,7 @@ class MultiIndicesEmbedding(_Inputs):
 
         # create offsets to re-index inputs by adding them up
         self.offsets = torch.Tensor((0, *np.cumsum(field_sizes)[:-1])).long().unsqueeze(0)
+        self.offsets.names = ("B", "N")
         self.offsets.to(device)
 
         # bind length to embed_size * length of field_sizes (i.e. num_fields) if flatten is True
@@ -74,12 +75,20 @@ class MultiIndicesEmbedding(_Inputs):
         """
         # add offset to adjust values of inputs to fit the indices of embedding tensors
         inputs = inputs + self.offsets
-        outputs = self.embedding(inputs)
+        outputs = self.embedding(inputs.rename(None))
+
+        # since the name will be removed after embedding
+        # set the name again to use .size() below.
+        outputs.names = ("B", "N", "E") 
 
         # flatten to (B, 1, N * E) if flatten is True
         if self.flatten:
-            batch_size = outputs.size(0)
-            return outputs.view(batch_size, 1, -1)
+            batch_size = outputs.size("B")
+            outputs = outputs.flatten(["N", "E"], "E").rename(None).unsqueeze(1)
+            ## outputs = outputs.view(batch_size, 1, -1)
+        
         # else outputs' shape = (B, N, E)
-        else:
-            return outputs
+        # set names to the tensor
+        outputs.names = ("B", "N", "E")
+        return outputs
+        

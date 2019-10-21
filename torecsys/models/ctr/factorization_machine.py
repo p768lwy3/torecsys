@@ -30,7 +30,7 @@ class FactorizationMachineModel(_CtrModel):
         super(FactorizationMachineModel, self).__init__()
         
         # initialize bias variable
-        self.bias = nn.Parameter(torch.zeros(1))
+        self.bias = nn.Parameter(torch.zeros((1, 1), names=(None, "O")))
         nn.init.uniform_(self.bias.data)
         
         # initialize fm layer
@@ -48,10 +48,11 @@ class FactorizationMachineModel(_CtrModel):
         """
 
         # feat_inputs'shape = (B, N, 1) and reshape to (B, N)
-        fm_first = feat_inputs.sum(dim=1)
+        ## fm_first = feat_inputs.sum(dim=1)
+        fm_first = feat_inputs.sum(dim="N").rename(E="O")
 
         # pass to fm layer where its returns' shape = (B, E)
-        fm_second = self.fm(emb_inputs).sum(dim=2)
+        fm_second = self.fm(emb_inputs).sum(dim="O", keepdim=True)
             
         # sum bias, fm_first, fm_second and get fm outputs with shape = (B, 1)
         outputs = fm_second + fm_first + self.bias

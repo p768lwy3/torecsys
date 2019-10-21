@@ -69,6 +69,7 @@ class PretrainedImageInputs(_Inputs):
             T, shape = (B, 1, E): Output of PretrainedImageInputs.
         """
         # feed forward to pretrained module
-        outputs = self.model(inputs)
+        outputs = self.model(inputs.rename(None))
+        outputs.names = ("B", "N", "E")
         
         return outputs

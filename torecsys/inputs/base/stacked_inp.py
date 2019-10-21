@@ -68,6 +68,40 @@ class StackedInputs(_Inputs):
                     inputs.append(arguments)
 
         self.set_schema(inputs=list(set(inputs)))
+    
+    def __getitem__(self, idx: Union[int, slice, str]) -> Union[nn.Module, List[nn.Module]]:
+        """Get Embedding Layer by index of the schema.
+        
+        Args:
+            idx (Union[int, slice, str]): index to get embedding layer from the schema.
+        
+        Returns:
+            Union[nn.Module, List[nn.Module]]: Embedding layer(s) of the given index
+        """
+        if isinstance(idx, int):
+            emb_layers = self.inputs[idx]
+
+        elif isinstance(idx, slice):
+            emb_layers = []
+            
+            # parse the slice object into integers used in range()
+            start = idx.start if idx.start is not None else 0
+            stop = idx.stop if idx.stop is not None else len(self.schema)
+            step = idx.step if idx.step is not None else 1
+
+            for i in range(start, stop, step):
+                emb_layers.append(self.inputs[i])
+
+        elif isinstance(idx, str):
+            emb_layers = []
+            for inp in self.inputs:
+                if idx in inp.schema.inputs:
+                    emb_layers.append(i)
+        
+        else:
+            raise ValueError("getitem only accept int, slice, and str.")
+        
+        return emb_layers
 
     def forward(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
         r"""Foward calculation of StackedInputs
@@ -108,6 +142,10 @@ class StackedInputs(_Inputs):
             # check if output dimension is less than 3, then .unsqueeze(1)
             if output.dim() < 3:
                 output = output.unflatten("E", [("N", 1), ("E", output.size("E"))])
+            
+            # embed / transform tensors
+            embedded = embedding(*args)
+            ## embedded.names = ("B", "N", "E")
             
             # append tensor to outputs
             outputs.append(output)

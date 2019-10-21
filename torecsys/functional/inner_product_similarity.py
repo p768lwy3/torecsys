@@ -4,12 +4,11 @@ def inner_product_similarity(a: torch.Tensor, b: torch.Tensor, dim=1) -> torch.T
     r"""calculate inner-product of two vectors
     
     Args:
-        a (torch.Tensor): input vector
-        b (torch.Tensor): input vector
-        dim (int, optional): aggregation dimension. Defaults to 1.
+        a (T, shape = (B, N_{a}, E)), dtype = torch.float: the first batch of vector to be multiplied.
+        b (T, shape = (B, N_{b}, E)), dtype = torch.float: the second batch of vector to be multiplied.
     
     Returns:
-        torch.Tensor: inner product tensor, shape = :math:`(x_{0}, x_{1}, ..., x_{i-1}, x_{i+1}, ...) \text{, where i is the input dim.}` 
+        T, dtype = torch.float: inner product tensor.
     """
     outputs = (a * b).sum(dim=dim)
     return outputs

@@ -63,6 +63,40 @@ class ConcatInputs(_Inputs):
         # i.e. number of fields of inputs, or embedding size of embedding.
         self.length = sum([len(inp) for inp in self.inputs])
     
+    def __getitem__(self, idx: Union[int, slice, str]) -> Union[nn.Module, List[nn.Module]]:
+        """Get Embedding Layer by index of the schema.
+        
+        Args:
+            idx (Union[int, slice, str]): index to get embedding layer from the schema.
+        
+        Returns:
+            Union[nn.Module, List[nn.Module]]: Embedding layer(s) of the given index
+        """
+        if isinstance(idx, int):
+            emb_layers = self.schema[idx][0]
+
+        elif isinstance(idx, slice):
+            emb_layers = []
+            
+            # parse the slice object into integers used in range()
+            start = idx.start if idx.start is not None else 0
+            stop = idx.stop if idx.stop is not None else len(self.schema)
+            step = idx.step if idx.step is not None else 1
+
+            for i in range(start, stop, step):
+                emb_layers.append(self.schema[i][0])
+
+        elif isinstance(idx, str):
+            emb_layers = []
+            for i in self.schema:
+                if idx in i[1]:
+                    emb_layers.append(i[0])
+        
+        else:
+            raise ValueError("getitem only accept int, slice, and str.")
+        
+        return emb_layers
+    
     def forward(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
         r"""Foward calculation of ConcatInputs.
         
@@ -95,6 +129,10 @@ class ConcatInputs(_Inputs):
             if output.dim() < 3:
                 output = output.unflatten("E", [("N", 1), ("E", output.size("E"))])
             
+            # embed / transform tensors
+            embedded = embedding(*args)
+            ## embedded.names = ("B", "N", "E")
+
             # append tensor to outputs
             outputs.append(output)
 

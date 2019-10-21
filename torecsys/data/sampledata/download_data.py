@@ -3,9 +3,13 @@ import math
 import os
 from pathlib import Path
 import requests
-from tqdm.autonotebook import tqdm
+import warnings
 import zipfile
 
+# ignore import warnings of the below packages
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    from tqdm.autonotebook import tqdm
 
 def download_ml_data(size : str,
                      dir  : str = None):

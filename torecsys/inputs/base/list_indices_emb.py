@@ -17,7 +17,7 @@ class ListIndicesEmbedding(_Inputs):
                  embed_size    : int,
                  field_size    : int,
                  padding_idx   : int  = 0,
-                 use_attn      : bool = True,
+                 use_attn      : bool = False,
                  output_method : str  = "avg_pooling",
                  nn_embedding  : nn.Parameter = None,
                  **kwargs):
@@ -29,7 +29,7 @@ class ListIndicesEmbedding(_Inputs):
             padding_idx (int, optional): Padding index. 
                 Defaults to 0.
             use_attn (bool, optional): Whether multihead attention is used or not.  
-                Defaults to True.
+                Defaults to False.
             output_method (str, optional): Method of aggregation. 
                 Allow: ["avg_pooling", "max_pooling", "mean", "none", "sum"]. 
                 Defaults to "avg_pooling".
@@ -38,7 +38,7 @@ class ListIndicesEmbedding(_Inputs):
         
         Kwargs:
             num_heads (int): Number of heads for MultiheadAttention.
-                Required when use_attn is True.
+                Required when use_attn is True. Default to 1.
             dropout (float, optional): Probability of Dropout in MultiheadAttention. 
                 Default to 0.0.
             bias (bool, optional): Whether bias is added to multihead attention or not. 
@@ -80,11 +80,14 @@ class ListIndicesEmbedding(_Inputs):
         self.field_size = field_size
         self.length = self.embed_size
 
+        # bind use_attn to use_attn
+        self.use_attn = use_attn
+
         if self.use_attn:
             # parse arguments of multihead attention layer
             self.attn_args = dict(
                 embed_dim     = embed_size,
-                num_heads     = kwargs.get("num_heads"),
+                num_heads     = kwargs.get("num_heads", 1),
                 dropout       = kwargs.get("dropout", 0.0),
                 bias          = kwargs.get("bias", True),
                 add_bias_kv   = kwargs.get("add_bias_kv", False),
@@ -96,9 +99,6 @@ class ListIndicesEmbedding(_Inputs):
             # bind attention to a dummy function called dummy_attention 
             # which will return input key directly
             self.attention = dummy_attention
-        
-        # bind use_attn to use_attn
-        self.use_attn = use_attn
         
         # initialize aggregation layer for outputs and bind output_method to output_method
         if output_method == "avg_pooling":
@@ -127,28 +127,41 @@ class ListIndicesEmbedding(_Inputs):
         """
         # get embedding and output shape = (B, L, E) 
         # then, transpose them to (L, B, E)
-        outputs = self.embedding(inputs)
-        outputs = outputs.transpose(0, 1)
+        outputs = self.embedding(inputs.rename(None))
+        ## outputs = outputs.transpose(0, 1)
+        outputs.names = ("B", "L", "E")
+        outputs = outputs.align_to("L", "B", "E")
 
-        # compute self-attention, and outputs' shape = (B, L, E) 
+        # compute self-attention, and outputs' shape = (L, B, E) 
         # and attn_weights' shape = (B, L, L) if use_attn = True
         # then transpose back to (B, L, E)
-        outputs, attn_weights = self.attention(outputs, outputs, outputs)
-        outputs = outputs.transpose(0, 1)
+        outputs = outputs.rename(None)
+        outputs, _ = self.attention(outputs, outputs, outputs)
+        ## outputs = outputs.transpose(0, 1)
+        outputs.names = ("L", "B", "E")
+        outputs = outputs.align_to("B", "L", "E")
         
         # calculate aggregation of outputs
         if self.output_method == "avg_pooling" or self.output_method == "max_pooling":
             # transpose from (B, L, E) to (B, E, L)
-            outputs = outputs.transpose(1, 2)
+            ## outputs = outputs.transpose(1, 2)
+            outputs = outputs.align_to("B", "E", "L")
+
             # shape of outputs = (B, E, 1)
-            outputs = self.aggregation(outputs)
+            outputs = self.aggregation(outputs.rename(None))
+
             # transpose from (B, E, 1) to (B, 1, E)
-            outputs = outputs.transpose(1, 2)
+            ## outputs = outputs.transpose(1, 2)
+            outputs.names = ("B", "E", "N")
+            outputs = outputs.align_to("B", "N", "E")
+
         else:
             # outputs' shape = (B, 1, E) if output_method == "mean" or "sum"
             # else outputs' shape = (B, L, E) if output_method == "none"
-            outputs = self.aggregation(outputs)
-        return outputs, attn_weights
+            outputs = self.aggregation(outputs.rename(None))
+            outputs.names = ("B", "N", "E")
+
+        return outputs
 
     @no_jit_experimental
     def show_attention(self, 
@@ -168,23 +181,26 @@ class ListIndicesEmbedding(_Inputs):
         # only can be called when use_attn is True
         if self.use_attn:
             # check whether batch size is equal to 1 or not.
-            if inputs.size(0) != 1:
+            if inputs.size("B") != 1:
                 raise ValueError("batch size must be equal to 1.")
             
             # set torch to no_grad for inference
             with torch.no_grad():
                 # get embedding vectors and transpose from (1, L, E) to (L, 1, E)
-                outputs = self.embedding(inputs)
-                outputs = outputs.transpose(0, 1)
+                outputs = self.embedding(inputs.rename(None))
+                ## outputs = outputs.transpose(0, 1)
+                outputs.names = ("B", "L", "E")
+                outputs = outputs.align_to("L", "B", "E")
                 
                 # calcualte self-attentions and attn_weights' shape = (1, L, L)
+                outputs = outputs.rename(None)
                 _, attn_weights = self.attention(outputs, outputs, outputs)
             
             # flatten the attentions by removing 1st dimension
             attention = np.squeeze(attn_weights.numpy(), axis=0)
 
             # create a list of string of index from inputs to be the axis of plot
-            axis = [str(x) for x in inputs.squeeze().tolist()]
+            axis = [str(x) for x in inputs.rename(None).squeeze().tolist()]
 
             # show attentions with a heatmap plot
             show_attention(attention, xaxis=axis, yaxis=axis, savedir=savedir)

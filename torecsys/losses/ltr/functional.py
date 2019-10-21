@@ -55,25 +55,27 @@ def bayesian_personalized_ranking_loss(pout: torch.Tensor, nout: torch.Tensor) -
     loss = (1.0 - torch.sigmoid(pout - nout))
     return loss
 
-def hinge_loss(pout: torch.Tensor, nout: torch.Tensor) -> torch.Tensor:
+def hinge_loss(pout: torch.Tensor, nout: torch.Tensor, margin: float = 1.0) -> torch.Tensor:
     r"""Calculation of Hinge Loss.
     
     Args:
         pout (T), shape = (B, 1): Predicted scores of positive samples.
         nout (T), shape = (B, Nneg): Predicted scores of negative samples.
+        margin (float): margin parameter in hinge loss.
     
     Returns:
         T, shape = (B, Nneg), dtype = torch.float: Output of hinge_loss.
     """
-    loss = torch.clamp(1.0 - pout + nout, min=0.0)
+    loss = torch.clamp(margin - pout + nout, min=0.0)
     return loss
 
-def adaptive_hinge_loss(pout: torch.Tensor, nout: torch.Tensor) -> torch.Tensor:
+def adaptive_hinge_loss(pout: torch.Tensor, nout: torch.Tensor, margin: float = 1.0) -> torch.Tensor:
     r"""Calculation of Adaptive Hinge Loss.
     
     Args:
         pout (T), shape = (B, 1): Predicted scores of positive samples.
         nout (T), shape = (B, Nneg): Predicted scores of negative samples.
+        margin (float): margin parameter in hinge loss.
     
     Returns:
         T, shape = (B, 1), dtype = torch.float: Output of adaptive_hinge_loss.
@@ -84,7 +86,7 @@ def adaptive_hinge_loss(pout: torch.Tensor, nout: torch.Tensor) -> torch.Tensor:
 
     """
     highest_nout, _ = torch.max(nout, 0)
-    return hinge_loss(pout, highest_nout.unsqueeze(-1))
+    return hinge_loss(pout, highest_nout.unsqueeze(-1), margin)
 
 
 # parser of ranking loss

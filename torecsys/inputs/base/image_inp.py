@@ -98,11 +98,16 @@ class ImageInputs(_Inputs):
             T, shape = (B, 1, E): Output of ImageInputs.
         """
         # feed forward to sequential of CNN,
-        # output's shape of convolution model = (B, H_{last}, 1, 1)
-        outputs = self.model(inputs)
+        # output's shape of convolution model = (B, C_{last}, 1, 1)
+        outputs = self.model(inputs.rename(None))
+        outputs.names = ("B", "C", "H", "W")
         
         # fully-connect layer to transform outputs,
         # output's shape of fully-connect layers = (B, E)
-        outputs = self.fc(outputs.squeeze())
+        outputs = self.fc(outputs.rename(None).squeeze())
+        
+        # unsqueeze the outputs in dim = 1 and set names to the tensor,
+        outputs = outputs.unsqueeze(1)
+        outputs.names = ("B", "N", "E")
 
-        return outputs.unsqueeze(1)
+        return outputs
