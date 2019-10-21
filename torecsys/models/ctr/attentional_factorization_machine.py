@@ -1,8 +1,8 @@
 from . import _CtrModel
-from torecsys.layers import AFMLayer
-from torecsys.utils.decorator import jit_experimental
 import torch
 import torch.nn as nn
+from torecsys.layers import AFMLayer
+from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 
 
 class AttentionalFactorizationMachineModel(_CtrModel):
@@ -15,7 +15,7 @@ class AttentionalFactorizationMachineModel(_CtrModel):
     #. `Jun Xiao et al, 2017. Attentional Factorization Machines: Learning the Weight of Feature Interactions via Attention Networks∗ <https://arxiv.org/abs/1708.04617>`_.
 
     """
-    @jit_experimental
+    @no_jit_experimental_by_namedtensor
     def __init__(self,
                  embed_size : int,
                  num_fields : int,
@@ -35,28 +35,28 @@ class AttentionalFactorizationMachineModel(_CtrModel):
         self.afm = AFMLayer(embed_size, num_fields, attn_size, dropout_p)
 
         # initialize bias parameter
-        self.bias = nn.Parameter(torch.zeros(1))
+        self.bias = nn.Parameter(torch.zeros(size=(1, 1), names=("B", "O")))
         nn.init.uniform_(self.bias.data)
         
     def forward(self, feat_inputs: torch.Tensor, emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""feed forward of AttentionalFactorizationMachineModel
         
         Args:
-            feat_inputs (T), shape = (B, N, 1), dtype = torch.float: linear terms of fields, which can be get from nn.Embedding(embed_size=1)
+            feat_inputs (T), shape = (B, 1, N), dtype = torch.float: linear terms of fields, which can be get from nn.Embedding(embed_size=1)
             emb_inputs (T), shape = (B, N, E), dtype = torch.float: second order terms of fields that will be passed into afm layer and can be get from nn.Embedding(embed_size=E)
         
         Returns:
             T, shape = (B, 1), dtype = torch.float: predicted values of afm model
         """
-        # first_order's shape = (B, N, 1)
-        # output's shape = (B, 1)
-        linear_out = feat_inputs.sum(dim=1)
+        # first_order's shape = (B, N) -> output's shape = (B, O = 1)
+        linear_out = feat_inputs.sum(dim="N")
+        linear_out.names = ("B", "O")
 
-        # second_order's shape = (B, N, E)
-        # output's shape = (B, 1, E)
-        # aggregate afm_out with dim = 2, and the output's shape = (B, 1)
+        # second_order's shape = (B, N, E) -> afm_out's shape = (B, E)
+        # aggregate afm_out by dim = "E" -> output's shape = (B, 1)
         afm_out, _ = self.afm(emb_inputs)
-        afm_out = afm_out.sum(dim=2)
+        afm_out = afm_out.sum(dim="E", keepdim=True)
+        afm_out.names = ("B", "O")
 
         # sum up bias, linear_out and afm_out to output
         outputs = self.bias + linear_out + afm_out

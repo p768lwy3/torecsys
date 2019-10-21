@@ -10,6 +10,6 @@ class _Loss(nn.Module):
         # refer to parent class
         super(_Loss, self).__init__()
 
-from .ctr import *
-from .emb import *
-from .ltr import * 
+import torecsys.losses.ctr
+import torecsys.losses.emb
+import torecsys.losses.ltr

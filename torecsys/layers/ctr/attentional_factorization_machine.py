@@ -1,6 +1,6 @@
-from torecsys.utils.decorator import jit_experimental
 import torch
 import torch.nn as nn
+from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 from typing import Tuple
 
 
@@ -14,7 +14,7 @@ class AttentionalFactorizationMachineLayer(nn.Module):
     #. `Jun Xiao et al, 2017. Attentional Factorization Machines: Learning the Weight of Feature Interactions via Attention Networks∗ <https://arxiv.org/abs/1708.04617>`_.
 
     """
-    @jit_experimental
+    @no_jit_experimental_by_namedtensor
     def __init__(self, 
                  embed_size: int,
                  num_fields: int,
@@ -43,11 +43,11 @@ class AttentionalFactorizationMachineLayer(nn.Module):
         self.attention = nn.Sequential()
 
         # add modules to sequential of Attention
-        self.attention.add_module("linear1", nn.Linear(embed_size, attn_size))
-        self.attention.add_module("activation1", nn.ReLU())
+        self.attention.add_module("linear", nn.Linear(embed_size, attn_size))
+        self.attention.add_module("activation", nn.ReLU())
         self.attention.add_module("out_proj", nn.Linear(attn_size, 1))
-        self.attention.add_module("softmax1", nn.Softmax(dim=1))
-        self.attention.add_module("dropout1", nn.Dropout(dropout_p))
+        self.attention.add_module("softmax", nn.Softmax(dim=1))
+        self.attention.add_module("dropout", nn.Dropout(dropout_p))
 
         # create rowidx and colidx to index inputs for inner product
         self.rowidx = list()
@@ -72,7 +72,7 @@ class AttentionalFactorizationMachineLayer(nn.Module):
             emb_inputs (T), shape = (B, N, E), dtype = torch.float: Embedded features tensors.
         
         Returns:
-            Tuple[T], shape = ((B, 1, E) (B, NC2, 1)), dtype = torch.float: Output of AttentionalFactorizationMachineLayer and Attention weights.
+            Tuple[T], shape = ((B, E) (B, NC2, 1)), dtype = torch.float: Output of AttentionalFactorizationMachineLayer and Attention weights.
         """
         # calculate inner product between each field,
         # inner's shape = (B, NC2, E)
@@ -88,7 +88,7 @@ class AttentionalFactorizationMachineLayer(nn.Module):
         
         # apply attention scores on inner-product
         ## outputs = torch.sum(attn_scores * inner, dim=1)
-        outputs = (attn_scores * inner).sum(dim="N", keepdim=True)
+        outputs = (attn_scores * inner).sum(dim="N")
 
         # apply dropout before return
         outputs = self.dropout(outputs)

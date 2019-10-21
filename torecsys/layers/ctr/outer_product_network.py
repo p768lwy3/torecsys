@@ -1,6 +1,6 @@
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 import torch
 import torch.nn as nn
+from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 
 
 class OuterProductNetworkLayer(nn.Module):
@@ -64,7 +64,12 @@ class OuterProductNetworkLayer(nn.Module):
         # bind kernel_type to kernel_type
         self.kernel_type = kernel_type
     
-    def extra_repr(self):
+    def extra_repr(self) -> str:
+        """Return information in print-statement of layer.
+        
+        Returns:
+            str: Information of print-statement of layer.
+        """
         return 'kernel_type={}'.format(
             self.kernel_type
         )

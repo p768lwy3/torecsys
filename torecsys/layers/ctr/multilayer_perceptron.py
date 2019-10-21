@@ -1,6 +1,6 @@
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 import torch
 import torch.nn as nn
+from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 from typing import Callable, List
 
 

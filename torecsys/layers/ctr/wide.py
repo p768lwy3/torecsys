@@ -1,6 +1,7 @@
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 import torch
 import torch.nn as nn
+from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
+
 
 class WideLayer(nn.Module):
     r"""Layer class of wide layer, which is a stack of linear and dropout, used in calculation 

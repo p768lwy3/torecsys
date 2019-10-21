@@ -1,6 +1,6 @@
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 import torch
 import torch.nn as nn
+from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 
 class CrossNetworkLayer(nn.Module):
     r"""Layer class of Cross Network used in Deep & Cross Network :title:`Ruoxi Wang et al, 2017`[1], 
