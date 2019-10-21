@@ -1,6 +1,6 @@
 from . import _Inputs
 from torecsys.functional import show_attention, dummy_attention
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
+from torecsys.utils.decorator import jit_experimental, no_jit_experimental, no_jit_experimental_by_namedtensor
 from functools import partial
 import numpy as np
 import torch
@@ -106,11 +106,11 @@ class ListIndicesEmbedding(_Inputs):
         elif output_method == "max_pooling":
             self.aggregation = nn.AdaptiveMaxPool1d(1)
         elif output_method == "mean":
-            self.aggregation = partial(torch.mean, dim=1, keepdim=True)
+            self.aggregation = partial(torch.mean, dim="N", keepdim=True)
         elif output_method == "none":
             self.aggregation = torch.Tensor
         elif output_method == "sum":
-            self.aggregation = partial(torch.sum, dim=1, keepdim=True)
+            self.aggregation = partial(torch.sum, dim="N", keepdim=True)
         else:
             raise ValueError('output_method only allows ["avg_pooling", "max_pooling", "mean", "none", "sum"].')
         self.output_method = output_method

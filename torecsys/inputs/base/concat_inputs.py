@@ -5,8 +5,9 @@ from typing import Dict, List
 
 
 class ConcatInputs(_Inputs):
-    r"""Base Inputs class for concatenation of list of Base Inputs class in rowwise. The shape of output 
-    is :math:`(B, 1, E_{1} + ... + E_{k})`, where :math:`E_{i}` is embedding size of :math:`i-th` field. 
+    r"""Base Inputs class for concatenation of list of Base Inputs class in rowwise. 
+    The shape of output is :math:`(B, 1, E_{1} + ... + E_{k})`, where :math:`E_{i}` 
+    is embedding size of :math:`i-th` field. 
     """
     @no_jit_experimental_by_namedtensor
     def __init__(self, inputs: List[_Inputs]):
@@ -66,30 +67,26 @@ class ConcatInputs(_Inputs):
         r"""Foward calculation of ConcatInputs.
         
         Args:
-            inputs (Dict[str, T]): Dictionary of inputs, where key is name of input fields, and value is 
-                tensor pass to Input class. Remark: key should exist in schema.
+            inputs (Dict[str, T]): Dictionary of inputs, where key is name of input fields, 
+                and value is tensor pass to Input class.
         
         Returns:
-            T, shape = (B, 1, E_{sum}), dtype = torch.float: Output of ConcatInputs, where the values are
-                concatenated in the third dimension.
+            T, shape = (B, 1, E_{sum}), dtype = torch.float: Output of ConcatInputs, where 
+                the values are concatenated in the third dimension.
         """
         # initialize list to store tensors temporarily 
         outputs = list()
 
         # loop through inputs 
         for inp in self.inputs:
-            # get schema, i.e. input's field names, from input in list
-            inp_names = inp.schema.inputs
-            
             # convert list of inputs to tensor, with shape = (B, N, *)
-            inp_val = [inputs[i] for i in inp_names]
-            inp_val = torch.cat(inp_val, dim=1)
+            inp_val = [inputs[i] for i in inp.schema.inputs]
+            inp_val = torch.cat(inp_val, dim="N")
             inp_args = [inp_val]
             
             # set args for specific input
             if inp.__class__.__name__ == "SequenceIndexEmbedding":
-                inp_names = inp.schema.lengths
-                inp_args.append(inputs[inp_names])
+                inp_args.append(inputs[inp.schema.lengths])
             
             # calculate embedding values
             output = inp(*inp_args)
@@ -102,7 +99,7 @@ class ConcatInputs(_Inputs):
             outputs.append(output)
 
         # concat in the third dimension, and the shape of output = (B, 1, sum(E))
-        outputs = torch.cat(outputs, dim=2)
+        outputs = torch.cat(outputs, dim="E")
         
         return outputs
         

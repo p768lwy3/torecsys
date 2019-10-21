@@ -1,6 +1,7 @@
 from . import _Inputs
 import torch
 
+
 class AudioInputs(_Inputs):
     r"""Base Inputs class for Audio.
     """

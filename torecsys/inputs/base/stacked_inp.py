@@ -85,28 +85,22 @@ class StackedInputs(_Inputs):
 
         # loop through inputs 
         for inp in self.inputs:
-            # get schema, i.e. input's field names, from input in list
-            inp_names = inp.schema.inputs
-
             # create inputs in different format if the inputs class is ConcatInputs
             if inp.__class__.__name__ == "ConcatInputs":
                 # create dictionary of concat inputs
-                inp_dict = { i : inputs[i] for i in inp_names }
+                inp_dict = { i : inputs[i] for i in inp.schema.inputs }
 
                 # create list variable to be passed 
                 inp_args = [inp_dict]
-
-            # else, use the same approch for other inputs class
             else:
                 # convert list of inputs to tensor, with shape = (B, N, *)
-                inp_val = [inputs[i] for i in inp_names]
-                inp_val = torch.cat(inp_val, dim=1)
+                inp_val = [inputs[i] for i in inp.schema.inputs]
+                inp_val = torch.cat(inp_val, dim="N")
                 inp_args = [inp_val]
 
                 # set args for specific input
                 if inp.__class__.__name__ == "SequenceIndexEmbedding":
-                    inp_names = inp.schema.lengths
-                    inp_args.append(inputs[inp_names])
+                    inp_args.append(inputs[inp.schema.lengths])
             
             # calculate embedding values
             output = inp(*inp_args)
@@ -119,6 +113,6 @@ class StackedInputs(_Inputs):
             outputs.append(output)
 
         # stack in the second dimension, and the shape of output = (B, sum(N), E)
-        outputs = torch.cat(outputs, dim=1)
+        outputs = torch.cat(outputs, dim="N")
 
         return outputs
