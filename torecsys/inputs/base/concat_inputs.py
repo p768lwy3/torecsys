@@ -1,6 +1,6 @@
 from . import _Inputs
-from torecsys.utils.decorator import jit_experimental
 import torch
+from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 from typing import Dict, List
 
 
@@ -8,39 +8,59 @@ class ConcatInputs(_Inputs):
     r"""Base Inputs class for concatenation of list of Base Inputs class in rowwise. The shape of output 
     is :math:`(B, 1, E_{1} + ... + E_{k})`, where :math:`E_{i}` is embedding size of :math:`i-th` field. 
     """
-    @jit_experimental
-    def __init__(self, schema: List[tuple]):
+    @no_jit_experimental_by_namedtensor
+    def __init__(self, inputs: List[_Inputs]):
         r"""Initialize ConcatInputs.
         
         Args:
-            schema (List[tuple]): Schema of ConcatInputs. List of Tuple of Inputs class (i.e. class in 
-                trs.inputs.base) and list of string of input fields. e.g. 
+            inputs (List[_Inputs]): List of input's layers (trs.inputs.base._Inputs), 
+                i.e. class of trs.inputs.base. e.g. 
                 
                 .. code-block:: python
+                    import torecsys as trs
 
-                    schema = [
-                        (trs.inputs.base.SingleIndexEmbedding(4, 10), ["userId"]),
-                        (trs.inputs.base.SingleIndexEmbedding(4, 10), ["movieId"])
-                    ]
+                    # initialize embedding layers used in ConcatInputs
+                    single_index_emb_0 = trs.inputs.base.SingleIndexEmbedding(2, 8)
+                    single_index_emb_1 = trs.inputs.base.SingleIndexEmbedding(2, 8)
+
+                    # set schema, including field names etc
+                    single_index_emb_0.set_schema(["userId"])
+                    single_index_emb_1.set_schema(["movieId"])
+
+                    # create ConcatInputs embedding layer
+                    inputs = [single_index_emb_0, single_index_emb_1]
+                    concat_emb = trs.inputs.base.ConcatInputs(inputs=inputs)
         
         Attributes:
-            schema (List[tuple]): Schema of ConcatInputs.
-            length (int): Sum of length of inputs (i.e. number of fields of inputs, or embedding size of 
-                embedding) in schema.
+            inputs (List[_Inputs]): List of input's layers.
+            length (int): Sum of length of input's layers, 
+                i.e. number of fields of inputs, or embedding size of embedding.
         """
         # refer to parent class
         super(ConcatInputs, self).__init__()
 
-        # bind schema to schema
-        self.schema = schema
+        # bind inputs to inputs
+        self.inputs = inputs
 
-        # add modules in schema to the Module
-        for i, tup in enumerate(schema):
-            self.add_module("embedding_%d" % i, tup[0])
+        # add schemas and modules from inputs to this module
+        inputs = []
+        for idx, inp in enumerate(self.inputs):
+            # add module 
+            self.add_module("input_%d" % idx, inp)
 
-        # bind length to sum of lengths of inputs (i.e. number of fields of inputs, or embedding 
-        # size of embedding) 
-        self.length = sum([len(tup[0]) for tup in self.schema])
+            # append fields name to the list `inputs`
+            schema = inp.schema
+            for arguments in schema:
+                if isinstance(arguments, list):
+                    inputs.extend(arguments)
+                elif isinstance(arguments, str):
+                    inputs.append(arguments)
+        
+        self.set_schema(inputs=list(set(inputs)))
+
+        # bind length to sum of lengths of inputs,
+        # i.e. number of fields of inputs, or embedding size of embedding.
+        self.length = sum([len(inp) for inp in self.inputs])
     
     def forward(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
         r"""Foward calculation of ConcatInputs.
@@ -56,24 +76,30 @@ class ConcatInputs(_Inputs):
         # initialize list to store tensors temporarily 
         outputs = list()
 
-        # loop through schema 
-        for args_tuple in self.schema:
-            # get basic args from tuple in schema
-            embedding = args_tuple[0]
-            inp_names = args_tuple[1]
+        # loop through inputs 
+        for inp in self.inputs:
+            # get schema, i.e. input's field names, from input in list
+            inp_names = inp.schema.inputs
             
             # convert list of inputs to tensor, with shape = (B, N, *)
             inp_val = [inputs[i] for i in inp_names]
             inp_val = torch.cat(inp_val, dim=1)
-            args = [inp_val]
+            inp_args = [inp_val]
             
             # set args for specific input
-            if embedding.__class__.__name__ == "SequenceIndexEmbedding":
-                arg_name = args_tuple[2][0]
-                args.append(inputs[arg_name])
+            if inp.__class__.__name__ == "SequenceIndexEmbedding":
+                inp_names = inp.schema.lengths
+                inp_args.append(inputs[inp_names])
+            
+            # calculate embedding values
+            output = inp(*inp_args)
+
+            # check if output dimension is less than 3, then .unsqueeze(1)
+            if output.dim() < 3:
+                output = output.unflatten("E", [("N", 1), ("E", output.size("E"))])
             
             # append tensor to outputs
-            outputs.append(embedding(*args))
+            outputs.append(output)
 
         # concat in the third dimension, and the shape of output = (B, 1, sum(E))
         outputs = torch.cat(outputs, dim=2)

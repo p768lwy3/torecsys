@@ -3,6 +3,7 @@ r"""torecsys.inputs.base is a sub-module of base inputs class.
 
 from collections import namedtuple
 import torch.nn as nn
+from typing import List, Union
 
 
 class _Inputs(nn.Module):
@@ -20,11 +21,21 @@ class _Inputs(nn.Module):
         """
         return self.length
     
-    def get_schema(self) -> namedtuple:
-        return self.schema
-    
-    def set_schema(self, *args):
-        raise NotImplementedError("set_schema cannot be called in the base class.")
+    def set_schema(self, inputs: Union[str, List[str]]):
+        r"""Initialize input layer's schema.
+        
+        Args:
+            inputs (Union[str, List[str]]): String or list of strings of inputs' field names.
+        """
+        # convert string to list of string
+        if isinstance(inputs, str):
+            inputs = [inputs]
+        
+        # create a namedtuple of schema
+        schema = namedtuple("Schema", ["inputs"])
+
+        # initialize self.schema with the namedtuple
+        self.schema = schema(inputs=inputs)
 
 
 # from .audio_inp import AudioInputs

@@ -1,15 +1,16 @@
 from . import _Inputs
-from torecsys.utils.decorator import jit_experimental
+from collections import namedtuple
 from functools import partial
 import torch
 import torch.nn as nn
+from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 
 
 class SequenceIndicesEmbedding(_Inputs):
     r"""Base Inputs class for embedding of sequence of indices with order, which embed the 
     sequence by Recurrent Neural Network (RNN) and aggregate before return.
     """
-    @jit_experimental
+    @no_jit_experimental_by_namedtensor
     def __init__(self,
                  embed_size   : int,
                  field_size   : int,
@@ -111,6 +112,16 @@ class SequenceIndicesEmbedding(_Inputs):
         else:
             raise ValueError('output_method only allows ["avg_pooling", "max_pooling", "mean", "none", "sum"].')
         self.output_method = output_method
+
+    def set_schema(self, inputs: str, lengths: str):
+        r"""Initialize input layer's schema of SequenceIndicesEmbedding.
+        
+        Args:
+            inputs (str): String of input's field name.
+            lengths (str): String of length's field name.
+        """
+        schema = namedtuple("Schema", ["inputs", "lengths"])
+        self.schema = schema(inputs=[inputs], lengths=lengths)
 
     def forward(self, inputs: torch.Tensor, lengths: torch.Tensor) -> torch.Tensor:
         r"""Forward calculation of SequenceIndicesEmbedding

@@ -1,6 +1,7 @@
 from . import _Inputs
 import torch
 
+
 class ImagesListInputs(_Inputs):
     r"""Base Inputs class for list of images
     """

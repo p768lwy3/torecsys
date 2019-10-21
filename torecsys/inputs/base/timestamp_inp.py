@@ -1,6 +1,7 @@
 from . import _Inputs
 import torch
 
+
 class TimestampInputs(_Inputs):
     r"""Base Inputs class for Timestamp.
     """

@@ -2,7 +2,7 @@ from . import _Inputs
 from collections import namedtuple
 import torch
 from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
-from typing import List
+
 
 class ValueInputs(_Inputs):
     r"""Base Inputs class for value to be passed directly.
@@ -13,7 +13,7 @@ class ValueInputs(_Inputs):
 
     """
     @no_jit_experimental_by_namedtensor
-    def __init__(self, inp_fields: List[str]):
+    def __init__(self, num_fields: int):
         r"""Initialize ValueInputs
         
         Args:
@@ -25,15 +25,8 @@ class ValueInputs(_Inputs):
         # refer to parent class
         super(ValueInputs, self).__init__()
 
-        # initialize schema
-        self.set_schema(inp_fields)
-
         # bind length to length of inp_fields 
-        self.length = len(inp_fields)
-    
-    def set_schema(self, inputs: List[str]):
-        schema = namedtuple("Schema", ["inputs"])
-        self.schema = schema(inputs=inputs)
+        self.length = num_fields
     
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         r"""Forward calculation of ValueInputs.

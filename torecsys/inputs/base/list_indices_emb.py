@@ -1,6 +1,6 @@
 from . import _Inputs
 from torecsys.functional import show_attention, dummy_attention
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental
+from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 from functools import partial
 import numpy as np
 import torch
@@ -12,7 +12,7 @@ class ListIndicesEmbedding(_Inputs):
     r"""Base Inputs class for embedding of list of indices without order, which embed the 
     list by multihead attention and aggregate before return.
     """
-    @jit_experimental
+    @no_jit_experimental_by_namedtensor
     def __init__(self,
                  embed_size    : int,
                  field_size    : int,

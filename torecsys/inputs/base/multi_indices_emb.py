@@ -1,5 +1,5 @@
 from . import _Inputs
-from torecsys.utils.decorator import jit_experimental
+from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 import numpy as np
 import torch
 import torch.nn as nn
@@ -10,7 +10,7 @@ class MultiIndicesEmbedding(_Inputs):
     r"""Base Inputs class for embedding indices in multi fields of inputs, which is more 
     efficent than embedding with a number of SingleIndexEmbedding.
     """
-    @jit_experimental
+    @no_jit_experimental_by_namedtensor
     def __init__(self, 
                  embed_size   : int,
                  field_sizes  : List[int],

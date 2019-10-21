@@ -1,5 +1,5 @@
 from . import _Inputs
-from torecsys.utils.decorator import jit_experimental
+from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 import torch
 import torch.nn as nn
 from typing import List
@@ -9,7 +9,7 @@ class ImageInputs(_Inputs):
     r"""Base Inputs class for image, which embed image by a stack of convalution neural network (CNN) 
     and fully-connect layer.
     """
-    @jit_experimental
+    @no_jit_experimental_by_namedtensor
     def __init__(self,
                  embed_size    : int,
                  in_channels   : int,

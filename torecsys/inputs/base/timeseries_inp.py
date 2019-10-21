@@ -1,6 +1,7 @@
 from . import _Inputs
 import torch
 
+
 class TimeseriesInputs(_Inputs):
     r"""Base Inputs class for Time Series.
     """

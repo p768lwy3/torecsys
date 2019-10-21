@@ -1,5 +1,5 @@
 from . import _Inputs
-from torecsys.utils.decorator import jit_experimental
+from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 import torch
 import torch.nn as nn
 import torchvision
@@ -9,7 +9,7 @@ class PretrainedImageInputs(_Inputs):
     r"""Base Inputs class for image, which embed by famous pretrained model in Computer 
     Vision.
     """
-    @jit_experimental
+    @no_jit_experimental_by_namedtensor
     def __init__(self,
                  embed_size : int,
                  model_name : str,

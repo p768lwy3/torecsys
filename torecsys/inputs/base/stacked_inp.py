@@ -1,5 +1,6 @@
 from . import _Inputs
 import torch
+from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 from typing import Dict, List
 
 
@@ -7,22 +8,31 @@ class StackedInputs(_Inputs):
     r"""Base Inputs class for stacking of list of Base Inputs class in columnwise. The shape of output 
     is :math:`(B, N_{1} + ... + N_{k}, E)` where :math:`N_{i}` is number of fields of inputs class i.
     """
-    def __init__(self, schema: List[tuple]):
+    @no_jit_experimental_by_namedtensor
+    def __init__(self, inputs: List[_Inputs]):
         r"""Initialize StackedInputs
         
         Args:
-            schema (List[tuple]): Schema of StackedInputs. List of Tuple of Inputs class (i.e. class in \
-                trs.inputs.base) and list of string of input fields. e.g. 
+            inputs (List[_Inputs]): List of input's layers (trs.inputs.base._Inputs), 
+                i.e. class of trs.inputs.base. e.g. 
                 
                 .. code-block:: python
-                
-                    schema = [
-                        (trs.inputs.base.SingleIndexEmbedding(4, 10), ["userId"]),
-                        (trs.inputs.base.SingleIndexEmbedding(4, 10), ["movieId"])
-                    ]
+                    import torecsys as trs
+
+                    # initialize embedding layers used in StackedInputs
+                    single_index_emb_0 = trs.inputs.base.SingleIndexEmbedding(2, 8)
+                    single_index_emb_1 = trs.inputs.base.SingleIndexEmbedding(2, 8)
+
+                    # set schema, including field names etc
+                    single_index_emb_0.set_schema(["userId"])
+                    single_index_emb_1.set_schema(["movieId"])
+
+                    # create StackedInputs embedding layer
+                    inputs = [single_index_emb_0, single_index_emb_1]
+                    stacked_emb = trs.inputs.base.StackedInputs(inputs=inputs)
         
         Attributes:
-            schema (List[tuple]): Schema of ConcatInputs.
+            inputs (List[_Inputs]): List of input's layers.
             length (int): Size of embedding tensor.
         
         Raise:
@@ -31,19 +41,33 @@ class StackedInputs(_Inputs):
         # refer to parent class
         super(StackedInputs, self).__init__()
         
-        # bind length to length of the first inputs class in schema
-        self.length = len(schema[0][0])
+        # bind length to length of the first input's class in inputs,
+        # i.e. number of fields of inputs, or embedding size of embedding.
+        self.length = len(inputs[0])
 
         # check whether lengths of inputs are equal
-        if not all(len(tup[0]) == self.length for tup in schema):
-            raise ValueError("all inputs lenght (i.e. embed_size) must be same.")
+        if not all(len(inp) == self.length for inp in inputs):
+            raise ValueError("Lengths of inputs, " + 
+                "i.e. number of fields or embeding size, must be equal.")
 
-        # bind schema to schema
-        self.schema = schema
+        # bind inputs to inputs
+        self.inputs = inputs
 
-        # add modules in schema to the Module
-        for i, tup in enumerate(schema):
-            self.add_module("embedding_%d" % i, tup[0])
+        # add modules from inputs to this module
+        inputs = []
+        for idx, inp in enumerate(self.inputs):
+            # add module
+            self.add_module("Input_%d" % idx, inp)
+
+            # append fields name to the list `inputs`
+            schema = inp.schema
+            for arguments in schema:
+                if isinstance(arguments, list):
+                    inputs.extend(arguments)
+                elif isinstance(arguments, str):
+                    inputs.append(arguments)
+
+        self.set_schema(inputs=list(set(inputs)))
 
     def forward(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
         r"""Foward calculation of StackedInputs
@@ -59,34 +83,40 @@ class StackedInputs(_Inputs):
         # initialize list to store tensors temporarily 
         outputs = list()
 
-        # loop through schema 
-        for args_tuple in self.schema:
-            # get basic args from tuple in schema
-            embedding = args_tuple[0]
-            inp_names = args_tuple[1]
+        # loop through inputs 
+        for inp in self.inputs:
+            # get schema, i.e. input's field names, from input in list
+            inp_names = inp.schema.inputs
 
             # create inputs in different format if the inputs class is ConcatInputs
-            if embedding.__class__.__name__ == "ConcatInputs":
+            if inp.__class__.__name__ == "ConcatInputs":
                 # create dictionary of concat inputs
-                args_dict = { i : inputs[i] for i in inp_names }
+                inp_dict = { i : inputs[i] for i in inp_names }
 
                 # create list variable to be passed 
-                args = [args_dict]
+                inp_args = [inp_dict]
 
             # else, use the same approch for other inputs class
             else:
                 # convert list of inputs to tensor, with shape = (B, N, *)
                 inp_val = [inputs[i] for i in inp_names]
                 inp_val = torch.cat(inp_val, dim=1)
-                args = [inp_val]
+                inp_args = [inp_val]
 
                 # set args for specific input
-                if embedding.__class__.__name__ == "SequenceIndexEmbedding":
-                    arg_name = args_tuple[2][0]
-                    args.append(inputs[arg_name])
+                if inp.__class__.__name__ == "SequenceIndexEmbedding":
+                    inp_names = inp.schema.lengths
+                    inp_args.append(inputs[inp_names])
+            
+            # calculate embedding values
+            output = inp(*inp_args)
+
+            # check if output dimension is less than 3, then .unsqueeze(1)
+            if output.dim() < 3:
+                output = output.unflatten("E", [("N", 1), ("E", output.size("E"))])
             
             # append tensor to outputs
-            outputs.append(embedding(*args))
+            outputs.append(output)
 
         # stack in the second dimension, and the shape of output = (B, sum(N), E)
         outputs = torch.cat(outputs, dim=1)
