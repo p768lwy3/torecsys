@@ -8,13 +8,16 @@ from typing import Callable, List
 
 
 class DeepFieldAwareFactorizationMachineModel(_CtrModel):
-    r"""DeepFieldAwareFactorizationMachineModel is a model of Deep Field-aware Factorization 
-    Machine (DeepFFM) proposed by Yang et al in Tencent Social Ads competition 2017 (they called
-    this model Network on Field-aware Factorization Machine - NFFM), and described and rename to
-    Deep Field-aware Factorization Machine by Zhang et al in their research (Zhang et al, 2019). 
+    r"""Model class of Deep Field-aware Factorization Machine (Deep FFM).
+    
+    Deep Field-aware Factorization Machine was proposed by Yang et al in Tencent 
+    Social Ads competition 2017 (this was called as Network on Field-aware Factorization 
+    Machine (NFFM), and was described and renamed to Deep Field-aware Factorization Machine 
+    in the research (Zhang et al, 2019). 
+    
     The model is a stack of Field Aware Factorization Machine and Deep Neural Network, 
 
-    #. First, calculate the interactions of features of second-order features (i.e. embedding \
+    #. First, calculate the interactions of features of second-order features (i.e. embedding 
     matrices in FFM) by inner-product or hadamard product, Hence, let :math:`A` be the feature
     interaction vectors, :math:`A` will be calculate in the following formula: 
     :math:`\text{Inner Product:} A = [v_{1, 2} \bigoplus v_{2, 1}, ..., v_{i, j} \bigoplus v_{j, i}, ..., v_{(n-1), n} \bigoplus v_{n, (n-1)}]
@@ -24,17 +27,9 @@ class DeepFieldAwareFactorizationMachineModel(_CtrModel):
     forward process is: :math:`\text{if i = 1,} x_{1} = \text{activation} ( W_{1} A + b_{1} )` 
     :math:`\text{otherwise,} x_{i} = \text{activation} ( W_{i} x_{i - 1} + b_{i})` 
 
-    #. Finally, concatenate the above part and the linear part :math:`x_{linear}, and pass forward to a linear 
-    output layer:
-    :math:`y(X) = W_{linear} x_{linear} + W_{second_order} x_{l} + b_{output}` .
-
-    FieldAwareNeuralFactorizationMachineModel is a model of Field-aware Neural
-    Factorization Machine, which is a stack of Field Aware Factorization Machine and 
-    Deep Neural Network, with the following calculation:
-    First, calculate bi-interaction of features by field aware factorization machine: 
-    :math:`y_{FFM} = \sum_{i=1}^{N} \sum_{j=i+1}^{N} x_{i} v_{i} \bigotimes  x_{j} v_{j}` .
-    Then feed the interactions' representation to deep neural network: :math:`y_{i} = \text{Activation} ( w_{i} y_{i - 1} + b_{i} )` , 
-    where :math:`y_{0} = y_{FM}` for the inputs of the first layer in deep neural network.
+    #. Finally, concatenate the above part and the linear part :math:`x_{linear}, and pass 
+    forward to a linear output layer:
+    :math:`y(X) = W_{linear} x_{linear} + W_{second_order} x_{l} + b_{output}`_.
 
     :Reference:
 
@@ -49,31 +44,36 @@ class DeepFieldAwareFactorizationMachineModel(_CtrModel):
                  num_fields       : int,
                  deep_output_size : int,
                  deep_layer_sizes : List[int],
+                 output_size      : int = 1,
                  ffm_dropout_p    : float = 0.0,
                  deep_dropout_p   : List[float] = None,
-                 deep_activation  : Callable[[torch.Tensor], torch.Tensor] = nn.ReLU(),
-                 output_size      : int = 1):
-        r"""initialize Deep Field-aware Factorization Machine Model
+                 deep_activation  : Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
+        r"""Initialize DeepFieldAwareFactorizationMachineModel
         
         Args:
-            embed_size (int): embedding size
-            num_fields (int): number of fields in inputs
-            deep_output_size (int): output size of deep neural network
-            deep_layer_sizes (List[int]): layer sizes of deep neural network
-            ffm_dropout_p (float, optional): dropout probability after ffm layer. Defaults to 0.0.
-            deep_dropout_p (List[float], optional): dropout probability after each deep neural network. Allow: [None, List[float]]. Defaults to None.
-            deep_activation (Callable[[T], T], optional): activation after each deep neural network. Allow: [None, Callable[[T], T]]. Defaults to nn.ReLU().
-            output_size (int, optional): output size of linear transformation after concatenate. Defaults to 1.
+            embed_size (int): Size of embedding tensor
+            num_fields (int): Number of inputs' fields
+            deep_output_size (int): Output size of dense network
+            deep_layer_sizes (List[int]): Layer sizes of dense network
+            output_size (int, optional): Output size of model, 
+                i.e. output size of the projection layer. 
+                Defaults to 1.
+            ffm_dropout_p (float, optional): Probability of Dropout in FFM. 
+                Defaults to 0.0.
+            deep_dropout_p (List[float], optional): Probability of Dropout in dense network. 
+                Defaults to None.
+            deep_activation (Callable[[T], T], optional): Activation function of dense network. 
+                Defaults to nn.ReLU().
         
         Attributes:
-            ffm (nn.Module): module of field-aware factorization machine layer
-            deep (nn.Module): module of dense layer
+            ffm (nn.Module): Module of field-aware factorization machine layer.
+            deep (nn.Module): Module of dense layer.
         """
-        # initialize nn.Module class
+        # refer to parent class
         super(DeepFieldAwareFactorizationMachineModel, self).__init__()
 
-        # ffm's input shape = (B, N * N, E)
-        # ffm's output shape = (B, NC2, E)
+        # initialize ffm layer with the input's shape = (B, N * N, E) 
+        # and output shape = (B, NC2, E)
         self.ffm = FFMLayer(
             num_fields = num_fields, 
             dropout_p  = ffm_dropout_p
@@ -83,8 +83,8 @@ class DeepFieldAwareFactorizationMachineModel(_CtrModel):
         inputs_size = combination(num_fields, 2)
         inputs_size *= embed_size
 
-        # deep's input shape = (B, NC2, E)
-        # deep's output shape = (B, 1, O)
+        # initialize dense layer with the input's shape = (B, NC2, E)
+        # and output shape = (B, O)
         self.deep = DNNLayer(
             inputs_size = inputs_size,
             output_size = deep_output_size, 
@@ -93,17 +93,15 @@ class DeepFieldAwareFactorizationMachineModel(_CtrModel):
             activation  = deep_activation
         )
 
-    
     def forward(self, field_emb_inputs: torch.Tensor) -> torch.Tensor:
-        r"""feed forward of Deep Field-aware Factorization Machine Model
+        r"""Forward calculation of DeepFieldAwareFactorizationMachineModel
 
         Args:
-            field_emb_inputs (T), shape = (B, N * N, E): field-aware second order outputs, :math:`x_{i, \text{field}_{j}}`
+            field_emb_inputs (T), shape = (B, N * N, E), dtype = torch.float: Field aware embedded features tensors.
         
         Returns:
-            torch.Tensor, shape = (B, 1), dtype = torch.float: outputs of Deep Field-aware Factorization Machine Model
+            T, shape = (B, O), dtype = torch.float: Output of DeepFieldAwareFactorizationMachineModel.
         """
-
         # feat_inputs's shape = (B, N * N, E)
         # and the output's shape = (B, O = 1)
         ## dffm_first = field_emb_inputs.sum(dim=[1, 2]).unsqueeze(-1)

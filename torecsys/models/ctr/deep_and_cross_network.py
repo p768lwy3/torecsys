@@ -7,9 +7,8 @@ from typing import Callable, List
 
 
 class DeepAndCrossNetworkModel(_CtrModel):
-    r"""DeepAndCrossNetworkModel is a model of deep and cross network, which is a model of 
-    a concatenation of deep neural network and cross network, and finally pass to a fully 
-    connect layer for the output.
+    r"""Model class of Deep & Cross Network (DCN), which is a concatenation of dense network 
+    (deep part) and cross network (cross part).
 
     :Reference:
 
@@ -25,29 +24,31 @@ class DeepAndCrossNetworkModel(_CtrModel):
                  output_size      : int = 1,
                  deep_dropout_p   : List[float] = None, 
                  deep_activation  : Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
-        r"""initialize deep adn cross network
+        r"""Initialize DeepAndCrossNetworkModel
         
         Args:
-            inputs_size (int): size of inputs tensor
-            deep_output_size (int): size of outputs of deep neural network
-            deep_layer_sizes (List[int]): sizes of layers in deep neural network
-            cross_num_layers (int): number of layers in cross network
-            output_size (int, optional): output size of model, i.e. output size of the last 
-                dense layer. Defaults to 1.
-            deep_dropout_p (List[float], optional): dropout probability for each dense layer. 
+            inputs_size (int): Inputs size of dense network and cross network, 
+                i.e. number of fields * embedding size.
+            deep_output_size (int): Output size of dense network
+            deep_layer_sizes (List[int]): Layer sizes of dense network
+            cross_num_layers (int): Number of layers of Cross Network
+            output_size (int, optional): Output size of model, 
+                i.e. output size of the projection layer. 
+                Defaults to 1.
+            deep_dropout_p (List[float], optional): Probability of Dropout in dense network. 
                 Defaults to None.
-            deep_activation (Callable[[T], T], optional): activation function for each dense 
-                layer. Defaults to nn.ReLU().
+            deep_activation (Callable[[T], T], optional): Activation function of dense network.
+                Defaults to nn.ReLU().
         
         Attributes:
-            deep (nn.Module): module of dense layer
-            cross (nn.Module): module of cross network layer
-            fc (nn.Module): module of linear layer to project the output to output size
+            deep (nn.Module): Module of dense layer.
+            cross (nn.Module): Module of cross network layer.
+            fc (nn.Module): Module of projection layer, i.e. linear layer of output.
         """
+        # refer to parent class
         super(DeepAndCrossNetworkModel, self).__init__()
 
-        # initialize the layers of module
-        # 1. deep output's shape = (B, N, O_d = deep_output_size)
+        # initialize dense layer, and the output's shape = (B, N, O_d = deep_output_size)
         self.deep = DNNLayer(
             inputs_size = inputs_size, 
             output_size = deep_output_size, 
@@ -56,7 +57,7 @@ class DeepAndCrossNetworkModel(_CtrModel):
             activation  = deep_activation
         )
         
-        # 2. cross output's shape = (B, O_c = E)
+        # initialize cross layer, and the output's shape = (B, O_c = inputs_size)
         self.cross = CrossNetworkLayer(
             inputs_size = inputs_size,
             num_layers  = cross_num_layers
@@ -67,28 +68,27 @@ class DeepAndCrossNetworkModel(_CtrModel):
         self.fc = nn.Linear(cat_size, output_size)
     
     def forward(self, emb_inputs: torch.Tensor) -> torch.Tensor:
-        r"""feed forward of deep and cross network
+        r"""Forward calculation of DeepAndCrossNetworkModel
         
         Args:
-            emb_inputs (T), shape = (B, N, E), dtype = torch.float: second order terms of fields 
-                that will be passed into afm layer and can be get from nn.Embedding(embed_size=E).
+            emb_inputs (T), shape = (B, N, E), dtype = torch.float: Embedded features tensors.
         
         Returns:
-            T, shape = (B, O), dtype = torch.float: output of deep and cross network
+            T, shape = (B, O), dtype = torch.float: Output of DeepAndCrossNetworkModel.
         """
-        # inputs' shape = (B, N, E) and reshape to (B, N * E)
+        # emb_inputs' shape = (B, N, E) and flatten to (B, N * E)
         emb_inputs = emb_inputs.flatten(["N", "E"], "E")
 
-        # deep_out's shape = (B, O_d)
+        # return deep_out with shape = (B, O_d)
         deep_out = self.deep(emb_inputs)
 
-        # cross_out's shape = (B, O_c)
+        # return cross_out with shape = (B, O_c)
         cross_out = self.cross(emb_inputs)
         
-        # cat in third dimension and return shape = (B, O_d + O_c)
+        # concat on dimension = O, which return shape = (B, O_d + O_c)
         outputs = torch.cat([cross_out, deep_out], dim="O")
 
-        # pass outputs to fully-connect layer, and return shape = (B, O)
+        # project to output, which return shape = (B, O)
         outputs = self.fc(outputs)
         outputs.names = ("B", "O")
 

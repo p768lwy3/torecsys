@@ -25,7 +25,7 @@ class MultilayerPerceptronLayer(nn.Module):
             dropout_p (List[float], optional): Probability of Dropout in MLP. 
                 Allow: [None, list of float for each layer]. 
                 Defaults to None.
-            activation (Callable[[T], T], optional): Activation function of Linear. 
+            activation (Callable[[T], T], optional): Activation function in MLP. 
                 Allow: [None, Callable[[T], T]]. 
                 Defaults to nn.ReLU().
         
