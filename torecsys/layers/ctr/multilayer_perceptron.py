@@ -11,27 +11,17 @@ class MultilayerPerceptronLayer(nn.Module):
     """
     @no_jit_experimental_by_namedtensor
     def __init__(self, 
+                 inputs_size : int,
                  output_size : int,
                  layer_sizes : List[int],
-                 embed_size  : int = None,
-                 num_fields  : int = None,
-                 inputs_size : int = None,
                  dropout_p   : List[float] = None,
                  activation  : Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
         """Initialize MultilayerPerceptronLayer
         
         Args:
+            inputs_size (int): Input size of MLP, i.e. size of embedding tensor. 
             output_size (int): Output size of MLP
             layer_sizes (List[int]): Layer sizes of MLP
-            embed_size (int, optional): Size of embedding tensor. 
-                Required with num_fields. 
-                Defaults to None.
-            num_fields (int, optional): Number of inputs' fields. 
-                Required with embed_size together. 
-                Defaults to None.
-            inputs_size (int, optional): Size of inputs. 
-                Required when embed_size and num_fields are None. 
-                Defaults to None.
             dropout_p (List[float], optional): Probability of Dropout in MLP. 
                 Allow: [None, list of float for each layer]. 
                 Defaults to None.
@@ -40,7 +30,7 @@ class MultilayerPerceptronLayer(nn.Module):
                 Defaults to nn.ReLU().
         
         Attributes:
-            inputs_size (int): Size of inputs, or Product of embed_size and num_fields.
+            inputs_size (int): Input size of MLP. 
             model (torch.nn.Sequential): Sequential of MLP.
         
         Raises:
@@ -53,15 +43,6 @@ class MultilayerPerceptronLayer(nn.Module):
         # check if length of dropout_p is not equal to length of layer_sizes
         if dropout_p is not None and len(dropout_p) != len(layer_sizes):
             raise ValueError("length of dropout_p must be equal to length of layer_sizes.")
-        
-        # set inputs_size to N * E when using embed_size and num_fields
-        if inputs_size is None and embed_size is not None and num_fields is not None:
-            inputs_size = embed_size * num_fields
-        # else, set inputs_size to inputs_size
-        elif inputs_size is not None and (embed_size is None or num_fields is None):
-            inputs_size = inputs_size
-        else:
-            raise ValueError("Only allowed:\n    1. embed_size and num_fields is not None, and inputs_size is None\n    2. inputs_size is not None, and embed_size or num_fields is None")
         
         # bind inputs_size to inputs_size
         self.inputs_size = inputs_size
@@ -90,17 +71,23 @@ class MultilayerPerceptronLayer(nn.Module):
             emb_inputs (T), shape = (B, N, E), dtype = torch.float: Embedded features tensors.
         
         Returns:
-            T, shape = (B, O), dtype = torch.float: Output of MLP.
+            T, shape = (B, N, O), dtype = torch.float: Output of MLP.
         """
         # reshape inputs from (B, N, E) to (B, N * E) 
         # or from (B, 1, I) to (B, I)
         ## emb_inputs = emb_inputs.view(-1, self.inputs_size)
-        emb_inputs = emb_inputs.flatten(["N", "E"], "E")
+        ## emb_inputs = emb_inputs.flatten(["N", "E"], "E")
 
         # forward to model and return output with shape = (B, O)
         outputs = self.model(emb_inputs.rename(None))
+
+        # rename tensor names
+        if outputs.dim() == 2:
+            outputs.names = ("B", "O")
+        elif outputs.dim() == 3:
+            outputs.names = ("B", "N", "O")
         
         # unsqueeze(1) to transform the shape into (B, 1, O) before return
         ## outputs.unsqueeze(1)
-        outputs.names = ("B", "O")
+
         return outputs

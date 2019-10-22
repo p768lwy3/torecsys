@@ -28,6 +28,10 @@ class AttentionalFactorizationMachineModel(_CtrModel):
             num_fields (int): number of fields in input
             attn_size (int): attention layer size
             dropout_p (float, optional): dropout probability after AFM layer. Defaults to 0.0.
+        
+        Attributes:
+            afm (nn.Module): module of AFM layer
+            bias (nn.Parameter): parameter of bias in output projection
         """
         super(AttentionalFactorizationMachineModel, self).__init__()
         
@@ -60,6 +64,10 @@ class AttentionalFactorizationMachineModel(_CtrModel):
 
         # sum up bias, linear_out and afm_out to output
         outputs = self.bias + linear_out + afm_out
+
+        # since autograd does not support Named Tensor at this stage,
+        # drop the name of output tensor.
+        outputs = outputs.rename(None)
 
         return outputs
     

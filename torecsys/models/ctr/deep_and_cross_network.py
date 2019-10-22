@@ -38,23 +38,28 @@ class DeepAndCrossNetworkModel(_CtrModel):
                 Defaults to None.
             deep_activation (Callable[[T], T], optional): activation function for each dense 
                 layer. Defaults to nn.ReLU().
+        
+        Attributes:
+            deep (nn.Module): module of dense layer
+            cross (nn.Module): module of cross network layer
+            fc (nn.Module): module of linear layer to project the output to output size
         """
         super(DeepAndCrossNetworkModel, self).__init__()
 
         # initialize the layers of module
-        # 1. deep output's shape = (B, O_d = deep_output_size)
+        # 1. deep output's shape = (B, N, O_d = deep_output_size)
         self.deep = DNNLayer(
+            inputs_size = inputs_size, 
             output_size = deep_output_size, 
             layer_sizes = deep_layer_sizes, 
-            inputs_size = inputs_size, 
             dropout_p   = deep_dropout_p, 
             activation  = deep_activation
         )
         
         # 2. cross output's shape = (B, O_c = E)
         self.cross = CrossNetworkLayer(
-            num_layers  = cross_num_layers, 
-            inputs_size = inputs_size
+            inputs_size = inputs_size,
+            num_layers  = cross_num_layers
         )
 
         # initialize output fc layer, with output shape = (B, O = output_size)
@@ -71,10 +76,13 @@ class DeepAndCrossNetworkModel(_CtrModel):
         Returns:
             T, shape = (B, O), dtype = torch.float: output of deep and cross network
         """
-        # inputs' shape = (B, N, E) and reshape to (B, O_d)
+        # inputs' shape = (B, N, E) and reshape to (B, N * E)
+        emb_inputs = emb_inputs.flatten(["N", "E"], "E")
+
+        # deep_out's shape = (B, O_d)
         deep_out = self.deep(emb_inputs)
 
-        # inputs' shape = (B, N, E) and cross_out's shape = (B, O_c)
+        # cross_out's shape = (B, O_c)
         cross_out = self.cross(emb_inputs)
         
         # cat in third dimension and return shape = (B, O_d + O_c)
@@ -83,5 +91,9 @@ class DeepAndCrossNetworkModel(_CtrModel):
         # pass outputs to fully-connect layer, and return shape = (B, O)
         outputs = self.fc(outputs)
         outputs.names = ("B", "O")
+
+        # since autograd does not support Named Tensor at this stage,
+        # drop the name of output tensor.
+        outputs = outputs.rename(None)
         
         return outputs

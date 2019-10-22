@@ -18,6 +18,7 @@ class StackedInputs(_Inputs):
                 i.e. class of trs.inputs.base. e.g. 
                 
                 .. code-block:: python
+                    
                     import torecsys as trs
 
                     # initialize embedding layers used in StackedInputs

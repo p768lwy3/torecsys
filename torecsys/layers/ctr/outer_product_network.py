@@ -4,8 +4,9 @@ from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_na
 
 
 class OuterProductNetworkLayer(nn.Module):
-    r"""Layer class of Outer Product Network used in Product based Neural Network :title:`Yanru Qu et at, 2016`[1], 
-    by calculating outer product between embedded tensors element-wisely and compressing by a kernel to get cross features interactions
+    r"""Layer class of Outer Product Network used in Product based Neural Network :title:`Yanru Qu et at, 2016`[1],
+    by calculating outer product between embedded tensors element-wisely and compressing by a kernel to get cross 
+    features interactions.
     
     :Reference:
 

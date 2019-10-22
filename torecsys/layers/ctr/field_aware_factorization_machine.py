@@ -2,16 +2,15 @@ import torch
 import torch.nn as nn
 from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 
-
 class FieldAwareFactorizationMachineLayer(nn.Module):
-    r"""Layer class of Field aware Factorization Machine (FFM) :title:`Yuchin Juan et al, 2016`[1],  
-    to calculate element-wise cross features interaction per fields for sparse field by using dot 
-    product between field-wise feature tensors
-    
+    """Layer class of Field-aware Factorication Machine (FFM) :title`Yuchin Juan et al, 2016`[1], 
+    to calculate element-wise cross feature interaction per field of sparse fields by using dot product 
+    between field-wise feature tensors.
+
     :Reference:
 
     #. `Yuchin Juan et al, 2016. Field-aware Factorization Machines for CTR Prediction <https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf>`_.
-
+    
     """
     @no_jit_experimental_by_namedtensor
     def __init__(self, 

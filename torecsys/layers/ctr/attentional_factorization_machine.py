@@ -29,12 +29,11 @@ class AttentionalFactorizationMachineLayer(nn.Module):
             dropout_p (float, optional): Probability of Dropout in AFM. 
                 Defaults to 0.1.
         
-        Arguments:
+        Attributes:
             attention (torch.nn.Sequential): Sequential of Attention-layers.
             rowidx (T), dtype = torch.long: 1st indices to index inputs in 2nd dimension for inner product.
             colidx (T), dtype = torch.long: 2nd indices to index inputs in 2nd dimension for inner product.
             dropout (torch.nn.Module): Dropout layer.
-
         """
         # refer to parent class
         super(AttentionalFactorizationMachineLayer, self).__init__()
