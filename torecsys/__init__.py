@@ -9,10 +9,10 @@ import torecsys.functional
 import torecsys.inputs
 import torecsys.layers
 import torecsys.losses
-import torecsys.metrics
 import torecsys.models
 import torecsys.utils
 
+from .metrics import metrics
 from .utils.training.ranking_trainer import RankingTrainer
 from .utils.training.trainer import Trainer
 
