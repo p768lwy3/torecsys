@@ -53,7 +53,8 @@ class FactorizationMachineModel(_CtrModel):
         Returns:
             torch.Tensor, shape = (B, O), dtype = torch.float: Output of FactorizationMachineModel.
         """
-        # feat_inputs'shape = (B, N, 1) and reshape to (B, N)
+        # aggregate feat_inputs on dimension N and rename dimension E to O
+        # hence, fm_first's shape = (B, O = 1)
         ## fm_first = feat_inputs.sum(dim=1)
         fm_first = feat_inputs.sum(dim="N").rename(E="O")
 

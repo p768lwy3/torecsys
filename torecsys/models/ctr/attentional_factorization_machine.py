@@ -32,13 +32,13 @@ class AttentionalFactorizationMachineModel(_CtrModel):
             afm (nn.Module): Module of AFM layer.
             bias (nn.Parameter): Parameter of bias in output projection.
         """
-        # refer to parent class
+        # Refer to parent class
         super(AttentionalFactorizationMachineModel, self).__init__()
         
-        # initialize attentional factorization machine layer
+        # Initialize attentional factorization machine layer
         self.afm = AFMLayer(embed_size, num_fields, attn_size, dropout_p)
 
-        # initialize bias parameter
+        # Initialize bias parameter
         self.bias = nn.Parameter(torch.zeros(size=(1, 1), names=("B", "O")))
         nn.init.uniform_(self.bias.data)
         
@@ -52,21 +52,30 @@ class AttentionalFactorizationMachineModel(_CtrModel):
         Returns:
             T, shape = (B, O), dtype = torch.float: Output of AttentionalFactorizationMachineModel.
         """
-        # feat_inputs's shape = (B, N, 1) -> linear_out's shape = (B, O = 1)
-        linear_out = feat_inputs.sum(dim="N")
-        linear_out.names = ("B", "O")
+        # Aggregate feat_inputs on dimension N
+        # inputs: feat_inputs, shape = (B, N, 1)
+        # output: linear_out, shape = (B, O = 1)
+        afm_first = feat_inputs.sum(dim="N")
+        afm_first.names = ("B", "O")
 
-        # emb_inputs's shape = (B, N, E) -> afm_out's shape = (B, E)
-        # then aggregate afm_out on dimension = "E" -> output's shape = (B, 1)
-        afm_out, _ = self.afm(emb_inputs)
-        afm_out = afm_out.sum(dim="E", keepdim=True)
-        afm_out.names = ("B", "O")
+        # Calculate with AFM layer forwardly
+        # inputs: emb_inputs, shape = (B, N, E)
+        # output: afm_second, shape = (B, E)
+        afm_second, _ = self.afm(emb_inputs)
 
-        # sum up bias, linear_out and afm_out to output
-        outputs = self.bias + linear_out + afm_out
+        # Aggregate afm_second on dimension E
+        # inputs: afm_second, shape = (B, E)
+        # output: afm_second, shape = (B, O = 1)
+        afm_second = afm_second.sum(dim="E", keepdim=True).rename(E="O")
 
-        # since autograd does not support Named Tensor at this stage,
-        # drop the name of output tensor.
+        # Add up afm_second, afm_first and bias
+        # inputs: afm_second, shape = (B, O = 1)
+        # inputs: afm_first, shape = (B, O = 1)
+        # inputs: bias, shape = (B, O = 1)
+        # output: outputs, shape = (B, O = 1)
+        outputs = afm_second + afm_first + self.bias
+
+        # Drop names of outputs, since autograd doesn't support NamedTensor yet.
         outputs = outputs.rename(None)
 
         return outputs

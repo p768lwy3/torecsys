@@ -23,7 +23,7 @@ class DeepMatchingCorrelationPredictionModel(_CtrModel):
 
     :Reference:
 
-    #. `Wentao Ouyang et al, 2019. Representation Learning-Assisted Click-Through Rate Prediction <https://arxiv.org/pdf/1906.04365.pdf>`
+    #. `Wentao Ouyang et al, 2019. Representation Learning-Assisted Click-Through Rate Prediction <https://arxiv.org/pdf/1906.04365.pdf>`_.
 
     """
     @no_jit_experimental_by_namedtensor

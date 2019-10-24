@@ -69,22 +69,20 @@ class DeepFieldAwareFactorizationMachineModel(_CtrModel):
             ffm (nn.Module): Module of field-aware factorization machine layer.
             deep (nn.Module): Module of dense layer.
         """
-        # refer to parent class
+        # Refer to parent class
         super(DeepFieldAwareFactorizationMachineModel, self).__init__()
 
-        # initialize ffm layer with the input's shape = (B, N * N, E) 
-        # and output shape = (B, NC2, E)
+        # Initialize ffm layer
         self.ffm = FFMLayer(
             num_fields = num_fields, 
             dropout_p  = ffm_dropout_p
         )
 
-        # calculate the output's size of ffm, i.e. inputs' size of DNNLayer
+        # Calculate inputs' size of DNNLayer, i.e. output's size of ffm (= NC2) * embed_size
         inputs_size = combination(num_fields, 2)
         inputs_size *= embed_size
 
-        # initialize dense layer with the input's shape = (B, NC2, E)
-        # and output shape = (B, O)
+        # Initialize dense layer
         self.deep = DNNLayer(
             inputs_size = inputs_size,
             output_size = deep_output_size, 
@@ -102,31 +100,41 @@ class DeepFieldAwareFactorizationMachineModel(_CtrModel):
         Returns:
             T, shape = (B, O), dtype = torch.float: Output of DeepFieldAwareFactorizationMachineModel.
         """
-        # feat_inputs's shape = (B, N * N, E)
-        # and the output's shape = (B, O = 1)
-        ## dffm_first = field_emb_inputs.sum(dim=[1, 2]).unsqueeze(-1)
+        # Get batch size from field_emb_inputs
         b = field_emb_inputs.size("B")
+
+        # Aggregate field_emb_inputs on dimension N and E, and reshape it from (B, ) to (B, O = 1)
+        # inputs: field_emb_inputs, shape = (B, N * N, E)
+        # output: dffm_first, shape = (B, O = 1)
         dffm_first = field_emb_inputs.sum(dim=["N", "E"]).unflatten("B", [("B", b), ("O", 1)])
         
-        # field_emb_inputs's shape = (B, N * N, E)
-        # and the output's shape = (B, 1)
-        ## dffm_second = self.second_order(field_emb_inputs)
-        ## dffm_second = dffm_second.sum(dim=1)
-
-        # calculate ffm output, where the output's shape = (B, NC2, E)
+        # Calculate with ffm layer forwardly
+        # inputs: field_emb_inputs, shape = (B, N * N, E)
+        # output: dffm_second, shape = (B, NC2, E)
         dffm_second = self.ffm(field_emb_inputs)
-        # flatten the output to shape = (B, NC2 * E)
+
+        # Flatten dffm_second
+        # inputs: dffm_second, shape = (B, NC2, E)
+        # output: dffm_second, shape = (B, E = NC2 * E)
         dffm_second = dffm_second.flatten(["N", "E"], "E")
-        # calculate deep output, where the output's shape = (B, O_d)
+
+        # Calculate with deep layer forwardly 
+        # inputs: dffm_second, shape = (B, E = NC2 * E)
+        # output: dffm_second, shape = (B, O = O_d)
         dffm_second = self.deep(dffm_second)
-        # sum on dimesnion of O, where the output's shape = (B, O = 1)
+
+        # Aggregate dffm_second on dimesnion O, 
+        # inputs: dffm_second, shape = (B, O = O_d)
+        # output: dffm_second, shape = (B, O = 1)
         dffm_second = dffm_second.sum("O", keepdim=True)
 
-        # sum dffm_first and dffm_second and the output's shape = (B, O = 1)
-        outputs = dffm_first + dffm_second
+        # Add up dffm_second and dffm_first 
+        # inputs: dffm_second, shape = (B, O = 1)
+        # inputs: dffm_first, shape = (B, O = 1)
+        # output: outputs, shape = (B, O = 1)
+        outputs = dffm_second + dffm_first
 
-        # since autograd does not support Named Tensor at this stage,
-        # drop the name of output tensor.
+        # Drop names of outputs, since autograd doesn't support NamedTensor yet.
         outputs = outputs.rename(None)
         
         return outputs

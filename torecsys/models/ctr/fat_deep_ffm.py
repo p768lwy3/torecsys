@@ -63,16 +63,14 @@ class FieldAttentiveDeepFieldAwareFactorizationMachineModel(_CtrModel):
         # initialize compose excitation network
         self.cen = CENLayer(num_fields, reduction)
 
-        # initialize ffm layer with the input's shape = (B, N * N, E) 
-        # and output shape = (B, NC2, E)
+        # initialize ffm layer
         self.ffm = FFMLayer(num_fields=num_fields, dropout_p=ffm_dropout_p)
         
         # calculate the output's size of ffm, i.e. inputs' size of DNNLayer
         inputs_size = combination(num_fields, 2)
         inputs_size *= embed_size
         
-        # initialize dense layer with the input shape = (B, NC2, E)
-        # and output shape = (B, O)
+        # initialize dense layer
         self.deep = DNNLayer(
             inputs_size = inputs_size,
             output_size = deep_output_size,
@@ -112,8 +110,7 @@ class FieldAttentiveDeepFieldAwareFactorizationMachineModel(_CtrModel):
         # sum the vectors as outputs
         outputs = first_order + second_order
 
-        # since autograd does not support Named Tensor at this stage,
-        # drop the name of output tensor.
+        # Drop names of outputs, since autograd doesn't support NamedTensor yet.
         outputs = outputs.rename(None)
 
         return outputs

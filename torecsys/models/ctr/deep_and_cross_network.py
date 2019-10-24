@@ -45,10 +45,10 @@ class DeepAndCrossNetworkModel(_CtrModel):
             cross (nn.Module): Module of cross network layer.
             fc (nn.Module): Module of projection layer, i.e. linear layer of output.
         """
-        # refer to parent class
+        # Refer to parent class
         super(DeepAndCrossNetworkModel, self).__init__()
 
-        # initialize dense layer, and the output's shape = (B, N, O_d = deep_output_size)
+        # Initialize dense layer
         self.deep = DNNLayer(
             inputs_size = inputs_size, 
             output_size = deep_output_size, 
@@ -57,13 +57,13 @@ class DeepAndCrossNetworkModel(_CtrModel):
             activation  = deep_activation
         )
         
-        # initialize cross layer, and the output's shape = (B, O_c = inputs_size)
+        # Initialize cross layer
         self.cross = CrossNetworkLayer(
             inputs_size = inputs_size,
             num_layers  = cross_num_layers
         )
 
-        # initialize output fc layer, with output shape = (B, O = output_size)
+        # Initialize linear layer
         cat_size = deep_output_size + inputs_size
         self.fc = nn.Linear(cat_size, output_size)
     
@@ -76,24 +76,34 @@ class DeepAndCrossNetworkModel(_CtrModel):
         Returns:
             T, shape = (B, O), dtype = torch.float: Output of DeepAndCrossNetworkModel.
         """
-        # emb_inputs' shape = (B, N, E) and flatten to (B, N * E)
+        # Flatten emb_inputs
+        # inputs: emb_inputs, shape = (B, N, E)
+        # output: emb_inputs, shape = (B, N * E)
         emb_inputs = emb_inputs.flatten(["N", "E"], "E")
 
-        # return deep_out with shape = (B, O_d)
-        deep_out = self.deep(emb_inputs)
-
-        # return cross_out with shape = (B, O_c)
+        # Calculate with cross layer forwardly
+        # inputs: emb_inputs, shape = (B, N * E)
+        # output: cross_out, shape = (B, O = Oc)
         cross_out = self.cross(emb_inputs)
+
+        # Calculate with dense layer forwardly
+        # inputs: emb_inputs, shape = (B, N * E)
+        # output: deep_out, shape = (B, O = Od)
+        deep_out = self.deep(emb_inputs)
         
-        # concat on dimension = O, which return shape = (B, O_d + O_c)
+        # Concatenate on dimension = O,
+        # inputs: cross_out, shape = (B, Oc)
+        # inputs: deep_out, shape = (B, Od)
+        # output: outputs, shape = (B, O = Od + Oc)
         outputs = torch.cat([cross_out, deep_out], dim="O")
 
-        # project to output, which return shape = (B, O)
+        # Calculate with linear layer forwardly
+        # inputs: outputs, shape = (B, O = Od + Oc)
+        # output: outputs, shape = (B, O = Ofc)
         outputs = self.fc(outputs)
         outputs.names = ("B", "O")
 
-        # since autograd does not support Named Tensor at this stage,
-        # drop the name of output tensor.
+        # Drop names of outputs, since autograd doesn't support NamedTensor yet.
         outputs = outputs.rename(None)
         
         return outputs

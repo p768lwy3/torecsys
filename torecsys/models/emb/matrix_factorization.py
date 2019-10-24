@@ -3,24 +3,39 @@ from torecsys.layers import GeneralizedMatrixFactorizationLayer
 from torecsys.utils.decorator import jit_experimental
 import torch
 
-
 class MatrixFactorizationModel(_EmbModel):
-    r"""MatrixFactorizationModel is a model of matrix factorization to embed relations between paris of data
+    r"""Model class of Matrix Factorization (MF).
+    
+    Matrix Factorization is to embed relations between paris of data, like user and item.
+
     """
     def __init__(self):
-        r"""initialize matrix factorization model to embed index to vectors
+        r"""Initialize MatrixFactorizationModel
+
+        Attributes:
+            mf (nn.Module): Module of matrix factorization layer
         """
+        # Refer to parent class
         super(MatrixFactorizationModel, self).__init__()
+
+        # Initialize mf layer
         self.mf = GeneralizedMatrixFactorizationLayer()
     
-    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
-        r"""feed-forward calculation of matrix factorization
+    def forward(self, emb_inputs: torch.Tensor) -> torch.Tensor:
+        r"""Forward calculation of MatrixFactorizationModel
         
         Args:
-            inputs (torch.Tensor), shape = (B, 2, E), dtype = torch.float: inputs of two features vectors
+            emb_inputs (T), shape = (B, 2, E), dtype = torch.float: Embedded features tensors
         
         Returns:
-            torch.Tensor, shape = (B, 1), dtype = torch.float: scores of matrix factorization model
+            T, shape = (B, 1), dtype = torch.float: Output of MatrixFactorizationModel
         """
-        outputs = self.mf(inputs)
+        # Calculate with mf layer forwardly
+        # inputs: emb_inputs, shape = (B, N = 2, E)
+        # output: outputs, shape = (B, O = 1)
+        outputs = self.mf(emb_inputs)
+
+        # Drop names of outputs, since autograd doesn't support NamedTensor yet.
+        outputs = outputs.rename(None)
+
         return outputs

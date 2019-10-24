@@ -2,10 +2,12 @@ import torch
 import torch.nn as nn
 from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 
-
 class FactorizationMachineLayer(nn.Module):
-    """Layer class of Factorization Machine (FM) by :title:`Steffen Rendle, 2010`[1] to calculate 
-    low dimension cross features interactions of sparse field by using a general form of matrix factorization.
+    """Layer class of Factorization Machine (FM). 
+    
+    Factorization Machine is purposed by :title:`Steffen Rendle, 2010`[1] to calculate low 
+    dimension cross features interactions of sparse field by using a general form of matrix 
+    factorization.
 
     :Reference:
 
@@ -24,10 +26,10 @@ class FactorizationMachineLayer(nn.Module):
         Arguments:
             dropout (torch.nn.Module): Dropout layer.
         """
-        # refer to parent class
+        # Refer to parent class
         super(FactorizationMachineLayer, self).__init__()
 
-        # initialize dropout layer before return
+        # Initialize dropout layer
         self.dropout = nn.Dropout(dropout_p)
         
     def forward(self, emb_inputs: torch.Tensor) -> torch.Tensor:
@@ -39,23 +41,27 @@ class FactorizationMachineLayer(nn.Module):
         Returns:
             T, shape = (B, O), dtype = torch.float: Output of FactorizationMachineLayer
         """
-        # squared sum embedding where output shape = (B, E)
-        ## squared_sum_embs = (emb_inputs.sum(dim=1)) ** 2
+        # Square summed embedding
+        # inputs: emb_inputs, shape = (B, N, E)
+        # output: squared_sum_embs, shape = (B, E)
         squared_sum_embs = (emb_inputs.sum(dim="N")) ** 2
         
-        # sum squared embedding where output shape = (B, E)
-        ## sum_squared_embs = (emb_inputs ** 2).sum(dim=1)
+        # Sum squared embedding
+        # inputs: emb_inputs, shape = (B, N, E)
+        # output: sum_squared_embs, shape = (B, E)
         sum_squared_embs = (emb_inputs ** 2).sum(dim="N")
         
-        # calculate output of fm
+        # Calculate outputs of fm
+        # inputs: squared_sum_embs, shape = (B, E)
+        # inputs: sum_squared_embs, shape = (B, E)
+        # output: outputs, shape = (B, E)
         outputs = 0.5 * (squared_sum_embs - sum_squared_embs)
 
-        # apply dropout before return
-        outputs = self.dropout(outputs)
-
-        # .unsqueeze(1) to transform the shape into (B, 1, O) before return
-        ## outputs.unsqueeze(1)
-        
+        # Apply dropout
+        # inputs: outputs, shape = (B, E)
+        # output: outputs, shape = (B, E)
+        outputs = self.dropout(outputs)        
         outputs.names = ("B", "O")
+        
         return outputs
         

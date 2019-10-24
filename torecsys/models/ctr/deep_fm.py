@@ -44,13 +44,13 @@ class DeepFactorizationMachineModel(_CtrModel):
             fm (nn.Module): Module of factorization machine layer.
             deep (nn.Module): Module of dense layer.
         """
-        # refer to parent class
+        # Refer to parent class
         super(DeepFactorizationMachineModel, self).__init__()
 
-        # initialize fm layer
+        # Initialize fm layer
         self.fm = FMLayer(fm_dropout_p)
 
-        # initialize dense layer
+        # Initialize dense layer
         self.deep = DNNLayer(
             output_size = 1,
             layer_sizes = deep_layer_sizes,
@@ -70,31 +70,39 @@ class DeepFactorizationMachineModel(_CtrModel):
         Returns:
             T, shape = (B, O), dtype = torch.float: Output of DeepFactorizationMachineModel.
         """
-        ## fm_first = feat_inputs.squeeze()
-        if feat_inputs.dim() == 2:
-            fm_first = feat_inputs
-            fm_first.names = ("B", "O")
-        elif feat_inputs.dim() == 3:
-            # reshape feat_inputs from (B, N, 1) to (B, N)
-            fm_first = feat_inputs.flatten(["N", "E"], "O")
-        else:
-            raise ValueError("Dimension of feat_inputs can only be 2 or 3.")
+        # Reshape feat_inputs 
+        # inputs: feat_inputs, shape = (B, N, 1) 
+        # output: fm_first, shape = (B, O = N)
+        fm_first = feat_inputs.flatten(["N", "E"], "O")
 
-        # pass to fm layer where its returns' shape = (B, O)
+        # Calculate with fm layer forwardly
+        # inputs: emb_inputs, shape = (B, N, E)
+        # output: fm_second, shape = (B, O = E)
         fm_second = self.fm(emb_inputs)
 
-        # calculate output of factorization machine with output's shape = (B, O = 1)
-        fm_out = torch.cat([fm_first, fm_second], dim="O")
+        # Concatenate fm_second and fm_first on dimension O
+        # inputs: fm_second, shape = (B, O = E)
+        # inputs: fm_first, shape = (B, O = N)
+        # output: fm_out, shape = (B, O = E + N)
+        fm_out = torch.cat([fm_second, fm_first], dim="O")
+
+        # Aggregate fm_out on dimension O
+        # inputs: fm_out, shape = (B, O)
+        # output: fm_out, shape = (B, O = 1)
         fm_out = fm_out.sum(dim="O", keepdim=True)
 
-        # pass to dense layers with output's shape = (B, O = 1)
+        # Calculate with dense layer forwardly
+        # inputs: emb_inputs, shape = (B, N, E)
+        # output: deep_out, shape = (B, O = 1)
         deep_out = self.deep(emb_inputs)
 
-        # deepfm outputs = fm_out + deep_out
+        # Add up deep_out and fm_out
+        # inputs: deep_out, shape = (B, O = 1)
+        # inputs: fm_out, shape = (B, O = 1)
+        # output: outputs, shape = (B, O = 1)
         outputs = deep_out + fm_out
         
-        # since autograd does not support Named Tensor at this stage,
-        # drop the name of output tensor.
+        # Drop names of outputs, since autograd doesn't support NamedTensor yet.
         outputs = outputs.rename(None)
 
         return outputs

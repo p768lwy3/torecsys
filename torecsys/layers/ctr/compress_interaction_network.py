@@ -3,11 +3,13 @@ import torch.nn as nn
 from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 from typing import Callable, List
 
-
 class CompressInteractionNetworkLayer(nn.Module):
-    r"""Layer class of Compress Interation Network used in xDeepFM :title:`Jianxun Lian et al, 2018`[1], 
-    which is to compress cross-features tensors calculated by element-wise cross features interactions 
-    with outer product by Convalution with a :math:`1 * 1` kernel.
+    r"""Layer class of Compress Interation Network (CIN).
+    
+    Compress Interation Network was used in xDeepFM :title:`Jianxun Lian et al, 2018`[1]. 
+    
+    It compress cross-features tensors calculated by element-wise cross features interactions 
+    with outer product by 1D convalution with a :math:`1 * 1` kernel.
 
     :Reference:
 
@@ -38,7 +40,6 @@ class CompressInteractionNetworkLayer(nn.Module):
             use_batchnorm (bool, optional): Whether batch normalization is applied or not after Conv1d. 
                 Defaults to True.
             activation (Callable[[T], T], optional): Activation function of Conv1d. 
-                Allow: [None, Callable[[T], T]]. 
                 Defaults to nn.ReLU().
         
         Attributes:
@@ -48,49 +49,46 @@ class CompressInteractionNetworkLayer(nn.Module):
             model (torch.nn.ModuleList): Module List of compress interaction network.
             fc (torch.nn.Module): Fully-connect layer (i.e. Linear layer) of outputs.
         """
-        # refer to parent class
+        # Refer to parent class
         super(CompressInteractionNetworkLayer, self).__init__()
 
-        # bind embed_size, is_direct to embed_size, is_direct
+        # Bind embed_size, is_direct to embed_size, is_direct
         self.embed_size = embed_size
         self.is_direct = is_direct
         
-        # set layer_sizes to list concatenated by num_fields and layer_sizes
+        # Generate a list of num_fields and layer_sizes
         self.layer_sizes = [num_fields] + layer_sizes
 
-        # initialize module list of model
+        # Initialize module list of model
         self.model = nn.ModuleList()
 
-        # add modules including conv1d, batchnorm and activation to model
+        # Initialize cin sequential modules, and add them to module
         for i, (s_i, s_j) in enumerate(zip(self.layer_sizes[:-1], self.layer_sizes[1:])):
-            # create a nn.Sequential to store a layer of cin
+            # Create a module of sequential
             cin = nn.Sequential()
 
-            # calculate in channel and out channel of the 1D convalutional in cin
+            # Calculate channel size of Conv1d
             in_c = self.layer_sizes[0] * s_i
-            if is_direct or i == (len(self.layer_sizes) - 1):
-                out_c = s_j
-            else:
-                out_c = s_j * 2
+            out_c = s_j if is_direct or i == (len(self.layer_sizes) - 1) else s_j * 2
             
-            # add 1D convalutional to the sequential module
+            # Initialize Conv1d and add it to sequential module
             cin.add_module("conv1d", nn.Conv1d(in_c, out_c, kernel_size=1, bias=use_bias))
 
-            # add batch norm to the sequential module
+            # Initialize batchnorm and add it to sequential module
             if use_batchnorm:
                 cin.add_module("batchnorm", nn.BatchNorm1d(out_c))
             
-            # add activation to the sequential module
+            # Initialize activation and add it to sequential module
             if activation is not None:
                 cin.add_module("activation", activation)
             
-            # add cin to the module list
+            # Add cin sequential to the module list
             self.model.append(cin)
         
-        # calculate output size of model for the argument of fc
+        # Calculate output size of model
         model_output_size = int(sum(layer_sizes))
 
-        # initialize linear layer of fully-connect outputs
+        # Initialize linear layer
         self.fc = nn.Linear(model_output_size, output_size)
 
     def forward(self, emb_inputs: torch.Tensor) -> torch.Tensor:
@@ -102,73 +100,89 @@ class CompressInteractionNetworkLayer(nn.Module):
         Returns:
             T, shape = (B, O), dtype = torch.float: Output of CompressInteractionNetworkLayer.
         """
-        # initialize lists to store tensors temporarily for outputs and next steps
+        # Initialize two lists to store tensors of outputs and next steps temporarily
         direct_list = list()
         hidden_list = list()
 
-        # transpose x0 from (B, N, E) to (B, E, N)
-        ## x0 = emb_inputs.transpose(1, 2)
+        # Transpose emb_inputs
+        # inputs: emb_inputs, shape = (B, N, E)
+        # output: x0, shape = (B, E, N)
         x0 = emb_inputs.align_to("B", "E", "N")
         hidden_list.append(x0)
         
-        # expand x0 to (B, E, N_x, H = 1)
-        ## x0 = x0.unsqueeze(-1)
+        # Expand dimension N of x0 to Nx (= N) and H (= 1)
+        # inputs: x0, shape = (B, E, N)
+        # output: x0, shape = (B, E, Nx = N, H = 1)
         x0 = x0.unflatten("N", [("Nx", x0.size("N")), ("H", 1)])
 
-        # loop through 1d conv layers list
+        # Calculate with cin forwardly
         for i, layer_size in enumerate(self.layer_sizes[:-1]):
-            # get (i - 1) th hidden layer with shape = (B, E, N),
-            # then expand the shape to (B, E, H = 1, N_y)
-            ## xi = hidden_list[-1].unsqueeze(2)
+            # Get tensors of previous step and reshape it
+            # inputs: hidden_list[-1], shape = (B, E, N)
+            # output: xi, shape = (B, E, H = 1, Ny = N)
             xi = hidden_list[-1]
             xi = xi.unflatten("N", [("H", 1), ("Ny", xi.size("N"))])
 
-            # calculate outer product,  where the shape = (B, E, N_x, N_y), by torch.matmul
+            # Calculate outer product of x0 and x1
+            # inputs: x0, shape = (B, E, Nx = N, H = 1)
+            # inputs: x1, shape = (B, E, H = 1, Ny = N) 
+            # output: out_prod, shape = (B, E, Nx = N, Ny = N)
             out_prod = torch.matmul(x0, xi)
             
-            # then reshape the outer product to (B, N_x * N_y, E)
-            ## out_prod = out_prod.view(-1, self.embed_size, layer_size * self.layer_sizes[0])
-            ## out_prod = out_prod.transpose(1, 2)
+            # Reshape out_prod
+            # inputs: out_prod, shape = (B, E, Nx = N, Ny = N)
+            # output: out_prod, shape = (B, N = Nx * Ny, E)
             out_prod = out_prod.flatten(["Nx", "Ny"], "N")
             out_prod = out_prod.align_to("B", "N", "E")
 
-            # apply convalution, batchnorm and activation, 
-            # and the shape will be (B, H_i * 2 or H_i, N)
+            # Apply convalution, batchnorm and activation
+            # inputs: out_prod, shape = (B, N = Nx * Ny, E)
+            # output: outputs, shape = (B, N = (Hi * 2 or Hi), E)
             outputs = self.model[i](out_prod.rename(None))
             outputs.names = ("B", "N", "E")
             
             if self.is_direct:
-                # pass the whole tensors as hidden value to next step 
-                # and also keep the whole tensors for outputs with shape = (B, N, H_i)
+                # Pass to output directly
+                # inputs: outputs, shape = (B, N = Hi, E)
+                # output: direct, shape = (B, N = Hi, E)
                 direct = outputs
-                ## hidden = outputs.transpose(1, 2)
+
+                # Reshape and pass to next step directly
+                # inputs: outputs, shape = (B, Hi, E)
+                # output: hidden, shape = (B, E, N = Hi)
                 hidden = outputs.align_to("B", "E", "N")
             else:
                 if i != (len(self.layer_sizes) - 1):
-                    # pass half tensors to next step and keep half tensors
-                    # for outputs with shape = (B, N, H_i) if not in last step
-                    direct, hidden = torch.chunk(outputs, 2, dim=1)
-                    ## hidden = hidden.transpose(1, 2)
+                    # Split outputs into two part and pass them to outputs and hidden separately
+                    # inputs: outputs, shape = (B, Hi * 2, E)
+                    # output: direct, shape = (B, N = Hi, E)
+                    # output: hidden, shape = (B, N = Hi, E)
+                    direct, hidden = torch.chunk(outputs, 2, dim="N")
+                    
+                    # Reshape and pass to next step
+                    # inputs: hidden, shape = (B, N = Hi, E)
+                    # output: hidden, shape = (B, E, N = Hi)
                     hidden = hidden.align_to("B", "E", "N")
                 else:
-                    # keep the whole tensors for the outputs
+                    # Pass to output directly
+                    # inputs: outputs, shape = (B, N = Hi, E)
+                    # output: direct, shape = (B, N = Hi, E)
                     direct = outputs
                     hidden = 0
 
-            # store tensors to direct and hidden
+            # Store tensors to lists temporarily
             direct_list.append(direct)
             hidden_list.append(hidden)
         
-        # concatenate direct_list into a tensor for output with shape = (B, E_1 + ... + E_k, N)
-        ## outputs = torch.cat(direct_list, dim=1)
+        # Concatenate direct_list into a tensor
+        # inputs: direct_list, shape = (B, Hi, E)
+        # output: outputs, shape = (B, sum(Hi), E)
         outputs = torch.cat(direct_list, dim="N")
 
-        # aggregate outputs into (B, E_1 + ... + E_k) and pass into output fc layer
-        ## outputs = self.fc(outputs.sum(dim=-1))
+        # Aggregate outputs on dimension E and pass to dense layer
+        # inputs: outputs, shape = (B, sum(Hi), E)
+        # output: outputs, shape = (B, O)
         outputs = self.fc(outputs.sum("E"))
         outputs.names = ("B", "O")
-
-        # unsqueeze outputs to (B, 1, O)
-        ## outputs = outputs.unsqueeze(1)
-
+        
         return outputs
