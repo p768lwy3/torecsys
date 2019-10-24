@@ -10,5 +10,5 @@ class _EmbLoss(_Loss):
         # refer to parent class
         super(_EmbLoss, self).__init__()
 
-from .functional import *
+from .functional import skip_gram_loss
 from .skipgram import SkipGramLoss

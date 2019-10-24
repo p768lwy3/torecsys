@@ -1,23 +1,25 @@
 from . import _CtrModel
 from torecsys.layers import FMLayer, DNNLayer
-from torecsys.utils.decorator import jit_experimental
+from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 import torch
 import torch.nn as nn
 from typing import Callable, List
 
 class NeuralFactorizationMachineLayer(_CtrModel):
-    r"""Model class of Neural Factorization Machine (NFM) to pool the embedding tensors from 
-    (B, N, E) to (B, 1, E) with Factorization Machine (FM) as an inputs of Deep Neural Network, 
-    i.e. a stack of FM and DNN models.
+    r"""Model class of Neural Factorization Machine (NFM).
+    
+    Neural Factorization Machine is a model to pool embedding tensors from (B, N, E) to (B, 1, E) 
+    with Factorization Machine (FM) as an inputs of Deep Neural Network, i.e. a stack of 
+    factorization machine and dense network.
 
     :Reference:
 
     #. `Xiangnan He et al, 2017. Neural Factorization Machines for Sparse Predictive Analytics <https://arxiv.org/abs/1708.05027>`_.
 
     """
+    @no_jit_experimental_by_namedtensor
     def __init__(self,
                  embed_size       : int,
-                 num_fields       : int,
                  deep_output_size : int,
                  deep_layer_sizes : List[int],
                  fm_dropout_p     : float = 0.0,
@@ -27,36 +29,40 @@ class NeuralFactorizationMachineLayer(_CtrModel):
         
         Args:
             embed_size (int): Size of embedding tensor
-            num_fields (int): Number of inputs' fields
-            deep_output_size (int): Output size of DNN
-            deep_layer_sizes (List[int]): Layer sizes of DNN
+            deep_output_size (int): Output size of dense network
+            deep_layer_sizes (List[int]): Layer sizes of dense network
             fm_dropout_p (float, optional): Probability of Dropout in FM. 
                 Defaults to 0.0.
-            deep_dropout_p (List[float], optional): Probability of Dropout in DNN. 
-                Allow: [None, list of float for each layer]. 
+            deep_dropout_p (List[float], optional): Probability of Dropout in dense network. 
                 Defaults to None.
-            deep_activation (Callable[[T], T], optional): Activation function of Linear. 
-                Allow: [None, Callable[[T], T]]. 
+            deep_activation (Callable[[T], T], optional): Activation function of dense network. 
                 Defaults to nn.ReLU().
+        
+        Attributes:
+            sequential (nn.Sequential): Module of sequential moduels, including factorization
+                machine layer and dense layer.
+            bias (nn.Parameter): Parameter of bias of output projection.
         """
         # refer to parent class
         super(NeuralFactorizationMachineLayer, self).__init__()
 
-        # initialize sequential of model
+        # initialize sequential module
         self.sequential = nn.Sequential()
 
-        # add modules to model
-        self.sequential.add_module("b_interaction", FMLayer(fm_dropout_p))
-        self.sequential.add_module("hidden", DNNLayer(
+        # initialize fm layer
+        self.sequential.add_module("B_interaction", FMLayer(fm_dropout_p))
+
+        # initialize dense layer
+        self.sequential.add_module("Deep", DNNLayer(
             output_size = deep_output_size,
             layer_sizes = deep_layer_sizes,
-            inputs_size = cat_size,
+            inputs_size = embed_size,
             dropout_p   = deep_dropout_p,
             activation  = deep_activation
         ))
 
-        # initialize bias variable
-        self.bias = nn.Parameter(torch.zeros(1))
+        # initialize bias parameter
+        self.bias = nn.Parameter(torch.zeros((1, 1), names=("B", "O")))
         nn.init.uniform_(self.bias.data)
     
     def forward(self, feat_inputs: torch.Tensor, emb_inputs: torch.Tensor) -> torch.Tensor:
@@ -69,13 +75,25 @@ class NeuralFactorizationMachineLayer(_CtrModel):
         Returns:
             T, shape = (B, 1), dtype = torch.float: Output of NeuralFactorizationMachineLayer.
         """
+        # Aggregate feat_inputs on dimension N and rename dimesion E to O
+        # inputs: feat_inputs, shape = (B, N, E)
+        # output: nfm_first, shape = (B, O = 1)
+        nfm_first = feat_inputs.sum(dim="N").rename(E="O")
 
-        # calculate sequential part, with emb_inputs and outputs' shape = (B, 1, O)
-        outputs = self.sequential(emb_inputs)
+        # Calculate with sequential module forwardly
+        # inputs: emb_inputs, shape = (B, N, E)
+        # output: nfm_second, shape = (B, O)
+        nfm_second = self.sequential(emb_inputs)
 
-        # sum all values to the outputs
-        outputs = outputs.squeeze().sum(dim=1, keepdim=True)
-        outputs = outputs + feat_inputs.squeeze().sum(dim=1, keepdim=True)
-        outputs = outputs + self.bias
+        # Add up nfm_second, nfm_first and bias
+        # inputs: nfm_second, shape = (B, O = 1)
+        # inputs: nfm_first, shape = (B, O = 1)
+        # inputs: bias, shape = (B, O = 1)
+        # output: outputs, shape = (B, O = 1)
+        outputs = nfm_second + nfm_first + self.bias
+
+        # Drop names of outputs, since autograd doesn't support NamedTensor yet.
+        outputs = outputs.rename(None)
 
         return outputs
+        

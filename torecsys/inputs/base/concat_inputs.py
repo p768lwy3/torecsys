@@ -1,7 +1,8 @@
 from . import _Inputs
 import torch
+import torch.nn as nn
 from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
-from typing import Dict, List
+from typing import Dict, List, Union
 
 
 class ConcatInputs(_Inputs):
@@ -18,6 +19,7 @@ class ConcatInputs(_Inputs):
                 i.e. class of trs.inputs.base. e.g. 
                 
                 .. code-block:: python
+                    
                     import torecsys as trs
 
                     # initialize embedding layers used in ConcatInputs
@@ -64,7 +66,7 @@ class ConcatInputs(_Inputs):
         self.length = sum([len(inp) for inp in self.inputs])
     
     def __getitem__(self, idx: Union[int, slice, str]) -> Union[nn.Module, List[nn.Module]]:
-        """Get Embedding Layer by index of the schema.
+        """Get Embedding Layer by index from inputs.
         
         Args:
             idx (Union[int, slice, str]): index to get embedding layer from the schema.
@@ -73,24 +75,24 @@ class ConcatInputs(_Inputs):
             Union[nn.Module, List[nn.Module]]: Embedding layer(s) of the given index
         """
         if isinstance(idx, int):
-            emb_layers = self.schema[idx][0]
+            emb_layers = self.inputs[idx]
 
         elif isinstance(idx, slice):
             emb_layers = []
             
             # parse the slice object into integers used in range()
             start = idx.start if idx.start is not None else 0
-            stop = idx.stop if idx.stop is not None else len(self.schema)
+            stop = idx.stop if idx.stop is not None else len(self.inputs)
             step = idx.step if idx.step is not None else 1
 
             for i in range(start, stop, step):
-                emb_layers.append(self.schema[i][0])
+                emb_layers.append(self.inputs[i])
 
         elif isinstance(idx, str):
             emb_layers = []
-            for i in self.schema:
-                if idx in i[1]:
-                    emb_layers.append(i[0])
+            for inp in self.inputs:
+                if idx in inp.schema.inputs:
+                    emb_layers.append(inp)
         
         else:
             raise ValueError("getitem only accept int, slice, and str.")
@@ -128,10 +130,6 @@ class ConcatInputs(_Inputs):
             # check if output dimension is less than 3, then .unsqueeze(1)
             if output.dim() < 3:
                 output = output.unflatten("E", [("N", 1), ("E", output.size("E"))])
-            
-            # embed / transform tensors
-            embedded = embedding(*args)
-            ## embedded.names = ("B", "N", "E")
 
             # append tensor to outputs
             outputs.append(output)

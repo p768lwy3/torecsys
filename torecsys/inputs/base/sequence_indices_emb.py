@@ -61,7 +61,7 @@ class SequenceIndicesEmbedding(_Inputs):
         
         # bind embedding to pre-trained embedding module if nn_embedding is not None
         if nn_embedding is not None:
-            self.length = nn_embedding.size(1)
+            self.length = nn_embedding.size("E")
             self.embedding = nn.Embedding.from_pretrained(nn_embedding)
         # else, create a embedding module with the given arguments
         else:
@@ -104,11 +104,11 @@ class SequenceIndicesEmbedding(_Inputs):
         elif output_method == "max_pooling":
             self.aggregation = nn.AdaptiveMaxPool1d(1)
         elif output_method == "mean":
-            self.aggregation = partial(torch.mean, dim=1, keepdim=True)
+            self.aggregation = partial(torch.mean, dim="N", keepdim=True)
         elif output_method == "none":
             self.aggregation = torch.Tensor
         elif output_method == "sum":
-            self.aggregation = partial(torch.sum, dim=1, keepdim=True)
+            self.aggregation = partial(torch.sum, dim="N", keepdim=True)
         else:
             raise ValueError('output_method only allows ["avg_pooling", "max_pooling", "mean", "none", "sum"].')
         self.output_method = output_method

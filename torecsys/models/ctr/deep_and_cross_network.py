@@ -1,21 +1,21 @@
 from . import _CtrModel
-from torecsys.layers import CrossNetworkLayer, MultilayerPerceptronLayer
-from torecsys.utils.decorator import jit_experimental
 import torch
 import torch.nn as nn
+from torecsys.layers import CrossNetworkLayer, DNNLayer
+from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 from typing import Callable, List
 
+
 class DeepAndCrossNetworkModel(_CtrModel):
-    r"""DeepAndCrossNetworkModel is a model of deep and cross network, which is a model of 
-    a concatenation of deep neural network and cross network, and finally pass to a fully 
-    connect layer for the output.
+    r"""Model class of Deep & Cross Network (DCN), which is a concatenation of dense network 
+    (deep part) and cross network (cross part).
 
     :Reference:
 
     #. `Ruoxi Wang et al, 2017. Deep & Cross Network for Ad Click Predictions <https://arxiv.org/abs/1708.05123>`_.
     
     """
-    @jit_experimental
+    @no_jit_experimental_by_namedtensor
     def __init__(self, 
                  inputs_size      : int,
                  deep_output_size : int,
@@ -24,49 +24,86 @@ class DeepAndCrossNetworkModel(_CtrModel):
                  output_size      : int = 1,
                  deep_dropout_p   : List[float] = None, 
                  deep_activation  : Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
-        r"""initialize deep adn cross network
+        r"""Initialize DeepAndCrossNetworkModel
         
         Args:
-            inputs_size (int): size of inputs tensor
-            deep_output_size (int): size of outputs of deep neural network
-            deep_layer_sizes (List[int]): sizes of layers in deep neural network
-            cross_num_layers (int): number of layers in cross network
-            output_size (int, optional): output size of model, i.e. output size of the last fully-connect layer. Defaults to 1.
-            deep_dropout_p (List[float], optional): dropout probability for each layer after dense layer. Defaults to None.
-            deep_activation (Callable[[T], T], optional): activation function for each layer of deep neural network. Defaults to nn.ReLU().
+            inputs_size (int): Inputs size of dense network and cross network, 
+                i.e. number of fields * embedding size.
+            deep_output_size (int): Output size of dense network
+            deep_layer_sizes (List[int]): Layer sizes of dense network
+            cross_num_layers (int): Number of layers of Cross Network
+            output_size (int, optional): Output size of model, 
+                i.e. output size of the projection layer. 
+                Defaults to 1.
+            deep_dropout_p (List[float], optional): Probability of Dropout in dense network. 
+                Defaults to None.
+            deep_activation (Callable[[T], T], optional): Activation function of dense network.
+                Defaults to nn.ReLU().
+        
+        Attributes:
+            deep (nn.Module): Module of dense layer.
+            cross (nn.Module): Module of cross network layer.
+            fc (nn.Module): Module of projection layer, i.e. linear layer of output.
         """
+        # Refer to parent class
         super(DeepAndCrossNetworkModel, self).__init__()
 
-        # initialize the layers of module
-        # deep output's shape = (B, 1, O_d)
-        self.deep = DNNLayer(output_size=deep_output_size, layer_sizes=deep_layer_sizes, inputs_size=inputs_size, dropout_p=deep_dropout_p, activation=deep_activation)
-        # cross output's shape = (B, 1, E)
-        self.cross = CrossNetworkLayer(num_layers=cross_num_layers, inputs_size=inputs_size)
+        # Initialize dense layer
+        self.deep = DNNLayer(
+            inputs_size = inputs_size, 
+            output_size = deep_output_size, 
+            layer_sizes = deep_layer_sizes, 
+            dropout_p   = deep_dropout_p, 
+            activation  = deep_activation
+        )
+        
+        # Initialize cross layer
+        self.cross = CrossNetworkLayer(
+            inputs_size = inputs_size,
+            num_layers  = cross_num_layers
+        )
 
-        # initialize output fc layer
+        # Initialize linear layer
         cat_size = deep_output_size + inputs_size
         self.fc = nn.Linear(cat_size, output_size)
     
     def forward(self, emb_inputs: torch.Tensor) -> torch.Tensor:
-        r"""feed forward of deep and cross network
+        r"""Forward calculation of DeepAndCrossNetworkModel
         
         Args:
-            emb_inputs (T), shape = (B, N, E), dtype = torch.float: second order terms of fields that will be passed into afm layer and can be get from nn.Embedding(embed_size=E)
+            emb_inputs (T), shape = (B, N, E), dtype = torch.float: Embedded features tensors.
         
         Returns:
-            T, shape = (B, O), dtype = torch.float: output of deep and cross network
+            T, shape = (B, O), dtype = torch.float: Output of DeepAndCrossNetworkModel.
         """
-        # inputs' shape = (B, N, I) and reshape to (B, 1, O_d)
-        deep_out = self.deep(emb_inputs)
+        # Flatten emb_inputs
+        # inputs: emb_inputs, shape = (B, N, E)
+        # output: emb_inputs, shape = (B, N * E)
+        emb_inputs = emb_inputs.flatten(["N", "E"], "E")
 
-        # inputs' shape = (B, N, I) and cross_out's shape = (B, 1, I)
+        # Calculate with cross layer forwardly
+        # inputs: emb_inputs, shape = (B, N * E)
+        # output: cross_out, shape = (B, O = Oc)
         cross_out = self.cross(emb_inputs)
-        
-        # cat in third dimension and return shape = (B, 1, O_d + I)
-        # then squeeze() to shape = (B, O_d + I)
-        outputs = torch.cat([cross_out, deep_out], dim=2).squeeze()
 
-        # pass outputs to fully-connect layer, and return shape = (B, O)
+        # Calculate with dense layer forwardly
+        # inputs: emb_inputs, shape = (B, N * E)
+        # output: deep_out, shape = (B, O = Od)
+        deep_out = self.deep(emb_inputs)
+        
+        # Concatenate on dimension = O,
+        # inputs: cross_out, shape = (B, Oc)
+        # inputs: deep_out, shape = (B, Od)
+        # output: outputs, shape = (B, O = Od + Oc)
+        outputs = torch.cat([cross_out, deep_out], dim="O")
+
+        # Calculate with linear layer forwardly
+        # inputs: outputs, shape = (B, O = Od + Oc)
+        # output: outputs, shape = (B, O = Ofc)
         outputs = self.fc(outputs)
+        outputs.names = ("B", "O")
+
+        # Drop names of outputs, since autograd doesn't support NamedTensor yet.
+        outputs = outputs.rename(None)
         
         return outputs

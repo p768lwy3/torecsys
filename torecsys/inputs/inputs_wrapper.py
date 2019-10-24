@@ -17,6 +17,7 @@ class InputsWrapper(_Inputs):
                 where keys are names of inputs' fields, and values are tensor of fields. e.g. 
                 
                 .. code-block:: python
+                    
                     import torecsys as trs
 
                     # initialize embedding layers used in InputsWrapper

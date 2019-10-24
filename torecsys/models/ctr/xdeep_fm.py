@@ -7,10 +7,12 @@ from typing import Callable, List
 
 
 class xDeepFactorizationMachineModel(_CtrModel):
-    r"""Model class of xDeepFM, which is a variant of DeepFM by replacing FM part with a 
-    Convalutional Neural Network (CNN) based model, called Compress Interaction Network, 
-    to calculate element-wise cross-features tensors by outer product, and compress the 
-    tensors to 1d by CNN.
+    r"""Model class of eXtreme Deep Factorization Machine (xDeepFM).
+    
+    eXtreme Deep Factorization Machine is a variant of DeepFM by replacing FM part with a 
+    Convalutional Neural Network (CNN) based model, called Compress Interaction Network (CIN), 
+    to calculate element-wise cross-features tensors by outer product, and compress the tensors 
+    to 1d by CNN.
 
     :Reference:
 

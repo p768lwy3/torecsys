@@ -33,7 +33,7 @@ class SingleIndexEmbedding(_Inputs):
 
         # bind embedding to pre-trained embedding module if nn_embedding is not None
         if nn_embedding is not None:
-            embed_size = nn_embedding.size(1)
+            embed_size = nn_embedding.size("E")
             self.embedding = nn.Embedding.from_pretrained(nn_embedding)
         # else, create a embedding module with the given arguments
         else:
