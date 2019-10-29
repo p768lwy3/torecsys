@@ -14,7 +14,8 @@ import os
 import sys
 
 ## import pytorch_sphinx_theme
-import sphinx_theme
+## import sphinx_theme
+import edx_theme
 
 sys.path.insert(0, os.path.abspath("../.."))
 
@@ -90,8 +91,11 @@ autodoc_mock_imports = ["torch", "torchaudio", "torchvision", "torchtext"]
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'neo_rtd_theme'
-html_theme_path = [sphinx_theme.get_html_theme_path('neo_rtd_theme')]
+## html_theme = 'neo_rtd_theme'
+## html_theme_path = [sphinx_theme.get_html_theme_path('neo_rtd_theme')]
+html_theme = 'edx_theme'
+html_theme_path = [edx_theme.get_html_theme_path()]
+html_favicon = os.path.join(html_theme_path[0], 'edx_theme', 'static', 'css', 'favicon.ico')
 
 html_theme_options = {
     ## 'canonical_url': 'https://torecsys.readthedocs.io/en/latest/',
