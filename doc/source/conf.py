@@ -33,7 +33,8 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.napoleon',
     'sphinx.ext.todo',
-    'sphinx.ext.viewcode'
+    'sphinx.ext.viewcode',
+    'sphinx_theme'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -90,9 +91,8 @@ autodoc_mock_imports = ["torch", "torchaudio", "torchvision", "torchtext"]
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
+html_theme_path = sphinx_theme.get_html_theme_path()
 html_theme = 'neo_rtd_theme'
-# html_theme_path = [sphinx_theme.get_html_theme_path()]
-html_theme_path = ["_themes", ]
 
 html_theme_options = {
     'canonical_url': 'https://torecsys.readthedocs.io/en/latest/',
