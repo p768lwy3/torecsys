@@ -29,6 +29,7 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.coverage',
     'sphinx.ext.doctest',
+    'sphinx.ext.githubpages',
     'sphinx.ext.intersphinx',
     'sphinx.ext.mathjax',
     'sphinx.ext.napoleon',
@@ -43,8 +44,6 @@ templates_path = ['_templates']
 pygments_style = 'sphinx'
 
 # -- Project information -----------------------------------------------------
-
-needs_sphinx = "2.1.2"
 
 project = 'torecsys'
 copyright = '2019, Jasper, Li Wai Yin'
@@ -91,11 +90,11 @@ autodoc_mock_imports = ["torch", "torchaudio", "torchvision", "torchtext"]
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme_path = sphinx_theme.get_html_theme_path()
 html_theme = 'neo_rtd_theme'
+html_theme_path = [sphinx_theme.get_html_theme_path('neo_rtd_theme')]
 
 html_theme_options = {
-    'canonical_url': 'https://torecsys.readthedocs.io/en/latest/',
+    ## 'canonical_url': 'https://torecsys.readthedocs.io/en/latest/',
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
