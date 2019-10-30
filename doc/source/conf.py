@@ -106,7 +106,7 @@ html_short_title = "torecsys documentation"
 html_baseurl = "https://torecsys.readthedocs.io/"
 html_static_path = ['_static']
 html_logo = "_static/img/pytorch-logo-dark.svg"
-html_favicon = "_static/img/pytorch-logo-flame.svg"
+html_favicon = "_static/img/pytorch-logo-flame.ico"
 
 # -- Options for HTMLHelp output ------------------------------------------
 
