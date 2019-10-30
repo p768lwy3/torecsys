@@ -9,7 +9,7 @@ class FactorizationMachineModel(_CtrModel):
     r"""Model class of Factorization Machine (FM).
     
     Factoization Machine is a model to calculate interactions between fields in the following way: 
-    :math:`\^{y}(x) := b_{0} + \sum_{i=1}^{n} w_{i} x_{i} + \sum_{i=1}^{n} \sum_{j=1+1}^{n} <v_{i},v_{j}> x_{i} x_{j}`_.
+    :math:`\^{y}(x) := b_{0} + \sum_{i=1}^{n} w_{i} x_{i} + \sum_{i=1}^{n} \sum_{j=1+1}^{n} <v_{i},v_{j}> x_{i} x_{j}`
 
     :Reference:
 

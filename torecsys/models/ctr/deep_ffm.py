@@ -27,9 +27,8 @@ class DeepFieldAwareFactorizationMachineModel(_CtrModel):
     forward process is: :math:`\text{if i = 1,} x_{1} = \text{activation} ( W_{1} A + b_{1} )` 
     :math:`\text{otherwise,} x_{i} = \text{activation} ( W_{i} x_{i - 1} + b_{i})` 
 
-    #. Finally, concatenate the above part and the linear part :math:`x_{linear}, and pass 
-    forward to a linear output layer:
-    :math:`y(X) = W_{linear} x_{linear} + W_{second_order} x_{l} + b_{output}`_.
+    #. Finally, concatenate the above part and the linear part :math:`x_{linear}`, and pass 
+    forward to a linear output layer: :math:`y(X) = W_{linear} x_{linear} + W_{second_order} x_{l} + b_{output}`
 
     :Reference:
 

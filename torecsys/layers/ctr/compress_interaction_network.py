@@ -6,7 +6,7 @@ from typing import Callable, List
 class CompressInteractionNetworkLayer(nn.Module):
     r"""Layer class of Compress Interation Network (CIN).
     
-    Compress Interation Network was used in xDeepFM :title:`Jianxun Lian et al, 2018`[1]. 
+    Compress Interation Network was used in xDeepFM by Jianxun Lian et al, 2018. 
     
     It compress cross-features tensors calculated by element-wise cross features interactions 
     with outer product by 1D convalution with a :math:`1 * 1` kernel.

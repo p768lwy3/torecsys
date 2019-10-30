@@ -5,9 +5,9 @@ from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_na
 class FieldAwareFactorizationMachineLayer(nn.Module):
     """Layer class of Field-aware Factorication Machine (FFM).
     
-    Field-aware Factorication Machine is purposed by :title`Yuchin Juan et al, 2016`[1], to 
-    calculate element-wise cross feature interaction per field of sparse fields by using dot 
-    product between field-wise feature tensors.
+    Field-aware Factorication Machine is purposed by Yuchin Juan et al, 2016, to calculate 
+    element-wise cross feature interaction per field of sparse fields by using dot product 
+    between field-wise feature tensors.
 
     :Reference:
 

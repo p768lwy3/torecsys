@@ -6,7 +6,7 @@ from typing import Callable
 class ComposeExcitationNetworkLayer(nn.Module):
     r"""Layer class of Compose Excitation Network (CEN).
     
-    Compose Excitation Network was used in FAT-Deep :title:`Junlin Zhang et al, 2019`[1]. 
+    Compose Excitation Network was used in FAT-Deep by Junlin Zhang et al, 2019. 
     
     #. First, it compose field-aware embedded tensors by a 1D convalution with a :math:`1 * 1` 
     kernel feature-wisely from a :math:`k * n` tensor of field i into a :math:`k * 1` tensor. 

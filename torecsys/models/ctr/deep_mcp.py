@@ -17,7 +17,7 @@ class DeepMatchingCorrelationPredictionModel(_CtrModel):
     #. Prediction subnet: Feed-forward Dense Layers
 
     #. Matching subnt: sigmoid of dot-product between high-level representations of users and 
-    items,with the following calculation: :math"`\^{y} = \frac{1}{1 + \text{exp}(-(w^{T}z + b))}`_.
+    items,with the following calculation: :math:`\^{y} = \frac{1}{1 + \text{exp}(-(w^{T}z + b))}`
 
     #. Correlation subnet: a subnet to control similarity between items 
 

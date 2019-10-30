@@ -5,13 +5,12 @@ from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_na
 class CrossNetworkLayer(nn.Module):
     r"""Layer class of Cross Network. 
     
-    Cross Network was used in Deep & Cross Network :title:`Ruoxi Wang et al, 2017`[1], to 
-    calculate cross features interaction between element, by the following equation: for i-th 
-    layer, math:`x_{i} = x_{0} * (w_{i} * x_{i-1} + b_{i}) + x_{0}`_.
+    Cross Network was used in Deep & Cross Network, to calculate cross features interaction 
+    between element, by the following equation: for i-th layer, :math:`x_{i} = x_{0} * (w_{i} * x_{i-1} + b_{i}) + x_{0}`.
 
     :Reference:
 
-    #. `Ruoxi Wang et al, 2017. Deep & Cross Network for Ad Click Predictions <https://arxiv.org/abs/1708.05123>`_.
+    #. `Ruoxi Wang et al, 2017. Deep & Cross Network for Ad Click Predictions <https://arxiv.org/abs/1708.05123>`
     
     """
     @no_jit_experimental_by_namedtensor

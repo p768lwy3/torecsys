@@ -5,9 +5,8 @@ from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_na
 class FactorizationMachineLayer(nn.Module):
     """Layer class of Factorization Machine (FM). 
     
-    Factorization Machine is purposed by :title:`Steffen Rendle, 2010`[1] to calculate low 
-    dimension cross features interactions of sparse field by using a general form of matrix 
-    factorization.
+    Factorization Machine is purposed by Steffen Rendle, 2010 to calculate low dimension cross 
+    features interactions of sparse field by using a general form of matrix factorization.
 
     :Reference:
 
