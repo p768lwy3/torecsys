@@ -14,7 +14,8 @@ import os
 import sys
 
 ## import pytorch_sphinx_theme
-import sphinx_theme
+## import sphinx_theme
+import edx_theme
 
 sys.path.insert(0, os.path.abspath("../.."))
 
@@ -29,11 +30,13 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.coverage',
     'sphinx.ext.doctest',
+    'sphinx.ext.githubpages',
     'sphinx.ext.intersphinx',
     'sphinx.ext.mathjax',
     'sphinx.ext.napoleon',
     'sphinx.ext.todo',
-    'sphinx.ext.viewcode'
+    'sphinx.ext.viewcode',
+    'sphinx_theme'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -42,8 +45,6 @@ templates_path = ['_templates']
 pygments_style = 'sphinx'
 
 # -- Project information -----------------------------------------------------
-
-needs_sphinx = "2.1.2"
 
 project = 'torecsys'
 copyright = '2019, Jasper, Li Wai Yin'
@@ -84,18 +85,20 @@ add_function_parentheses = False
 add_module_names = False
 autoclass_content = "both"
 autodoc_mock_imports = ["torch", "torchaudio", "torchvision", "torchtext"]
-master_doc = 'index'
 
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'neo_rtd_theme'
-html_theme_path = [sphinx_theme.get_html_theme_path()]
+## html_theme = 'neo_rtd_theme'
+## html_theme_path = [sphinx_theme.get_html_theme_path('neo_rtd_theme')]
+html_theme = 'edx_theme'
+html_theme_path = [edx_theme.get_html_theme_path()]
+html_favicon = os.path.join(html_theme_path[0], 'edx_theme', 'static', 'css', 'favicon.ico')
 
 html_theme_options = {
-    'canonical_url': 'https://torecsys.readthedocs.io/en/latest/',
+    ## 'canonical_url': 'https://torecsys.readthedocs.io/en/latest/',
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
