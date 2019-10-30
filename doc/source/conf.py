@@ -104,7 +104,17 @@ html_theme_options = {
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
+html_title = "Torecsys Documentation - Torescys Master Documentation"
+html_short_title = "torecsys documentation"
+html_baseurl = "https://torecsys.readthedocs.io/"
 html_static_path = ['_static']
+html_logo = "_static/img/pytorch-logo-dark.svg"
+html_favicon = "_static/img/pytorch-logo-flame.svg"
+html_sidebars = {
+    "**": [
+        "index.html", "search.html"
+    ]
+}
 
 # -- Options for HTMLHelp output ------------------------------------------
 
