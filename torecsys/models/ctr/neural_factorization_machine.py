@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 from typing import Callable, List
 
-class NeuralFactorizationMachineLayer(_CtrModel):
+class NeuralFactorizationMachineModel(_CtrModel):
     r"""Model class of Neural Factorization Machine (NFM).
     
     Neural Factorization Machine is a model to pool embedding tensors from (B, N, E) to (B, 1, E) 
@@ -25,7 +25,7 @@ class NeuralFactorizationMachineLayer(_CtrModel):
                  fm_dropout_p     : float = 0.0,
                  deep_dropout_p   : List[float] = None,
                  deep_activation  : Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
-        r"""Initialize NeuralFactorizationMachineLayer.
+        r"""Initialize NeuralFactorizationMachineModel.
         
         Args:
             embed_size (int): Size of embedding tensor
@@ -44,7 +44,7 @@ class NeuralFactorizationMachineLayer(_CtrModel):
             bias (nn.Parameter): Parameter of bias of output projection.
         """
         # refer to parent class
-        super(NeuralFactorizationMachineLayer, self).__init__()
+        super(NeuralFactorizationMachineModel, self).__init__()
 
         # initialize sequential module
         self.sequential = nn.Sequential()
@@ -66,14 +66,14 @@ class NeuralFactorizationMachineLayer(_CtrModel):
         nn.init.uniform_(self.bias.data)
     
     def forward(self, feat_inputs: torch.Tensor, emb_inputs: torch.Tensor) -> torch.Tensor:
-        r"""Forward calculation of NeuralFactorizationMachineLayer
+        r"""Forward calculation of NeuralFactorizationMachineModel
         
         Args:
             feat_inputs (T), shape = (B, N, 1), dtype = torch.float: Features tensors.
             emb_inputs (T), shape = (B, N, E), dtype = torch.float: Embedded features tensors.
         
         Returns:
-            T, shape = (B, 1), dtype = torch.float: Output of NeuralFactorizationMachineLayer.
+            T, shape = (B, 1), dtype = torch.float: Output of NeuralFactorizationMachineModel.
         """
         # Aggregate feat_inputs on dimension N and rename dimesion E to O
         # inputs: feat_inputs, shape = (B, N, E)

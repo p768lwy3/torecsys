@@ -4,7 +4,6 @@ import torch.nn as nn
 from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 from typing import Dict, List, Union
 
-
 class ConcatInputs(_Inputs):
     r"""Base Inputs class for concatenation of list of Base Inputs class in rowwise. 
     The shape of output is :math:`(B, 1, E_{1} + ... + E_{k})`, where :math:`E_{i}` 

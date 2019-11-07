@@ -53,13 +53,20 @@ class CrossNetworkLayer(nn.Module):
         # inputs: emb_inputs, shape = (B, N, E)
         # output: outputs, shape = (B, N, E = O)
         outputs = emb_inputs.detach().requires_grad_()
+        
+        # Drop names since einsum doesn't support NamedTensor now
+        emb_inputs.names = None
+        outputs.names = None
 
         # Calculate with linear forwardly and add residual to outputs
         # inputs: emb_inputs, shape = (B, N, E)
         # inputs: outputs, shape = (B, N, E)
         # output: outputs, shape = (B, N, E)
         for layer in self.model:
-            outputs = emb_inputs * layer(outputs) + emb_inputs
+            # outputs = emb_inputs * layer(outputs) + emb_inputs
+            outputs = layer(outputs)
+            outputs = torch.einsum("ijk,ijk->ijk", [emb_inputs, outputs])
+            outputs = outputs + emb_inputs
         
         # Rename tensor names
         if outputs.dim() == 2:

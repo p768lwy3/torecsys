@@ -54,13 +54,18 @@ class FieldAwareFactorizationMachineLayer(nn.Module):
         # inputs: field_emb_inputs, shape = (B, N * N , E)
         # output: field_emb_inputs, shape = (B, Nx = N, Ny = N, E)
         field_emb_inputs = field_emb_inputs.unflatten("N", [("Nx", self.num_fields), ("Ny", self.num_fields)])
-        
+        field_emb_inputs.names = None
+
         # Calculate dot-product between e_{i, fj} and e_{j, fi}
         # inputs: field_emb_inputs, shape = (B, Nx = N, Ny = N, E)
         # output: output, shape = (B, N = 1, E)
         for i in range(self.num_fields - 1):
             for j in range(i + 1, self.num_fields):
-                output = field_emb_inputs[:, j, i] * field_emb_inputs[:, i, j]
+                ## output = field_emb_inputs[:, j, i] * field_emb_inputs[:, i, j]
+                fij = field_emb_inputs[:, i, j]
+                fji = field_emb_inputs[:, j, i]
+                output = torch.einsum("ij,ij->ij", [fij, fji])
+                output.names = ("B", "E")
                 output = output.unflatten("B", [("B", output.size("B")), ("N", 1)])
                 outputs.append(output)
         
