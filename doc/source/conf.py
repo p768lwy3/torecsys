@@ -85,7 +85,6 @@ autoclass_content = "both"
 autodoc_mock_imports = ["torch", "torchaudio", "torchvision", "torchtext"]
 
 # -- Options for HTML output -------------------------------------------------
-import stanford_theme
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
