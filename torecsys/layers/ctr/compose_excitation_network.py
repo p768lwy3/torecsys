@@ -89,6 +89,10 @@ class ComposeExcitationNetworkLayer(nn.Module):
         # inputs: field_emb_inputs, shape = (B, N * N, E)
         # output: outputs, shape = (B, N * N, E)
         attn_w = attn_w.unflatten("N", (("N", attn_w.size("N")), ("E", 1)))
-        outputs = field_emb_inputs * attn_w
+        
+        # Multiply attentional weights on field embedding tensors
+        ## outputs = field_emb_inputs * attn_w
+        outputs = torch.einsum("ijk,ijh->ijk", [field_emb_inputs.rename(None), attn_w.rename(None)])
+        outputs.names = ("B", "N", "E")
 
         return outputs
