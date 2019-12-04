@@ -3,6 +3,10 @@ r"""torecsys.models.ltr is a sub module of the implementations of the whole mode
 
 from .. import _Model
 
-class _LtrModule(_Model):
+class _LtrModel(_Model):
     def __init__(self):
-        super(_LtrModule, self).__init__()
+        super(_LtrModel, self).__init__()
+
+class _RerankingModel(_LtrModel):
+    def __init__(self):
+        super(_RerankingModel, self).__init__()

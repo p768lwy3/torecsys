@@ -131,7 +131,7 @@ class StackedInputs(_Inputs):
             else:
                 # convert list of inputs to tensor, with shape = (B, N, *)
                 inp_val = [inputs[i] for i in inp.schema.inputs]
-                inp_val = torch.cat(inp_val, dim="N")
+                inp_val = torch.cat(inp_val, dim=1)
                 inp_args = [inp_val]
 
                 # set args for specific input

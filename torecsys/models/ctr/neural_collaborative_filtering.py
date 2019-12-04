@@ -84,4 +84,3 @@ class NeuralCollaborativeFilteringModel(_CtrModel):
         outputs = outputs.rename(None)
         
         return outputs
-    

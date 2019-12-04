@@ -20,15 +20,23 @@ from .fat_deep_ffm import FieldAttentiveDeepFieldAwareFactorizationMachineModel
 from .field_aware_factorization_machine import FieldAwareFactorizationMachineModel
 from .logistic_regression import LogisticRegressionModel
 from .neural_collaborative_filtering import NeuralCollaborativeFilteringModel
+from .neural_factorization_machine import NeuralFactorizationMachineModel
+from .position_based_aware_learning_framework import PositionBiasAwareLearningFrameworkModel
+from .product_neural_network import ProductNeuralNetworkModel
+from .xdeep_fm import xDeepFactorizationMachineModel
 
 # create shorten name of models
-AFMModel = AttentionalFactorizationMachineModel
-DeepFFMModel = DeepFieldAwareFactorizationMachineModel
-DeepFMModel = DeepFactorizationMachineModel
-FATDeepFFMModel = FieldAttentiveDeepFieldAwareFactorizationMachineModel
-FieldAwareNeuralFactorizationMachineModel = DeepFieldAwareFactorizationMachineModel
-FFMModel = FieldAwareFactorizationMachineModel
-FMModel = FactorizationMachineModel
-FMNNModel = FactorizationMachineSupportedNeuralNetworkModel
-FNFMModel = FieldAwareNeuralFactorizationMachineModel
-NCFModel = NeuralCollaborativeFilteringModel
+AFM = AttentionalFactorizationMachineModel
+DeepFFM = DeepFieldAwareFactorizationMachineModel
+DeepFM = DeepFactorizationMachineModel
+FATDeepFFM = FieldAttentiveDeepFieldAwareFactorizationMachineModel
+FieldAwareNeuralFactorizationMachine = DeepFieldAwareFactorizationMachineModel
+FFM = FieldAwareFactorizationMachineModel
+FM = FactorizationMachineModel
+FMNN = FactorizationMachineSupportedNeuralNetworkModel
+FNFM = FieldAwareNeuralFactorizationMachine
+NCF = NeuralCollaborativeFilteringModel
+NFM = NeuralFactorizationMachineModel
+PAL = PositionBiasAwareLearningFrameworkModel
+PNN = ProductNeuralNetworkModel
+xDeepFM = xDeepFactorizationMachineModel
