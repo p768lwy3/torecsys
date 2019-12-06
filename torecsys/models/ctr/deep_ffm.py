@@ -44,7 +44,6 @@ class DeepFieldAwareFactorizationMachineModel(_CtrModel):
                  num_fields       : int,
                  deep_output_size : int,
                  deep_layer_sizes : List[int],
-                 output_size      : int = 1,
                  ffm_dropout_p    : float = 0.0,
                  deep_dropout_p   : List[float] = None,
                  deep_activation  : Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
@@ -55,9 +54,6 @@ class DeepFieldAwareFactorizationMachineModel(_CtrModel):
             num_fields (int): Number of inputs' fields
             deep_output_size (int): Output size of dense network
             deep_layer_sizes (List[int]): Layer sizes of dense network
-            output_size (int, optional): Output size of model, 
-                i.e. output size of the projection layer. 
-                Defaults to 1.
             ffm_dropout_p (float, optional): Probability of Dropout in FFM. 
                 Defaults to 0.0.
             deep_dropout_p (List[float], optional): Probability of Dropout in dense network. 

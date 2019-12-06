@@ -3,6 +3,7 @@ r"""torecsys.layers.ctr is a sub module of implementation of layers in click thr
 
 from .attentional_factorization_machine import AttentionalFactorizationMachineLayer
 from .bilinear import BilinearNetworkLayer
+from .bilinear_interaction import BilinearInteractionLayer
 from .compose_excitation_network import ComposeExcitationNetworkLayer
 from .compress_interaction_network import CompressInteractionNetworkLayer
 from .cross_network import CrossNetworkLayer
@@ -14,6 +15,8 @@ from .outer_product_network import OuterProductNetworkLayer
 from .wide import WideLayer
 
 # create shorten name of layers
+SqueezeAndExcitationNetworkLayer = ComposeExcitationNetworkLayer
+
 AFMLayer = AttentionalFactorizationMachineLayer
 CENLayer = ComposeExcitationNetworkLayer
 CINLayer = CompressInteractionNetworkLayer
@@ -23,3 +26,4 @@ FFMLayer = FieldAwareFactorizationMachineLayer
 FMLayer = FactorizationMachineLayer
 FullyConnectLayer = MultilayerPerceptronLayer
 FeedForwardLayer = MultilayerPerceptronLayer
+SENETLayer = SqueezeAndExcitationNetworkLayer
