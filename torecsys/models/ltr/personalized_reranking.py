@@ -1,6 +1,7 @@
 from . import _RerankingModel
 import torch
 import torch.nn as nn
+from torecsys.layers import PositionEmbeddingLayer
 
 class PersonalizedRerankingModel(_RerankingModel):
     r"""Model class of Personalized Re-ranking Model (PRM).
@@ -23,25 +24,26 @@ class PersonalizedRerankingModel(_RerankingModel):
 
     """
     def __init__(self,
-                 embed_size    : int,
-                 num_fields    : int,
-                 max_len       : int,
-                 encoding_size : int,
-                 num_heads     : int,
-                 num_layers    : int,
-                 dropout       : float = 0,
+                 embed_size       : int,
+                 max_num_position : int,
+                 encoding_size    : int,
+                 num_heads        : int,
+                 num_layers       : int,
+                 dropout          : float = 0,
+                 use_bias         : bool = True,
                  **kwargs):
         r"""Initialize PersonalizedRerankingModel
         
         Args:
             embed_size (int): Size of embedding tensor
-            num_fields (int): Number of inputs' fields
-            max_len (int): Maximum length of list, i.e. Maximum number of postion
+            max_num_position (int): Maximum length of list, i.e. Maximum number of postion
             encoding_size (int): Size of input of encoding layer
             num_heads (int): Number of heads in Multihead Attention
             num_layers (int): Number of layers of Transformer
             dropout (float, optional): Probability of Dropout in Multihead Attention. 
                 Defaults to 0.
+            use_bias (bool, optional): Boolean flag to use bias.
+                Default to True.
         
         Arguments:
             fnn_activation (Callable[[T], T]): Activation function of feed-foward of Transformer.
@@ -58,7 +60,13 @@ class PersonalizedRerankingModel(_RerankingModel):
 
         # Initialize partial of input layer, i.e. position embedding (pe)
         self.layers["InputLayer"] = nn.ModuleDict()
-        self.layers["InputLayer"]["PositionEmbedding"] = nn.Embedding(max_len, embed_size)
+        if use_bias:
+            self.layers["InputLayer"]["PositionEmbedding"] = PositionEmbeddingLayer(
+                max_num_position = max_num_position
+            )
+        else:
+            self.layers["InputLayer"]["PositionEmbedding"] = None
+        
         self.layers["InputLayer"]["FeedForward"] = nn.Linear(embed_size, encoding_size)
 
         # Initialize encoding layer, i.e. a stack of transformer
@@ -71,7 +79,7 @@ class PersonalizedRerankingModel(_RerankingModel):
             layer["MultiheadAttention"] = multihead
 
             # Initialize batchnorm part in attention of transformer block
-            batchnorm = nn.BatchNorm1d(num_fields)
+            batchnorm = nn.BatchNorm1d(max_num_position)
             layer["AttentionBatchNorm"] = batchnorm
 
             # Initialize feed forward part in FNN of transformer block
@@ -89,7 +97,7 @@ class PersonalizedRerankingModel(_RerankingModel):
             layer["Feedforward"] = feedforward
             
             # Initialize batchnorm part in FFN of transformer block
-            batchnorm = nn.BatchNorm1d(num_fields)
+            batchnorm = nn.BatchNorm1d(max_num_position)
             layer["FNNBatchNorm"] = batchnorm
 
             self.layers["EncodingLayer"]["Transformer_%d" % i] = layer
@@ -99,27 +107,24 @@ class PersonalizedRerankingModel(_RerankingModel):
         self.layers["OutputLayer"]["FeedForward"] = nn.Linear(encoding_size, 1)
         self.layers["OutputLayer"]["Softmax"] = nn.Softmax(dim=1)
 
-    def forward(self, feat_inputs: torch.Tensor, pos_inputs: torch.Tensor) -> torch.Tensor:
+    def forward(self, feat_inputs: torch.Tensor) -> torch.Tensor:
         r"""Forward calculation of PersonalizedRerankingModel
         
         Args:
             feat_inputs (T), shape = (B, L, E), dtype = torch.float: Features tensors.
-            pos_inputs (T), shape = (B, L), dtype = torch.int: Postional tensors.
         
         Returns:
             T, shape = (B, O), dtype = torch.float: Output of PersonalizedRerankingModel.
         """
         # 1) Input Layer Part
-        # Calculate position embedding tensor
-        # inputs: pos_inputs, shape = (B, L)
-        # output: pos_emb, shape = (B, L, E)
-        pos_emb = self.layers["InputLayer"]["PositionEmbedding"](pos_inputs)
-
-        # Add up feat_inputs and pos_emb
+        # Add up feat_inputs and posiotnal embedding
         # inputs: feat_inputs, shape = (B, L, E)
-        # inputs: pos_emb, shape = (B, L, E)
+        # inputs: layers["InputLayer"]["PositionEmbedding"], shape = (B, L, E)
         # output: output, shape = (B, L, E)
-        output = feat_inputs + pos_emb
+        if self.layers["InputLayer"]["PositionEmbedding"] is not None:
+            output = self.layers["InputLayer"]["PositionEmbedding"](feat_inputs)
+        else:
+            output = feat_inputs
         
         # Calculate forwardly with feed-forward layer of input layer
         # inputs: output, shape = (B, L, E)

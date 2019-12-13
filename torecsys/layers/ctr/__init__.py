@@ -2,6 +2,7 @@ r"""torecsys.layers.ctr is a sub module of implementation of layers in click thr
 """
 
 from .attentional_factorization_machine import AttentionalFactorizationMachineLayer
+from .bias_encoding import BiasEncodingLayer
 from .bilinear import BilinearNetworkLayer
 from .bilinear_interaction import BilinearInteractionLayer
 from .compose_excitation_network import ComposeExcitationNetworkLayer
@@ -12,6 +13,8 @@ from .field_aware_factorization_machine import FieldAwareFactorizationMachineLay
 from .inner_product_network import InnerProductNetworkLayer
 from .multilayer_perceptron import MultilayerPerceptronLayer
 from .outer_product_network import OuterProductNetworkLayer
+from .positon_bias_aware_learning_framework import PositionBiasAwareLearningFrameworkLayer
+from .position_embedding import PositionEmbeddingLayer
 from .wide import WideLayer
 
 # create shorten name of layers
@@ -26,4 +29,5 @@ FFMLayer = FieldAwareFactorizationMachineLayer
 FMLayer = FactorizationMachineLayer
 FullyConnectLayer = MultilayerPerceptronLayer
 FeedForwardLayer = MultilayerPerceptronLayer
+PALLayer = PositionBiasAwareLearningFrameworkLayer
 SENETLayer = SqueezeAndExcitationNetworkLayer

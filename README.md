@@ -64,8 +64,11 @@ Thank you for ReadTheDocs!!!
 | [Neural Factorization Machine](torecsys/models/ctr/neural_factorization_machine.py) | [Xiangnan He et al, 2017. Neural Factorization Machines for Sparse Predictive Analytics](https://arxiv.org/abs/1708.05027) | Click Through Rate |
 | [Product Neural Network](torecsys/models/ctr/product_neural_network.py) | [Yanru QU, 2016. Product-based Neural Networks for User Response Prediction](https://arxiv.org/abs/1611.00144) | Click Through Rate |
 | [eXtreme Deep Factorization Machine](torecsys/models/ctr/xdeep_fm.py) | [Jianxun Lian et al, 2018. xDeepFM: Combining Explicit and Implicit Feature Interactions for Recommender Systems](https://arxiv.org/abs/1803.05170.pdf) | Click Through Rate |
+| [Deep Session Interest Network](torecsys/models/ctr/deep_session_interest_network.py) | [Yufei Feng, 2019. Deep Session Interest Network for Click-Through Rate Prediction](https://arxiv.org/abs/1905.06482) | Click Through Rate |
+| [Positon-bias aware learning framework](torecsys/models/ctr/position_bias_aware_learning_framework.py) | [PAL: a position-bias aware learning framework for CTR prediction in live recommender systems](https://dl.acm.org/citation.cfm?id=3347033&dl=ACM&coll=DL) | Click Through Rate |
 | [Matrix Factorization](torecsys/models/emb/matrix_factorization.py) | / | Embedding |
 | [Starspace](torecsys/models/emb/starspace.py)| [Ledell Wu et al, 2017 StarSpace: Embed All The Things!](https://arxiv.org/abs/1709.03856) | Embedding |
+| [Personalized Re-ranking Model](torecsys/models/ltr/personalized_reranking.py) | [Personalized Re-ranking for Recommendation](https://arxiv.org/abs/1904.06813) | Learning to Rank |
 
 ## More About ToR[e]cSys
 

@@ -10,3 +10,5 @@ class _LtrModel(_Model):
 class _RerankingModel(_LtrModel):
     def __init__(self):
         super(_RerankingModel, self).__init__()
+
+from .personalized_reranking import PersonalizedRerankingModel

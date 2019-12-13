@@ -12,6 +12,7 @@ from .deep_and_cross_network import DeepAndCrossNetworkModel
 from .deep_ffm import DeepFieldAwareFactorizationMachineModel
 from .deep_fm import DeepFactorizationMachineModel
 from .deep_mcp import DeepMatchingCorrelationPredictionModel
+from .deep_session_interest_network import DeepSessionInterestNetworkModel
 from .elaborated_entire_space_supervised_multi_task import ElaboratedEntireSpaceSupervisedMultiTaskModel
 from .entire_space_multi_task import EntireSpaceMultiTaskModel
 from .factorization_machine import FactorizationMachineModel
@@ -21,7 +22,7 @@ from .field_aware_factorization_machine import FieldAwareFactorizationMachineMod
 from .logistic_regression import LogisticRegressionModel
 from .neural_collaborative_filtering import NeuralCollaborativeFilteringModel
 from .neural_factorization_machine import NeuralFactorizationMachineModel
-from .position_based_aware_learning_framework import PositionBiasAwareLearningFrameworkModel
+from .position_bias_aware_learning_framework import PositionBiasAwareLearningFrameworkModel
 from .product_neural_network import ProductNeuralNetworkModel
 from .xdeep_fm import xDeepFactorizationMachineModel
 
@@ -29,6 +30,7 @@ from .xdeep_fm import xDeepFactorizationMachineModel
 AFM = AttentionalFactorizationMachineModel
 DeepFFM = DeepFieldAwareFactorizationMachineModel
 DeepFM = DeepFactorizationMachineModel
+DSIN = DeepSessionInterestNetworkModel
 FATDeepFFM = FieldAttentiveDeepFieldAwareFactorizationMachineModel
 FieldAwareNeuralFactorizationMachine = DeepFieldAwareFactorizationMachineModel
 FFM = FieldAwareFactorizationMachineModel
