@@ -89,9 +89,9 @@ class DataFrameToDataset(torch.utils.data.Dataset):
 
         # transform to dictionary or list and return
         if self.use_dict:
-            return {k : [v] for k, v in zip(self.columns, rows)}
+            return {k : [v] if not isinstance(v, list) else v for k, v in zip(self.columns, rows)}
         else:
-            return [[v] for v in rows]
+            return [[v] if not isinstance(v, list) else v for v in rows]
 
 
 @to_be_tested
