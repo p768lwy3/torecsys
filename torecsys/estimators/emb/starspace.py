@@ -5,13 +5,13 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data
 from torecsys.data.negsampling import _NegativeSampler
-from torecsys.functional.regularization import Regularizer
 from torecsys.inputs import InputsWrapper
 from torecsys.inputs.base import SingleIndexEmbedding
+from torecsys.layers.regularization import Regularizer
 from torecsys.losses.ltr.pairwise_ranking_loss import HingeLoss
 from torecsys.losses.ltr.pairwise_ranking_loss import TripletLoss
 from torecsys.models.emb.starspace import StarSpaceModel
-from torecsys.utils.training.ranking_trainer import RankingTrainer
+from torecsys.trainer.ranking_trainer import RankingTrainer
 from typing import Callable
 
 class StarSpaceEstimator(RankingTrainer):

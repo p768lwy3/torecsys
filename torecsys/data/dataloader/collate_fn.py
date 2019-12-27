@@ -9,7 +9,10 @@ import torchvision.transforms as transforms
 from typing import Dict, List, Tuple
 import warnings
 
-__field_type__ = ["values", "single_index", "list_index", "sequence_index", "image_dir", "image_url", "sentence"]
+__field_type__ = [
+    "values", "single_index", "list_index", "sequence_index", "image_dir", "image_url", 
+    "sentence"
+]
 
 def dict_collate_fn(batch_data: List[Dict[str, list]],
                     schema    : Dict[str, Tuple[str, str]],

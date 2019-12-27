@@ -1,11 +1,10 @@
 from . import _CtrModel
-from torecsys.layers import FFMLayer, DNNLayer
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
-from torecsys.utils.utils import combination
 import torch
 import torch.nn as nn
+from torecsys.layers import FFMLayer, DNNLayer
+from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+from torecsys.utils.operations import combination
 from typing import Callable, List
-
 
 class DeepFieldAwareFactorizationMachineModel(_CtrModel):
     r"""Model class of Deep Field-aware Factorization Machine (Deep FFM).

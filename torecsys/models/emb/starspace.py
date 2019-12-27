@@ -1,9 +1,9 @@
 from . import _EmbModel
-from torecsys.layers import StarSpaceLayer
-from torecsys.functional import inner_product_similarity
-from torecsys.utils.decorator import jit_experimental
 from functools import partial
 import torch
+from torecsys.layers import StarSpaceLayer
+from torecsys.utils.decorator import jit_experimental
+from torecsys.utils.operations import inner_product_similarity
 from typing import Callable, Tuple
 
 class StarSpaceModel(_EmbModel):

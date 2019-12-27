@@ -1,8 +1,8 @@
 import math
 import torch
 import torch.nn as nn
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
-from torecsys.utils.utils import combination
+from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+from torecsys.utils.operations import combination
 
 class FieldAllTypeBilinear(nn.Module):
     r"""Applies a bilinear transformation to the incoming data:

@@ -1,4 +1,3 @@
-from torecsys.utils.decorator import to_be_tested
 import numpy as np
 import pandas as pd
 import scipy.sparse as sparse
@@ -6,8 +5,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 import torch
 import torch.utils.data
+from torecsys.utils.decorator import to_be_tested
 from typing import Dict, List, Union, Tuple
-
 
 class NdarrayToDataset(torch.utils.data.Dataset):
     r"""Conver np.ndarray to torch.utils.data.Dataset per row
@@ -41,7 +40,6 @@ class NdarrayToDataset(torch.utils.data.Dataset):
         """
         row = self.data[idx].tolist()
         return [[v] for v in row]
-
 
 class DataFrameToDataset(torch.utils.data.Dataset):
     r"""Convert pd.DataFrame to torch.utils.data.Dataset per row
@@ -93,7 +91,6 @@ class DataFrameToDataset(torch.utils.data.Dataset):
         else:
             return [[v] if not isinstance(v, list) else v for v in rows]
 
-
 @to_be_tested
 class SqlalchemyToDataset(torch.utils.data.Dataset):
     r"""[to be tested] Convert a SQL query to torch.utils.data.Dataset
@@ -133,7 +130,6 @@ class SqlalchemyToDataset(torch.utils.data.Dataset):
         """
         row = self.data.iloc[idx][self.columns].tolist()
         return [[v] for v in row]
-
 
 @to_be_tested
 class CooToDataset(torch.utils.data.Dataset):

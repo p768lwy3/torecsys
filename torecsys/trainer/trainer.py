@@ -1,8 +1,3 @@
-from ..logging import TqdmHandler
-from ..sequential import Sequential
-from torecsys.functional.regularization import Regularizer
-from torecsys.inputs.base import _Inputs
-from torecsys.models import _Model
 from logging import Logger
 from os import path
 from pathlib import Path
@@ -11,6 +6,11 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data
+from torecsys.inputs.base import _Inputs
+from torecsys.layers.regularization import Regularizer
+from torecsys.models import _Model
+from torecsys.models.sequential import Sequential
+from torecsys.utils.logging import TqdmHandler
 from typing import Callable, Dict
 import warnings
 

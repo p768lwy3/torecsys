@@ -33,6 +33,8 @@ def subsampling(data      : Union[np.ndarray, pd.DataFrame],
 
     :Reference:
 
+    #. `Tomas Mikolov et al, 2013. Distributed Representations of Words and Phrases and their Compositionality <https://arxiv.org/abs/1310.4546>`_.
+    
     #. `Omer Levy et al, 2015. Improving Distributional Similarity with Lessons Learned from Word Embeddings <https://levyomer.files.wordpress.com/2015/03/improving-distributional-similarity-tacl-2015.pdf>`_.
 
     """
