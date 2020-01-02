@@ -8,6 +8,7 @@ from .bilinear_interaction import BilinearInteractionLayer
 from .compose_excitation_network import ComposeExcitationNetworkLayer
 from .compress_interaction_network import CompressInteractionNetworkLayer
 from .cross_network import CrossNetworkLayer
+from .dynamic_routing import DynamicRoutingLayer
 from .factorization_machine import FactorizationMachineLayer
 from .field_aware_factorization_machine import FieldAwareFactorizationMachineLayer
 from .inner_product_network import InnerProductNetworkLayer

@@ -1,9 +1,9 @@
 import torch
 import torch.nn as nn
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
+from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
 
 class FactorizationMachineLayer(nn.Module):
-    """Layer class of Factorization Machine (FM). 
+    r"""Layer class of Factorization Machine (FM). 
     
     Factorization Machine is purposed by :title:`Steffen Rendle, 2010`[1] to calculate low 
     dimension cross features interactions of sparse field by using a general form of matrix 
@@ -23,7 +23,7 @@ class FactorizationMachineLayer(nn.Module):
             dropout_p (float, optional): Probability of Dropout in FM. 
                 Defaults to 0.0.
         
-        Arguments:
+        Attributes:
             dropout (torch.nn.Module): Dropout layer.
         """
         # Refer to parent class

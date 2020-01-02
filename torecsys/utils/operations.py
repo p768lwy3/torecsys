@@ -116,3 +116,23 @@ def show_attention(attentions : np.ndarray,
         plt.show()
     else:
         plt.savefig(savedir)
+
+def squash(inputs: torch.Tensor, dim=-1) -> torch.Tensor:
+    r"""apply `squashing` non-linearity to inputs
+    
+    Args:
+        inputs (T): Inputs tensor which is to be applied squashing.
+        dim (int, optional): Dimension to be applied squashing. 
+            Defaults to -1.
+    
+    Returns:
+        T: Squashed tensor.
+    """
+    # calculate squared norm of inputs
+    squared_norm = torch.sum(torch.pow(inputs, 2), dim=dim, keepdim=True)
+
+    # apply `squashing` non-linearity to inputs
+    c_j = (squared_norm / (1 + squared_norm)) * (inputs / (torch.sqrt(squared_norm) + 1e-8))
+
+    return c_j
+    
