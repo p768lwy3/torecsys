@@ -11,11 +11,9 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
+import six
+from subprocess import check_call
 import sys
-
-## import pytorch_sphinx_theme
-## import sphinx_theme
-import edx_theme
 
 sys.path.insert(0, os.path.abspath("../.."))
 
@@ -31,12 +29,12 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.doctest',
     'sphinx.ext.githubpages',
+    'sphinx.ext.ifconfig',
     'sphinx.ext.intersphinx',
     'sphinx.ext.mathjax',
     'sphinx.ext.napoleon',
     'sphinx.ext.todo',
-    'sphinx.ext.viewcode',
-    'sphinx_theme'
+    'sphinx.ext.viewcode'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -67,10 +65,10 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
-todo_include_todos = True
+todo_include_todos = False
 
 # Disable docstring inheritance
 autodoc_inherit_docstrings = True
@@ -91,15 +89,13 @@ autodoc_mock_imports = ["torch", "torchaudio", "torchvision", "torchtext"]
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-## html_theme = 'neo_rtd_theme'
-## html_theme_path = [sphinx_theme.get_html_theme_path('neo_rtd_theme')]
-html_theme = 'edx_theme'
-html_theme_path = [edx_theme.get_html_theme_path()]
-html_favicon = os.path.join(html_theme_path[0], 'edx_theme', 'static', 'css', 'favicon.ico')
+html_theme = 'nature'
 
-html_theme_options = {
-    ## 'canonical_url': 'https://torecsys.readthedocs.io/en/latest/',
-}
+# Theme options are theme-specific and customize the look and feel of a theme
+# further.  For a list of options available for each theme, see the
+# documentation.
+#
+# html_theme_options = {}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -109,18 +105,32 @@ html_short_title = "torecsys documentation"
 html_baseurl = "https://torecsys.readthedocs.io/"
 html_static_path = ['_static']
 html_logo = "_static/img/pytorch-logo-dark.svg"
-html_favicon = "_static/img/pytorch-logo-flame.svg"
-html_sidebars = {
-    "**": [
-        "index.html", "search.html"
-    ]
-}
+html_favicon = "_static/img/pytorch-logo-flame.ico"
 
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/', None),
-    'numpy': ('https://docs.scipy.org/doc/numpy/', None),
-    'pytorch': ('https://pytorch.org/docs/', None)
+    'python': ('https://docs.python.org/3.7', None),
+    'numpy': ('https://docs.scipy.org/doc/numpy/', None)
 }
+
+def on_init(app):  # pylint: disable=unused-argument
+    """
+    Run sphinx-apidoc after Sphinx initialization.
+    Read the Docs won't run tox or custom shell commands, so we need this to
+    avoid checking in the generated reStructuredText files.
+    """
+    docs_path = os.path.abspath(os.path.dirname(__file__))
+    root_path = os.path.abspath(os.path.join(docs_path, '../..'))
+    apidoc_path = 'sphinx-apidoc'
+    if hasattr(sys, 'real_prefix'):  # Check to see if we are in a virtualenv
+        # If we are, assemble the path manually
+        bin_path = os.path.abspath(os.path.join(sys.prefix, 'bin'))
+        apidoc_path = os.path.join(bin_path, apidoc_path)
+    check_call([apidoc_path, '-o', docs_path,  os.path.join(root_path, 'torecsys')])
+
+def setup(app):
+    """Sphinx extension: run sphinx-apidoc."""
+    event = 'builder-inited' if six.PY3 else b'builder-inited'
+    app.connect(event, on_init)

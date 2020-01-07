@@ -13,11 +13,11 @@ class FactorizationMachineSupportedNeuralNetworkModel(_CtrModel):
     Network, with the following calculation: 
     
     #. Calculate features interactions by factorization machine: 
-    :math:`y_{FM} = \text{Sigmoid} ( w_{0} + \sum_{i=1}^{N} w_{i} x_{i} + \sum_{i=1}^{N} \sum_{j=i+1}^{N} <v_{i}, v_{j}> x_{i} x_{j} )`_.
+    :math:`y_{FM} = \text{Sigmoid} ( w_{0} + \sum_{i=1}^{N} w_{i} x_{i} + \sum_{i=1}^{N} \sum_{j=i+1}^{N} <v_{i}, v_{j}> x_{i} x_{j} )`
 
     #. Feed interactions' representation to dense network: 
-    :math:`y_{i} = \text{Activation} ( w_{i} y_{i - 1} + b_{i} )`_., where 
-    :math:`y_{0} = y_{FM}`_. for the inputs of the first layer in dense network.
+    :math:`y_{i} = \text{Activation} ( w_{i} y_{i - 1} + b_{i} )`, where 
+    :math:`y_{0} = y_{FM}` for the inputs of the first layer in dense network.
 
     :Reference:
 

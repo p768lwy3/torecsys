@@ -6,7 +6,7 @@ from typing import Callable, List
 class CompressInteractionNetworkLayer(nn.Module):
     r"""Layer class of Compress Interation Network (CIN).
     
-    Compress Interation Network was used in xDeepFM :title:`Jianxun Lian et al, 2018`[1]. 
+    Compress Interation Network was used in xDeepFM by Jianxun Lian et al, 2018. 
     
     It compress cross-features tensors calculated by element-wise cross features interactions 
     with outer product by 1D convalution with a :math:`1 * 1` kernel.
@@ -127,7 +127,9 @@ class CompressInteractionNetworkLayer(nn.Module):
             # inputs: x0, shape = (B, E, Nx = N, H = 1)
             # inputs: x1, shape = (B, E, H = 1, Ny = N) 
             # output: out_prod, shape = (B, E, Nx = N, Ny = N)
-            out_prod = torch.matmul(x0, xi)
+            ## out_prod = torch.matmul(x0, xi)
+            out_prod = torch.einsum("ijkn,ijnh->ijkh", [x0.rename(None), x1.rename(None)])
+            out_prod.names = ("B", "E", "Nx", "Ny")
             
             # Reshape out_prod
             # inputs: out_prod, shape = (B, E, Nx = N, Ny = N)

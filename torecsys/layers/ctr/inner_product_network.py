@@ -5,7 +5,7 @@ from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_na
 class InnerProductNetworkLayer(nn.Module):
     r"""Layer class of Inner Product Network.
     
-    Inner Product Network is in Product based Neural Network :title:`Yanru Qu et at, 2016`[1], 
+    Inner Product Network is an option in Product based Neural Network by Yanru Qu et at, 2016, 
     by calculating inner product between embedded tensors element-wisely to get cross features 
     interactions
     

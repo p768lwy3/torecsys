@@ -9,7 +9,7 @@ class NeuralCollaborativeFilteringModel(_CtrModel):
     r"""Model class of Neural Collaborative Filtering (NCF).
     
     Neural Collaborative Filtering is a model that concatenate dense network and generalized 
-    matrix factorization, i.e. :math:`y_{mf}(x) = \sum_{v=1}^{k}(x_{u}^{v} * x_{j}^{v})`_.
+    matrix factorization, i.e. :math:`y_{mf}(x) = \sum_{v=1}^{k}(x_{u}^{v} * x_{j}^{v})`
 
     :Reference:
 

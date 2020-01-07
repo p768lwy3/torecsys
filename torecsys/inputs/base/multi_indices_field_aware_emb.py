@@ -68,8 +68,8 @@ class MultiIndicesFieldAwareEmbedding(_Inputs):
             inputs (T), shape = (B, N), dtype = torch.long: Tensor of indices in inputs fields.
         
         Returns:
-            T, (B, N * N, E), dtype = torch.float: Embedded Inputs: :math:`\bm{E} = \bm{\Big[} e_{\text{index}_{i}, \text{feat}_{j}}  
-                \footnotesize{\text{, for} \ i = \text{i-th field} \ \text{and} \ j = \text{j-th field}} \bm{\Big]}`.
+            T, (B, N * N, E), dtype = torch.float: Embedded Inputs: 
+                :math:`\bm{E} = \bm{\Big[} e_{\text{index}_{i}, \text{feat}_{j}} \footnotesize{\text{, for} \ i = \text{i-th field} \ \text{and} \ j = \text{j-th field}} \bm{\Big]}`.
         """
         # set offset to adjust values of inputs to fit the indices of embedding tensors
         inputs = inputs + self.offsets

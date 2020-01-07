@@ -12,6 +12,7 @@ from .dynamic_routing import DynamicRoutingLayer
 from .factorization_machine import FactorizationMachineLayer
 from .field_aware_factorization_machine import FieldAwareFactorizationMachineLayer
 from .inner_product_network import InnerProductNetworkLayer
+from .mixture_of_experts import MixtureOfExpertsLayer
 from .multilayer_perceptron import MultilayerPerceptronLayer
 from .outer_product_network import OuterProductNetworkLayer
 from .positon_bias_aware_learning_framework import PositionBiasAwareLearningFrameworkLayer
@@ -30,5 +31,7 @@ FFMLayer = FieldAwareFactorizationMachineLayer
 FMLayer = FactorizationMachineLayer
 FullyConnectLayer = MultilayerPerceptronLayer
 FeedForwardLayer = MultilayerPerceptronLayer
+MOELayer = MixtureOfExpertsLayer
 PALLayer = PositionBiasAwareLearningFrameworkLayer
 SENETLayer = SqueezeAndExcitationNetworkLayer
+
