@@ -1,8 +1,3 @@
-from ..logging import TqdmHandler
-from ..sequential import Sequential
-from torecsys.functional.regularization import Regularizer
-from torecsys.inputs.base import _Inputs
-from torecsys.models import _Model
 from logging import Logger
 from os import path
 from pathlib import Path
@@ -11,24 +6,27 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data
+from torecsys.inputs.base import _Inputs
+from torecsys.layers.regularization import Regularizer
+from torecsys.models import _Model
+from torecsys.models.sequential import Sequential
+from torecsys.utils.logging import TqdmHandler
 from typing import Callable, Dict
 import warnings
 
 # ignore import warnings of the below packages
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
-    # from tensorboardX import SummaryWriter
     from torch.utils.tensorboard import SummaryWriter
     from tqdm.autonotebook import tqdm
 
 class Trainer(object):
-    r"""Object for training a sequential of transformation and embedding of inputs and model of 
-    click through rate prediction in a more flexible way.
+    r"""Trainer object to train model, including trs.inputs.inputs_wrapper and trs.model.
     """
     def __init__(self,
                  inputs_wrapper : _Inputs,
                  model          : _Model,
-                 labels_name    : str = "labels",
+                 labels_name    : str,
                  regularizer    : callable = Regularizer(0.1, 2),
                  loss           : callable = nn.MSELoss(),
                  optimizer      : type = optim.AdamW,
@@ -38,42 +36,41 @@ class Trainer(object):
                  log_dir        : str = "logdir", 
                  use_jit        : bool = False,
                  **kwargs):
-        r"""Initialize trainer object.
+        r"""Initialize Trainer.
         
         Args:
-            inputs_wrapper (_Inputs): Defined object of trs.inputs.InputWrapper, where its outputs' \
-                fields should be equal to the model forward's arguments.
-            model (_Model): Object of nn.Module, which is allowed to calculate foward propagation 
-                and gradients.
-            labels_name (str, optional): Name of label (i.e. target variable). 
-                Defaults to "labels".
-            regularizer (callable, optional): Callable to calculate regularization. 
+            inputs_wrapper (_Inputs): Input object. 
+                Required: outputs' fields = model's input.
+            model (_Model): Model object. 
+            labels_name (str, optional): Label's name (i.e. target variable).
+            regularizer (callable, optional): Regularization function. 
                 Defaults to Regularizer(0.1, 2).
-            loss (callable, optional): Callable to calculate loss. 
+            loss (callable, optional): Loss function. 
                 Defaults to nn.MSELoss.
-            optimizer (type, optional): Object to optimize the model. 
+            optimizer (type, optional): Optimization function. 
                 Defaults to optim.AdamW.
             epochs (int, optional): Number of training epochs. 
                 Defaults to 10.
-            verboses (int, optional): Mode of logging. 0 = slient, 1 = progress bar, 2 = tensorboard.
+            verboses (int, optional): Logging's mode, 
+                where 0 = slient, 1 = progress bar, 2 = tensorboard.
                 Defaults to 2.
             log_step (int, optional): Number of global steps for each log. 
                 Defaults to 500.
             log_dir (str, optional): Directory to store the log of tensorboard. 
                 Defaults to "logdir".
-            use_jit (bool, optional): Whether jit.trace is applyed to the sequential or not.
-                In experimental.
+            use_jit (bool, optional): [In development] Boolean flag to enable torch.jit.trace.
                 Defaults to False.
         
-        Kawrgs:
-            example_inputs (Dict[str, T]): Example inputs for jit.trace to trace the sequential.
+        Arguments:
+            example_inputs (Dict[str, T]): Example inputs for jit.trace to trace the 
+                sequential.
         
         Attributes:
             sequential (Union[nn.modules, jit.TopLevelTracedModule]): Sequential of inputs wrapper 
                 and model, which can do the forward calculation directly with the batch inputs.
-            labels_name (str): Name of label (i.e. target variable).
-            regularizer (callable): Callable to calculate regularization.
-            loss (callable): Callable to calculate loss.
+            labels_name (str): Label's name (i.e. target variable).
+            regularizer (callable): Regularization function. 
+            loss (callable): Loss function. 
             parameters (List[nn.Paramter]): List of trainable tensors of parameters.
             optimizer (class): Object to optimize model.
             epochs (int): Number of training epochs.
@@ -83,7 +80,8 @@ class Trainer(object):
             num_params (int): Total number of trainable parameters in the sequential.
             logger (class): Object of logging.Logger to log the process.
             log_dir (str):  Directory to store the log of tensorboard.
-            writer (class): Object of tensorboard.writer.SummaryWriter to log the process in tensorboard.
+            writer (class): Object of tensorboard.writer.SummaryWriter to log the process in 
+                tensorboard.
         """
         # initialize sequential by inputs wrapper and mdel
         if use_jit:

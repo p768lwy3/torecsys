@@ -30,7 +30,7 @@ class OuterProductNetworkLayer(nn.Module):
         Attributes:
             rowidx (T), dtype = torch.long: 1st indices to index inputs in 2nd dimension for inner product.
             colidx (T), dtype = torch.long: 2nd indices to index inputs in 2nd dimension for inner product.
-            kernel (torch.nn.Parameter): Parameter of kernel in outer product network.
+            kernel (nn.Parameter): Parameter of kernel in outer product network.
             kernel_type (str): Type of kernel to compress outer-product.
         
         Raises:
@@ -67,7 +67,7 @@ class OuterProductNetworkLayer(nn.Module):
         self.kernel_type = kernel_type
     
     def extra_repr(self) -> str:
-        """Return information in print-statement of layer.
+        r"""Return information in print-statement of layer.
         
         Returns:
             str: Information of print-statement of layer.

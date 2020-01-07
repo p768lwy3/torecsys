@@ -96,4 +96,3 @@ class NeuralFactorizationMachineModel(_CtrModel):
         outputs = outputs.rename(None)
 
         return outputs
-        

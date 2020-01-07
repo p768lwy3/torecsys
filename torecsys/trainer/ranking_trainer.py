@@ -1,14 +1,14 @@
 from .trainer import Trainer
-from torecsys.data.negsampling import _NegativeSampler
-from torecsys.functional.regularization import Regularizer
-from torecsys.inputs.base import _Inputs
-from torecsys.losses.ltr import _RankingLoss
-from torecsys.losses.ltr.pairwise_ranking_loss import BayesianPersonalizedRankingLoss
-from torecsys.models import _Model
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data
+from torecsys.data.negsampling import _NegativeSampler
+from torecsys.inputs.base import _Inputs
+from torecsys.layers.regularization import Regularizer
+from torecsys.losses.ltr import _RankingLoss
+from torecsys.losses.ltr.pairwise_ranking_loss import BayesianPersonalizedRankingLoss
+from torecsys.models import _Model
 from typing import Dict
 import warnings
 

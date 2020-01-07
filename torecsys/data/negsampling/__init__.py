@@ -1,19 +1,20 @@
-r"""torecsys.data.negsampling is a module of negative sampling algorithms, e.g. MultinomialSampler, UniformSampler
+r"""torecsys.data.negsampling is a module of negative sampling algorithms.
 """
-
 import torch
 from typing import Dict
 
 class _NegativeSampler(object):
-    r"""Base Class of Negative Sampler
+    r"""Base class of negative sampler. Negative sampler will be called by RankingTrainer and 
+    generate negative samples for each iteration to calculate pairwise ranking loss.
     """
     def __init__(self, 
                  kwargs_dict: Dict[str, Dict[str, int]]):
-        r"""Initialize a Negative sampler which draw samples with uniform distribution with replacement
+        r"""Initialize _NegativeSampler.
         
         Args:
-            kwargs_dict (Dict[str, Dict[str, int]]): A dictionary, where key is field's name and value, including low and high, 
-                is a dictionary, where key is name of argument and value is value of argument.
+            kwargs_dict (Dict[str, Dict[str, int]]): A dictionary, where key is field's name 
+                and value, including low and high, is a dictionary, where key is name of 
+                argument and value is value of argument.
         """
         self.kwargs_dict = kwargs_dict
         self.dict_size = {k: self._getlen(v) for k, v in kwargs_dict.items()}

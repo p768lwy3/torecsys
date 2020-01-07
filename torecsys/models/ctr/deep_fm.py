@@ -18,6 +18,7 @@ class DeepFactorizationMachineModel(_CtrModel):
     :Reference:
 
     #. `Huifeng Guo et al, 2017. DeepFM: A Factorization-Machine based Neural Network for CTR Prediction <https://arxiv.org/abs/1703.04247>`_.
+    
     """
     @no_jit_experimental_by_namedtensor
     def __init__(self, 

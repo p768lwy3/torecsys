@@ -1,8 +1,9 @@
 from . import _Inputs
+from collections import namedtuple
 from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 import torch
 import torch.nn as nn
-
+from typing import List
 
 class SingleIndexEmbedding(_Inputs):
     r"""Base Inputs class for embedding a single index of a input field.
@@ -27,6 +28,7 @@ class SingleIndexEmbedding(_Inputs):
         Arguments:
             length (int): Size of embedding tensor.
             embedding (torch.nn.Module): Embedding layer.
+            schema (namedtuple): List of string of field names to be embedded.
         """
         # refer to parent class
         super(SingleIndexEmbedding, self).__init__()

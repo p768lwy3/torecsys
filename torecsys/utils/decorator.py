@@ -1,9 +1,8 @@
-r"""torecsys.utils.logging.decorator is a sub module of python-decorator functions to tag / label features of functions
+r"""torecsys.utils.logging.decorator is a sub module of utils including decorator functions 
+to tag features of functions.
 """
-
 from functools import wraps
 import warnings
-
 
 def to_be_tested(func: callable):
     r"""a decorator to write a message in a layer or a estimator where they have not been tested
@@ -16,7 +15,6 @@ def to_be_tested(func: callable):
         warnings.warn("This function is in developing.", UserWarning)
         return func(*args, **kwargs)
     return wrapper
-
 
 def no_jit_experimental(func: callable):
     r"""a decorator to write a message in a layer or a estimator where they have been checked 
@@ -31,7 +29,6 @@ def no_jit_experimental(func: callable):
         return func(*args, **kwargs)
     return wrapper
 
-
 def no_jit_experimental_by_namedtensor(func: callable):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -42,7 +39,6 @@ def no_jit_experimental_by_namedtensor(func: callable):
         )
         return func(*args, **kwargs)
     return wrapper
-
 
 def jit_experimental(func: callable):
     r"""a decorator to write a message in a layer or a estimator where they have been checked 

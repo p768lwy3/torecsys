@@ -63,24 +63,23 @@ class xDeepFactorizationMachineModel(_CtrModel):
 
         # initialize cin layer
         self.cin = CINLayer(
-            embed_size = embed_size,
-            num_fields = num_fields,
-            output_size = 1,
-            layer_sizes = cin_layer_sizes,
-            is_direct = cin_is_direct,
-            use_bias = cin_use_bias,
+            embed_size    = embed_size,
+            num_fields    = num_fields,
+            output_size   = 1,
+            layer_sizes   = cin_layer_sizes,
+            is_direct     = cin_is_direct,
+            use_bias      = cin_use_bias,
             use_batchnorm = cin_use_batchnorm,
-            activation = cin_activation
+            activation    = cin_activation
         )
 
         # initialize deep layer
         self.deep = DNNLayer(
-            output_size=1,
-            layer_sizes=deep_layer_sizes,
-            embed_size=embed_size,
-            num_fields=num_fields,
-            dropout_p=deep_dropout_p,
-            activation=deep_activation
+            inputs_size = embed_size * num_fields,
+            output_size = 1,
+            layer_sizes = deep_layer_sizes,
+            dropout_p   = deep_dropout_p,
+            activation  = deep_activation
         )
 
         # initialize bias variable
@@ -97,13 +96,31 @@ class xDeepFactorizationMachineModel(_CtrModel):
         Returns:
             T, shape = (B, 1), dtype = torch.float: Output of xDeepFactorizationMachineModel.
         """
+        # Reshape inputs of dense layer
+        # inputs: feat_inputs, shape = (B, N, E) 
+        # output: deep_inputs, shape = (B, N * E)
+        deep_inputs = emb_inputs.flatten(["N", "E"], "E")
 
-        # forward calculation of cin layer and deep layer
-        cin_out = self.cin(emb_inputs).squeeze().sum(dim=1, keepdim=True)
-        deep_out = self.deep(emb_inputs).squeeze().sum(dim=1, keepdim=True)
-
-        # sum all values as outputs
-        outputs = feat_inputs.squeeze().sum(dim=1, keepdim=True)
-        outputs = outputs + cin_out + deep_out + self.bias
+        # Forward calculation of cin layer 
+        # inputs: emb_inputs, shape = (B, N, E)
+        # output: cin_out, shape = (B, O = 1)
+        cin_out = self.cin(emb_inputs)
+        
+        # Forward calculation of deep layer
+        # inputs: deep_inputs, shape = (B, N * E)
+        # output: deep_out, shape = (B, O = 1)
+        deep_out = self.deep(deep_inputs)
+        
+        # Aggregate feat_inputs
+        # inputs: feat_inputs, shape = (B, N, 1)
+        # output: feat_output, shape = (B, O = 1)
+        feat_output = feat_inputs.sum(dim="N")
+        feat_output.names = ("B", "O")
+        
+        # Add up values
+        outputs = feat_output + cin_out + deep_out + self.bias
+        
+        # Drop names of outputs, since autograd doesn't support NamedTensor yet.
+        outputs = outputs.rename(None)
 
         return outputs

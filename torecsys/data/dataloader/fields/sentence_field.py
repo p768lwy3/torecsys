@@ -1,11 +1,11 @@
 from collections import Counter
 import torch
 import torch.nn.utils.rnn as rnn_utils
+from torecsys.utils.decorator import to_be_tested
 from typing import Callable, List, Tuple
 import warnings
 
-
-# to be tested
+@to_be_tested
 class SentenceField(object):
     r"""SentenceField is a field for collate_fn of DataLoader to parse Senetence String"""
     def __init__(self, 
@@ -71,7 +71,7 @@ class SentenceField(object):
         # else update vocab_count
         appended = 0
         updated = 0
-        for k, v in counter.items():
+        for k, v in cnts.items():
             if k not in self.vocab_dict and v > self.threshold:
                 # append to vocab_dict and vocab_count
                 max_id += 1
@@ -84,6 +84,7 @@ class SentenceField(object):
                 updated += 1
             else:
                 continue
+            
         print("total number of vocabulary added : %s." % (appended))
         print("total number of vocabulary updated : %s." % (updated))
 

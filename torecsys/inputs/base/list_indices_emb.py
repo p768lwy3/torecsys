@@ -1,12 +1,11 @@
 from . import _Inputs
-from torecsys.functional import show_attention, dummy_attention
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental, no_jit_experimental_by_namedtensor
 from functools import partial
 import numpy as np
 import torch
 import torch.nn as nn
+from torecsys.utils.decorator import no_jit_experimental, no_jit_experimental_by_namedtensor
+from torecsys.utils.operations import dummy_attention, show_attention
 from typing import Tuple
-
 
 class ListIndicesEmbedding(_Inputs):
     r"""Base Inputs class for embedding of list of indices without order, which embed the 

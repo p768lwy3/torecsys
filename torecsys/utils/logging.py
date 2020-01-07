@@ -1,6 +1,5 @@
-r"""torecsys.utils.tqdm is a sub module of utils for logging during training
+r"""torecsys.utils.tqdm is a sub module of utils for logging during training.
 """
-
 import logging
 import warnings
 

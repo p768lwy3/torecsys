@@ -85,4 +85,44 @@ def mean_average_recall_at_k(act  : torch.Tensor,
     
     ## scores.names = ("B", "O")
     return (scores / act.size("O")).sum()
+
+def discounted_cumulative_gain(y         : torch.Tensor, 
+                               k         : int = 10, 
+                               gain_type : str = "exp2"):
+    # Calculate cumulative gain
+    y_partial = y[:k]
+    if gain_type == "exp2":
+        gains = torch.pow(y_partial, 2.0) - 1.0
+    elif gain_type == "identity":
+        gains = y_partial
+    else:
+        raise ValueError("gain type only allow \"exp2\" or \"identity\".")
+    
+    # Calculate discount
+    ranges = torch.arange(1, k + 1, 1).float()
+    discount = torch.log2(ranges + 1)
+    dcg = torch.sum(torch.div(gains, discount))
+
+    return dcg
+
+def ideal_discounted_cumulative_gain(y         : torch.Tensor, 
+                                     k         : int = 10, 
+                                     gain_type : str = "exp2"):
+    # Sort y to an ideal case 
+    y_sorted = torch.sort(y, descending=True).values
+
+    # Calculate dcg of y_sorted
+    return discounted_cumulative_gain(y_sorted, k, gain_type)
+
+def normalized_discounted_cumulative_gain(y         : torch.Tensor, 
+                                          k         : int = 10, 
+                                          gain_type : str = "exp2"):
+    # Calculate dcg of y
+    dcg = discounted_cumulative_gain(y, k, gain_type)
+
+    # Calculate idcg of y
+    idcg = ideal_discounted_cumulative_gain(y, k, gain_type)
+
+    # Calculate ndcg of y
+    return dcg / idcg
     

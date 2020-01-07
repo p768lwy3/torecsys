@@ -26,7 +26,8 @@ class ValueInputs(_Inputs):
         super(ValueInputs, self).__init__()
 
         # bind length to length of inp_fields 
-        self.length = num_fields
+        self.num_fields = num_fields
+        self.length = 1
     
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         r"""Forward calculation of ValueInputs.
@@ -35,7 +36,11 @@ class ValueInputs(_Inputs):
             inputs (T), shape = (B, N): Tensor of values in input fields.
         
         Returns:
-            T, shape = (B, N): Outputs of ValueInputs
+            T, shape = (B, 1, N): Outputs of ValueInputs
         """
-        inputs.names = ("B", "E")
+        # reshape from dim 2 to dim 3
+        if inputs.dim() == 2:
+            inputs = inputs.unsqueeze(dim=-1)
+
+        inputs.names = ("B", "N", "E")
         return inputs

@@ -54,7 +54,7 @@ class MultiIndicesEmbedding(_Inputs):
         self.offsets = torch.Tensor((0, *np.cumsum(field_sizes)[:-1])).long()
         self.offsets.names = ("N", )
         self.offsets = self.offsets.unflatten("N", [("B", 1), ("N", self.offsets.size("N"))])
-        self.offsets.to(device)
+        self.offsets = self.offsets.to(device)
 
         # bind length to embed_size * length of field_sizes (i.e. num_fields) if flatten is True
         if flatten:

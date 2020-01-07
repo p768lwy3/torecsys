@@ -36,8 +36,8 @@ def download_data(downloadable_data: str,
 
 def download_ml_data(size : str,
                      dir  : str = None):
-    r"""Download movielens data from grouplens to directory ../sample_data/,
-    and the source url of movielens is : https://grouplens.org/datasets/movielens/
+    r"""Download movielens data from grouplens.
+    Source: https://grouplens.org/datasets/movielens/.
     
     Args:
         size (str): Movielens dataset size, allows: 20m, latest-small, latest, 100k, 1m, 10m
@@ -94,6 +94,57 @@ def download_ml_data(size : str,
     print("Finished: file %s is downloaded to the directory: %s" % 
           (unzip_folderdir, os.path.join(samples_dir, unzip_folderdir)))
 
+def download_criteo_data(dir: str = None):
+    r"""Download criteo data from Critel AI Lab.
+    Source: https://labs.criteo.com/2014/02/download-kaggle-display-advertising-challenge-dataset/.
+    
+    Args:
+        dir (str, optional): Directory to save downloaded data. Defaults to None.
+    """
+    # set directory name and create directory if not exist
+    if dir is None:
+        script_dir = os.path.dirname(__file__)
+        samples_dir = os.path.join(script_dir, "sample_data")
+    else:
+        samples_dir = dir
+    
+    Path(samples_dir).mkdir(parents=True, exist_ok=True)
+
+    # set file name to download data
+    unzip_folderdir = "dac"
+    zip_filename = "dac.tar.gz"
+    zip_fileurl = "https://s3-eu-west-1.amazonaws.com/kaggle-display-advertising-challenge-dataset/dac.tar.gz"
+    
+    zip_fileloc = os.path.join(samples_dir, zip_filename)
+
+    # streaming to iterate over the response
+    r = requests.get(zip_fileurl, stream=True)
+    
+    # total size in bytes
+    total_size = int(r.headers.get("content-length", 0))
+    block_size = 1024
+    wrote = 0
+
+    # save the file
+    with open(zip_fileloc, "wb") as f:
+        for data in tqdm(r.iter_content(block_size), 
+                         total=math.ceil(total_size / block_size),
+                         unit="KB",
+                         unit_scale=True):
+            wrote += len(data)
+            f.write(data)
+    
+    if total_size !=0 and wrote != total_size:
+        raise RuntimeError("something went wrong.")
+        
+    # unzip and remove the file
+    with zipfile.ZipFile(zip_fileloc, "r") as zip_file:
+        zip_file.extractall(samples_dir)
+    os.remove(zip_fileloc)
+
+    print("Finished: file %s is downloaded to the directory: %s" % 
+          (unzip_folderdir, os.path.join(samples_dir, unzip_folderdir)))
+
 def download_bx_data(dir : str = None):
     r"""Download Book-Crossing data to directory ../sample_data/,
     and the source url is : http://www2.informatik.uni-freiburg.de/~cziegler/BX/
@@ -120,6 +171,7 @@ def download_bx_data(dir : str = None):
     # set file name to download data
     zip_filename = "bx.zip"
     zip_fileurl = "http://www2.informatik.uni-freiburg.de/~cziegler/BX/BX-CSV-Dump.zip"
+    
     zip_fileloc = os.path.join(samples_dir, zip_filename)
 
     # streaming to iterate over the response
