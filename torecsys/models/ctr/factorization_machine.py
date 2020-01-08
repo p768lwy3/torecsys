@@ -40,7 +40,8 @@ class FactorizationMachineModel(_CtrModel):
         self.fm = FMLayer(dropout_p)
         
         # initialize bias parameter
-        self.bias = nn.Parameter(torch.zeros((1, 1), names=("B", "O")))
+        # self.bias = nn.Parameter(torch.zeros((1, 1), names=("B", "O")))
+        self.bias = nn.Parameter(torch.zeros((1, 1)))
         nn.init.uniform_(self.bias.data)
     
     def forward(self, feat_inputs: torch.Tensor, emb_inputs: torch.Tensor) -> torch.Tensor:
