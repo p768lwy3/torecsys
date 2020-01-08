@@ -368,6 +368,11 @@ class Trainer(object):
             outputs = self.sequential(batch_inputs)
         return outputs
     
+    def summary(self):
+        r"""Summary model to a report
+        """
+        return
+    
     def save(self, save_path: str, file_name: str):
         r"""Save the state dict of model.
         
