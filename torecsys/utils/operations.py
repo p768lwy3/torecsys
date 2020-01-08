@@ -75,6 +75,40 @@ def regularize(parametes    : List[Tuple[str, nn.Parameter]],
     
     return loss * weight_decay
 
+def replicate_tensor(tensor: torch.Tensor, size: int, dim: int) -> torch.Tensor:
+    r"""replicate tensor by batch / by row
+    
+    Args:
+        tensor (T), shape = (B, ...): Tensor to be replicated.
+        size (int): Size to replicate tensor.
+        dim (int): Dimension to replicate tensor. 
+            If dim = 0, replicated by batch, else replicate by row.
+    
+    Returns:
+        T, shape = (B * size, ...): Replicated Tensor.
+    """
+    # get shape of tensor from pos_samples
+    # inputs: tensor, shape = (B, ...)
+    # output: batch_size, int, values = B
+    # output: tensor_shape, tuple, values = (...)
+    batch_size = tensor.size(0)
+    tensor_shape = tuple(tensor.size()[1:])
+
+    # unsqueeze by dim 1 and repeat n-times by dim 1
+    # inputs: tensor, shape = (B, ...)
+    # output: repeat_tensor, shape = (B, size, ...) / (1, B * size, ...)
+    # TODO. update repeat_size by dim
+    repeat_size = (1, size) + tuple([1 for _ in range(len(tensor_shape))])
+    repeat_tensor = tensor.unsqueeze(dim).repeat(repeat_size)
+
+    # reshape repeat_tensor to (batch_size * size, ...)
+    # inputs: repeat_tensor, shape = (B, size, ...) / (1, B * size, ...)
+    # output: repeat_tensor, shape = (B * size, ...)
+    reshape_size = (batch_size * size, ) + tensor_shape
+    repeat_tensor = repeat_tensor.view(reshape_size)
+
+    return repeat_tensor
+
 def show_attention(attentions : np.ndarray, 
                    xaxis      : Union[list, str] = None, 
                    yaxis      : Union[list, str] = None, 
