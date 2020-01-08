@@ -85,7 +85,7 @@ def load_criteo_data(dir: str = None) -> Tuple[pd.DataFrame, pd.DataFrame]:
     return train_file, test_file
 
 def load_bx_data(dir   : str = None,
-                 force : bool = False) -> List[pd.DataFrame]:
+                 force : bool = False) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     r"""Load Book-Crossing dataset from ./sample_data/bx to pd.DataFrame.
     
     Args:
@@ -98,7 +98,7 @@ def load_bx_data(dir   : str = None,
         ValueError: when dataset cannot be found in given directory
     
     Returns:
-        List[pd.DataFrame]: Book-Crossing dataset
+        Tuple[df, df, df]: Book-Crossing dataset
     """
     # set directory name of the downloaded data
     if dir is None:
@@ -132,5 +132,5 @@ def load_bx_data(dir   : str = None,
 
 def load_jester_data(label : str,
                      dir   : str = None,
-                     force : bool = False) -> List[pd.DataFrame]:
+                     force : bool = False) -> Tuple[pd.DataFrame]:
     return 

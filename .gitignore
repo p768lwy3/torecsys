@@ -106,5 +106,7 @@ venv.bak/
 # dir
 logdir/
 
-# Untitled.ipynb
+# developing resource
 Untitled.ipynb
+develop.ipynb
+dataset.csv
