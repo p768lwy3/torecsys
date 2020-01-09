@@ -113,10 +113,10 @@ class RankingTrainer(Trainer):
         Args:
             pos_inputs (Dict[str, T]): Dictionary of tensors of positive samples, where its keys 
                 are the name of inputs' fields in inputs wrapper, and its values are tensors of 
-                those fields, with shape = (B, N, E).
+                those fields, with shape = (B, N, ...).
             neg_inputs (Dict[str, T]): Dictionary of tensors of negative samples, where its keys 
                 are the name of inputs' fields in inputs wrapper, and its values are tensors of 
-                those fields, with shape = (B * Nneg, N, E).
+                those fields, with shape = (B * num neg, N, ...).
         
         Returns:
             T: Loss of the model.
@@ -144,7 +144,7 @@ class RankingTrainer(Trainer):
         # split outputs into pos_outputs and neg_outputs
         pos_outputs, neg_outputs = outputs.view(batch_size, -1, 1).split((1, num_samples), dim=1)
         pos_outputs = pos_outputs.squeeze(-1)
-        neg_outputs = neg_outputs.squeeze()
+        neg_outputs = neg_outputs.squeeze(-1)
         
         # calculate loss and regularized loss
         loss = self.loss(pos_outputs, neg_outputs)
@@ -204,7 +204,7 @@ class RankingTrainer(Trainer):
                 # log for each y steps
                 if global_step % self.log_step == 0:
                     if self.verboses >= 1:
-                        self.logger.debug("step avg loss at step %d of epoch %d : %.4f" % (i, epoch, steps_loss / self.log_step))
+                        self.logger.debug("step avg loss at step %d of epoch %d : %.4f" % (i, epoch + 1, steps_loss / self.log_step))
                     if self.verboses >= 2:
                         self.writer.add_scalar("training/steps_avg_loss", steps_loss / self.log_step, global_step=global_step)    
                     steps_loss = 0.0
