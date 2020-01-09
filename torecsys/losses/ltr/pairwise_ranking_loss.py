@@ -6,7 +6,7 @@ from .functional import apply_mask, margin_ranking_loss_parser, soft_margin_loss
 from .functional import bayesian_personalized_ranking_loss, hinge_loss, adaptive_hinge_loss
 import torch
 import torch.nn as nn
-
+from typing import Callable
 
 class _PairwiseRankingLoss(_RankingLoss):
     r"""Base Class of pairwise ranking loss
@@ -24,8 +24,19 @@ class BayesianPersonalizedRankingLoss(_PairwiseRankingLoss):
     #. `Steffen Rendle et al, 2009. BPR: Bayesian Personalized Ranking from Implicit Feedback <https://arxiv.org/abs/1205.2618>`_.
 
     """
-    def __init__(self):
+    def __init__(self, 
+                 aggregation: Callable[[torch.Tensor], torch.Tensor] = torch.sum):
+        r"""Initialize BayesianPersonalizedRankingLoss
+        
+        Args:
+            aggregation (Callable[T, T], optional): aggregation method to calculate loss.
+                Defaults to torch.sum.
+        
+        Attributes:
+            aggregation (Callable[T, T], optional): aggregation method to calculate loss.
+        """
         super(BayesianPersonalizedRankingLoss, self).__init__()
+        self.aggregation = aggregation
     
     def forward(self,
                 pos_outputs: torch.Tensor,
@@ -42,7 +53,7 @@ class BayesianPersonalizedRankingLoss(_PairwiseRankingLoss):
             torch.Tensor: aggregated (masked) loss
         """
         loss = bayesian_personalized_ranking_loss(pos_outputs, neg_outputs)
-        return apply_mask(loss, mask) if mask is not None else loss.mean()
+        return apply_mask(loss, mask) if mask is not None else self.aggregation(loss)
 
 
 class HingeLoss(_PairwiseRankingLoss):
