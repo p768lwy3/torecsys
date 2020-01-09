@@ -124,39 +124,43 @@ class ListIndicesEmbedding(_Inputs):
             Tuple[T, T], shape = ((B, 1 or L, E), (B, L, L) or (None)), 
                 dtype = (torch.float, torch.float): Outputs of ListIndicesEmbedding and Attention weights.
         """
-        # get embedding and output shape = (B, L, E) 
-        # then, transpose them to (L, B, E)
+        # Get and reshape embedding tensors
+        # inputs: inputs, shape = (B, L)
+        # output: outputs, shape = (L, B, E)
         outputs = self.embedding(inputs.rename(None))
-        ## outputs = outputs.transpose(0, 1)
         outputs.names = ("B", "L", "E")
         outputs = outputs.align_to("L", "B", "E")
 
-        # compute self-attention, and outputs' shape = (L, B, E) 
-        # and attn_weights' shape = (B, L, L) if use_attn = True
-        # then transpose back to (B, L, E)
+        # Compute self-attention and reshape output of attention
+        # inputs: outputs, shape = (L, B, E)
+        # output: outputs, shape = (B, L, E)
         outputs = outputs.rename(None)
         outputs, _ = self.attention(outputs, outputs, outputs)
-        ## outputs = outputs.transpose(0, 1)
         outputs.names = ("L", "B", "E")
         outputs = outputs.align_to("B", "L", "E")
         
-        # calculate aggregation of outputs
+        # Calculate aggregation of outputs
         if self.output_method == "avg_pooling" or self.output_method == "max_pooling":
-            # transpose from (B, L, E) to (B, E, L)
-            ## outputs = outputs.transpose(1, 2)
+            # transpose outputs
+            # inputs: outputs, shape = (B, L, E)
+            # output: outputs, shape = (B, E, L)
             outputs = outputs.align_to("B", "E", "L")
 
-            # shape of outputs = (B, E, 1)
-            outputs = self.aggregation(outputs.rename(None))
-
-            # transpose from (B, E, 1) to (B, 1, E)
-            ## outputs = outputs.transpose(1, 2)
+            # apply pooling to outputs if batch size > 1
+            # inputs: outputs, shape = (B, E, L)
+            # output: outputs, shape = (B, E, N = 1)
+            outputs = self.aggregation(outputs.rename(None)) if outputs.size("B") > 1 else outputs
             outputs.names = ("B", "E", "N")
+
+            # transpose outputs
+            # inputs: outputs, shape = (B, E, N)
+            # output: outputs, shape = (B, N, E)
             outputs = outputs.align_to("B", "N", "E")
 
         else:
-            # outputs' shape = (B, 1, E) if output_method == "mean" or "sum"
-            # else outputs' shape = (B, L, E) if output_method == "none"
+            # apply aggregation function to outputs
+            # inputs: outputs, shape = (B, L, E)
+            # output: outputs, shape = (B, 1, E) if output_method in ["mean", "sum"] else (B, L, E)
             outputs = self.aggregation(outputs.rename(None))
             outputs.names = ("B", "N", "E")
 
@@ -185,23 +189,29 @@ class ListIndicesEmbedding(_Inputs):
             
             # set torch to no_grad for inference
             with torch.no_grad():
-                # get embedding vectors and transpose from (1, L, E) to (L, 1, E)
+                # Get and reshape embedding tensors
+                # inputs: inputs, shape = (B, L)
+                # output: outputs, shape = (L, B, E)
                 outputs = self.embedding(inputs.rename(None))
-                ## outputs = outputs.transpose(0, 1)
                 outputs.names = ("B", "L", "E")
                 outputs = outputs.align_to("L", "B", "E")
                 
-                # calcualte self-attentions and attn_weights' shape = (1, L, L)
+                # Compute self-attention and reshape output of attention
+                # inputs: outputs, shape = (L, B, E)
+                # output: attn_weights, shape = (1, L, L)
                 outputs = outputs.rename(None)
                 _, attn_weights = self.attention(outputs, outputs, outputs)
             
-            # flatten the attentions by removing 1st dimension
-            attention = np.squeeze(attn_weights.numpy(), axis=0)
+            # Remove dim 1 to flatten attn_weights and convert to np.array
+            # inputs: attn_weights, shape = (1, L, L)
+            # output: attn_weights, shape = (L, L)
+            attn_weights = np.squeeze(attn_weights.numpy(), axis=0)
 
-            # create a list of string of index from inputs to be the axis of plot
+            # Create a list of string of index from inputs to be the axis of plot
             axis = [str(x) for x in inputs.rename(None).squeeze().tolist()]
 
-            # show attentions with a heatmap plot
-            show_attention(attention, xaxis=axis, yaxis=axis, savedir=savedir)
+            # Show attentions with a heatmap plot
+            show_attention(attn_weights, xaxis=axis, yaxis=axis, savedir=savedir)
         else:
             raise ValueError("show_attention cannot be called if use_attn is False.")
+        
