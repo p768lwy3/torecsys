@@ -18,7 +18,6 @@ class _NegativeSampler(object):
                 argument and value is value of argument.
         """
         self.kwargs_dict = kwargs_dict
-        self.dict_size = self._getlen(kwargs_dict)
     
     def _getlen(self) -> int:
         r"""Get length of field.
@@ -37,7 +36,7 @@ class _NegativeSampler(object):
         Returns:
             Dict[str, int]: A dictionary, where key is field's name and value is the total number of words in that field
         """
-        return self.dict_size
+        return self._getlen(self.kwargs_dict)
 
     def size(self) -> Dict[str, int]:
         r"""Return size of dictionary.
@@ -105,7 +104,7 @@ class _NegativeSampler(object):
                 kwargs["size"] = num_neg
                 
                 # Generate the negative samples.
-                neg_samples[k] = self._generate(**kwargs)
+                neg_samples[k] = self._generate(**kwargs).to(device)
                 
             else:
                 # replicate values to be negative samples
