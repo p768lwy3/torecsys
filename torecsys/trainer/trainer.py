@@ -197,8 +197,11 @@ class Trainer(object):
             else:
                 warnings.warn("_add_graph only can be called when self.verboses >= 2.")
         
-    def _describe(self):
+    def _describe(self) -> str:
         r"""Show summary of trainer
+        
+        Returns:
+            str: string of result of texttable.draw
         """
         # getattr from self 
         inputs_name = self.sequential.inputs_wrapper.__class__.__name__ if getattr(self, "sequential", None) is not None else None
@@ -368,10 +371,33 @@ class Trainer(object):
             outputs = self.sequential(batch_inputs)
         return outputs
     
-    def summary(self):
-        r"""Summary model to a report
+    def summary(self) -> str:
+        r"""Summarize report of experiment of model.
+
+        TODO:
+
+        #. data per hyperparameter (e.g. dropout size, hidden size)
+
+        #. training loss per epochs
+
+        #. metrics, including AUC, logloss
+
+        #. matplotlib line chart of data
+        
+        Returns:
+            str: string of result of texttable.draw
         """
-        return
+        raise NotImplementedError("not implemented.")
+
+        # initialize and configurate Texttable
+        t = Texttable()
+        t.set_deco(Texttable.BORDER)
+        t.set_cols_align(["l", "l"])
+        t.set_cols_valign(["t", "t"])
+
+        # append data to texttable
+
+        return t.draw()
     
     def save(self, save_path: str, file_name: str):
         r"""Save the state dict of model.

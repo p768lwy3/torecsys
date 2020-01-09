@@ -109,4 +109,6 @@ logdir/
 # developing resource
 Untitled.ipynb
 develop.ipynb
-dataset.csv
+.csv
+.xls
+.xlsx
