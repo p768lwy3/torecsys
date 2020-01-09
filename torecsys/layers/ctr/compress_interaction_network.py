@@ -159,7 +159,7 @@ class CompressInteractionNetworkLayer(nn.Module):
                     # inputs: outputs, shape = (B, Hi * 2, E)
                     # output: direct, shape = (B, N = Hi, E)
                     # output: hidden, shape = (B, N = Hi, E)
-                    direct, hidden = torch.chunk(outputs, 2, dim="N")
+                    direct, hidden = torch.chunk(outputs, 2, dim=1)
                     
                     # Reshape and pass to next step
                     # inputs: hidden, shape = (B, N = Hi, E)
