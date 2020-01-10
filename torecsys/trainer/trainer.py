@@ -310,7 +310,7 @@ class Trainer(object):
                 pbar.set_description("step loss : %.4f" % (loss_val))
 
                 # log for each y steps
-                if global_step % self.log_step == 0:
+                if (global_step + 1) % self.log_step == 0:
                     if self.verboses >= 1:
                         self.logger.debug("step avg loss at step %d of epoch %d : %.4f" % (i, epoch + 1, steps_loss / self.log_step))
                     if self.verboses >= 2:
