@@ -117,6 +117,9 @@ class ListIndicesEmbedding(_Inputs):
     def forward(self, inputs: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         r"""Forward calculation of ListIndicesEmbedding.
 
+        TODO: it will raise error now if inputs contains any empty lists. 
+        Planning to add padding idx to prevent the error.
+        
         Args:
             inputs (T), shape = (B, L), dtype = torch.long: List of tensor of indices in inputs fields.
         
