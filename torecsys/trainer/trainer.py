@@ -416,7 +416,7 @@ class Trainer(object):
         # else, save module in the usual way
         else:
             save_file = path.join(save_path, "%s.tar" % (file_name))
-            torch.save(self.sequential.state_dict(), save_path)
+            torch.save(self.sequential.state_dict(), save_file)
     
     def load(self, load_path: str, file_name: str):
         r"""Load the state dict of model.
