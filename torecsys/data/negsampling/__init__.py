@@ -97,6 +97,7 @@ class _NegativeSampler(object):
                 # Generate negative samples with sampler.
                 # Get batch size of field and calculate number of samples to be generated.
                 batch_size = v.size(0)
+                device = v.device
                 num_neg = size * batch_size
                 
                 # Get arguments of the field to be called in _generate.
