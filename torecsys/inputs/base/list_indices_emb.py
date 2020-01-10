@@ -146,10 +146,10 @@ class ListIndicesEmbedding(_Inputs):
             # output: outputs, shape = (B, E, L)
             outputs = outputs.align_to("B", "E", "L")
 
-            # apply pooling to outputs if batch size > 1
+            # apply pooling on outputs
             # inputs: outputs, shape = (B, E, L)
             # output: outputs, shape = (B, E, N = 1)
-            outputs = self.aggregation(outputs.rename(None)) if outputs.size("B") > 1 else outputs
+            outputs = self.aggregation(outputs.rename(None))
             outputs.names = ("B", "E", "N")
 
             # transpose outputs
