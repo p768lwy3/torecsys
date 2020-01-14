@@ -1,3 +1,4 @@
+click==7.0
 matplotlib>=3.1.1
 numpy>=1.17.0
 pandas>=0.25.0
