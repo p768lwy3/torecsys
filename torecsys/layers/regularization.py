@@ -20,6 +20,14 @@ class Regularizer(nn.Module):
         self.weight_decay = weight_decay
         self.norm = norm
     
+    def extra_repr(self) -> str:
+        r"""Return information in print-statement of layer.
+        
+        Returns:
+            str: Information of print-statement of layer.
+        """
+        return 'weight_decay={}, norm={}'.format(self.weight_decay, self.norm)
+    
     def forward(self, parameters: List[Tuple[str, nn.Parameter]]) -> torch.Tensor:
         r"""feed forward of regularizer 
         

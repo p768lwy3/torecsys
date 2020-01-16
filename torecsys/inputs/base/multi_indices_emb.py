@@ -3,7 +3,7 @@ from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_na
 import numpy as np
 import torch
 import torch.nn as nn
-from typing import List
+from typing import List, TypeVar
 
 
 class MultiIndicesEmbedding(_Inputs):
@@ -65,6 +65,32 @@ class MultiIndicesEmbedding(_Inputs):
         
         # bind flatten to flatten
         self.flatten = flatten
+
+    def cuda(self) -> TypeVar("MultiIndicesEmbedding"):
+        r"""Set MultiIndicesEmbedding to GPU.
+        
+        Returns:
+            MultiIndicesEmbedding: self
+        """
+        # refer to parent class to call .cuda()
+        super(MultiIndicesEmbedding, self).cuda()
+
+        # set offsets to gpu
+        self.offsets = self.offsets.cuda()
+        return self
+    
+    def cpu(self) -> TypeVar("MultiIndicesEmbedding"):
+        r"""Set MultiIndicesEmbedding to CPU.
+        
+        Returns:
+            MultiIndicesEmbedding: self
+        """
+        # refer to parent class to call .cpu()
+        super(MultiIndicesEmbedding, self).cpu()
+        
+        # set offsets to cpu
+        self.offsets = self.offsets.cpu()
+        return self
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         r"""Forward calculation of MultiIndicesEmbedding
