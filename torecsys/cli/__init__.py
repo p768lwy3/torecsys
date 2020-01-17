@@ -3,15 +3,28 @@
 
 import click
 import json
+from torecsys import __version__
 from torecsys.trainer import DevTrainer
 
+def print_version(ctx, param, value):
+    if not value or ctx.resilient_parsing:
+        return
+    click.echo(f"The current version is: {__version__}.")
+    ctx.exit()
+
 @click.group()
+@click.option("--version", is_flag=True, callback=print_version, expose_value=False, is_eager=True)
 @click.option("--debug/--no-debug", default=False)
 def cli(debug):
     click.echo("Thank you for using ToR[e]csys.")
     click.echo("Debug mode is %s." % ('on' if debug else 'off'))
 
 @cli.command()
+def version():
+    click.echo(f"The current version is: {__version__}.")
+
+@cli.command()
+@click.option("--version", is_flag=True, callback=print_version, expose_value=False, is_eager=True)
 @click.option("--load_from", type=str, help="File path of trainer configuration.")
 @click.option("--inputs_config", type=str, help="Json to configurate inputs. Example: .")
 @click.option("--model_config", type=str, help="Json to configurate model. Example: '{\"method\":\"FM\", \"embed_size\": 8, \"num_fields\": 2}'.")
@@ -28,6 +41,7 @@ def cli(debug):
 @click.option("--enable_cuda/--disable_cuda", default=False, help="Enable/Disable cuda in trainer.")
 @click.option("--cuda_config", type=str, help="Json to configurate cuda in trainer. Example: '{\"devices\": [1, 2]}")
 @click.option("--enable_jit/--disable_jit", default=False, help="Enable/Disable jit in trainer.")
+# @click.option("--metrics_config", type=str, multiple=True, help="Json to configurate metrics. Example: .")
 # @click.option("--save_directory", type=str, help="Directory to save the trained model.")
 # @click.option("--save_filename", type=str, default="model", show_default=True, help="File name to save the trained model.")
 def build(load_from             : str,
