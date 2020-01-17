@@ -84,7 +84,7 @@ class DevTrainer(object):
         self._max_num_iterations = None
 
         # TODO
-        # Validation
+        # Evaluate
         # Metrics
         # Checkpoint
         # Early Stopping
@@ -168,19 +168,19 @@ class DevTrainer(object):
         return self._loaders.get("train")
     
     @property
-    def validate_loader(self) -> torch.utils.data.DataLoader:
-        r"""Get the data loader for validation.
+    def eval_loader(self) -> torch.utils.data.DataLoader:
+        r"""Get the data loader for eval.
         
         Raises:
-            AssertionError: when data loader for validation is not found.
+            AssertionError: when data loader for eval is not found.
         
         Returns:
-            torch.utils.data.DataLoader: Data loader for validation of the trainer.
+            torch.utils.data.DataLoader: Data loader for eval of the trainer.
         """
 
-        if self._loaders.get("validate") is None:
-            raise AssertionError("Data loader for validation not setted.")
-        return self._loaders.get("validate")
+        if self._loaders.get("eval") is None:
+            raise AssertionError("Data loader for eval not setted.")
+        return self._loaders.get("eval")
     
     @property
     def targets_name(self) -> str:
@@ -305,13 +305,22 @@ class DevTrainer(object):
         return self._optimizer
     
     @property
-    def has_regularizer(self) -> bool:
-        r"""Return whether regularizer is binded to the trainer.
+    def has_train_loader(self) -> bool:
+        r"""Return whether loaders.get("train") is setted to the trainer.
         
         Returns:
-            bool: True if regularizer is binded else False.
+            bool: True if loaders.get("train") is setted else False.
         """
-        return self._regularizer is not None
+        return self._loaders.get("train") is not None
+    
+    @property
+    def has_eval_loader(self) -> bool:
+        r"""Return whether loaders.get("eval") is setted to the trainer.
+        
+        Returns:
+            bool: True if loaders.get("eval") is setted else False.
+        """
+        return self._loaders.get("eval") is not None
     
     @property
     def has_max_num_epochs(self) -> int:
@@ -441,19 +450,19 @@ class DevTrainer(object):
             raise TypeError("dataloader must be a torch.utils.data.DataLoader object.")
         self._loaders.update({"train" : dataloader})
     
-    @validate_loader.setter
-    def validate_loader(self, dataloader: torch.utils.data.DataLoader):
+    @eval_loader.setter
+    def eval_loader(self, dataloader: torch.utils.data.DataLoader):
         r"""Set data loader for training to the trainer.
         
         Args:
-            dataloader (torch.utils.data.DataLoader): data loader for validation of trainer.
+            dataloader (torch.utils.data.DataLoader): data loader for eval of trainer.
         
         Raises:
             TypeError: when type of dataloader is not allowed
         """
         if isinstance(dataloader, torch.utils.data.DataLoader):
             raise TypeError("dataloader must be a torch.utils.data.DataLoader object.")
-        self._loaders.update({"validate" : dataloader})
+        self._loaders.update({"eval" : dataloader})
     
     @targets_name.setter
     def targets_name(self, targets_name: str):
@@ -725,18 +734,18 @@ class DevTrainer(object):
         r"""Set data loader to the trainer.
         
         Args:
-            name (str): name of loader. allows: ["train", "validate", "test"]
+            name (str): name of loader. allows: ["train", "eval", "test"]
             loader (torch.utils.data.DataLoader): dataloader object.
         
         Raises:
-            AssertionError: when name is not in ["train", "validate", "test"].
+            AssertionError: when name is not in ["train", "eval", "test"].
             TypeError: when type of loader is not allowed.
 
         Returns:
             torecsys.trainer.Trainer: self
         """
-        if name not in ["train", "validate", "test"]:
-            raise AssertionError(f"name must be in [\"train\", \"validate\", \"test\"], got {name} instead.")
+        if name not in ["train", "eval", "test"]:
+            raise AssertionError(f"name must be in [\"train\", \"eval\", \"test\"], got {name} instead.")
         
         if not isinstance(loader, torch.utils.data.DataLoader):
             raise TypeError(f"{type(loader).__name__} not allowed.")
@@ -954,8 +963,8 @@ class DevTrainer(object):
         if self.has_criterion and isinstance(self.criterion, nn.Module):
             self.criterion.train()
         
-        if self.has_metrics and isinstance(self.metric, nn.Module):
-            self.metric.train()
+        # if self.has_metrics and isinstance(self.metric, nn.Module):
+        #     self.metric.train()
         
         return self
     
@@ -971,8 +980,8 @@ class DevTrainer(object):
         if self.has_criterion and isinstance(self.criterion, nn.Module):
             self.criterion.eval()
         
-        if self.has_metrics and isinstance(self.metric, nn.Module):
-            self.metric.eval()
+        # if self.has_metrics and isinstance(self.metric, nn.Module):
+        #     self.metric.eval()
         
         return self
     
@@ -1011,55 +1020,109 @@ class DevTrainer(object):
         epochs = self.has_max_num_epochs
 
         for epoch in range(epochs):
-            # Iterate dataloader
-            loader_iter = iter(dataloader)
+            # train for a epoch
+            self._fit_for(epoch=epoch, mode="train")
 
-            _steps_loss = 0.0
-            _epoch_loss = 0.0
+            # evaluete for a epoch
+            if self.has_eval_loader:
+                self._fit_for(epoch=epoch, mode="eval")
 
-            # Logging and Callback
-
-            # Generate progress bar of this epoch from dataloader
-            if self.has_max_num_iterations:
-                num_batch_epochs = min(self.max_num_iterations, num_batch)
-            pbar = tqdm(range(num_batch_epochs), desc="Step Loss: ?")
-
-            # Iterate through the progress bar
-            for i in pbar:
-                # Get next batch from dataloader
-                batch_values = next(dataloader)
-                
-                # Calculate prediction and loss of the batch
-                prediction, loss = self._iterate(batch_values, backward=True)
-
-                # Convert loss from torch.Tensor to float
-                loss_value = loss.cpu().item()
-                _steps_loss += loss_value
-                _epoch_loss += loss_value
-
-                # Update progress bar description
-                pbar.set_description(f"Step Loss: {loss_value:.4f}")
-
-                # Logging for each y steps
-                # if (self._global_step_cnt) % self._log_step == 0:
-                # ...
-                # _steps_loss = 0.0
-
-                # Take validate
-            
-                self._global_step_cnt += 1
-                self._iteration_cnt += 1
-            
+            # update count of trainer to count number of training epochs
             self._epoch_cnt += 1
-            _epoch_loss = 0.0
 
             # Logging and Callback
     
-    def train_for(self):
-        return
-    
-    def validate_for(self):
-        return
+    def _fit_for(self, epoch: int, mode: str):
+
+        # Get current mode from trainer
+        if mode is None:
+            mode = self._current_mode
+
+        # Switch to train/eval mode
+        if mode is "train":
+            self.train()
+            backward = True
+        elif mode is "eval":
+            self.eval()
+            backward = False
+        else:
+            raise AssertionError(f"{mode} not allowed.")
+
+        # Get dataloader of current mode
+        dataloader = self._loaders[mode]
+        dataloader_iter = iter(dataloader)
+        num_batch = len(dataloader)
+
+        # Initialize loss of steps and epoch
+        _steps_loss = 0.0
+        _epoch_loss = 0.0
+
+        # Generate progress bar of this epoch from dataloader
+        if self.has_max_num_iterations:
+            num_batch_epochs = min(self.max_num_iterations, num_batch)
+        # TODO: add metrics logging to tqdm
+        # mdesc = ", "+ ", ".join([m.capitalize() + ": ?" for m in self.metrics])
+        desc = "Current Mode: %s, Step Loss: ?" % mode
+        pbar = tqdm(range(num_batch_epochs), desc=desc)
+
+        # Iterate through the progress bar
+        for i in pbar:
+            # Get next batch from dataloader
+            batch_values = next(dataloader_iter)
+
+            # Calculate prediction and loss of the batch
+            prediction, loss = self._iterate(batch_values, backward=backward)
+
+            # Convert loss from torch.Tensor to float
+            loss_value = loss.cpu().item()
+            _steps_loss += loss_value
+            _epoch_loss += loss_value
+
+            # Calculate metrics
+            # if self.has_metrics:
+            #     metrics = self._get_metrics(mode=mode)
+            # else:
+            #     metrics = dict()
+
+            # Update progress bar description
+            # TODO: add metrics logging to tqdm
+            # mdesc = ", "+ ", ".join([m.capitalize() + ": ?" for m in metrics])
+            desc_update = f"Current Mode: %s, Step Loss: {loss_value:.4f}" % mode
+            pbar.set_description(desc_update)
+
+            # Logging for each y steps
+            # if (self._global_step_cnt) % self._log_step == 0:
+            #     metrics.update({
+            #         "avg_step_loss"     : _steps_loss,
+            #         "current_step_loss" : loss_value
+            #     })
+            #     self._set_log(
+            #         metrics = metrics,
+            #         step    = "step_%d" % self._global_step_cnt, 
+            #         mode    = mode, 
+            #     )
+            #     _steps_loss = 0.0
+
+            # Update parameters
+            if mode is "train":
+                self.optimizer.step()
+
+            self._global_step_cnt += 1
+            self._iteration_cnt += 1
+        
+        # Logging for the epoch
+        # if (self._global_step_cnt) % self._log_step == 0:
+        #     metrics.update({"avg_epoch_loss": _epoch_loss / num_batch})
+        #     self._set_log(
+        #         metrics = metrics,
+        #         step    = "step_%d" % self._global_step_cnt, 
+        #         mode    = mode, 
+        #     )
+        #     _epoch_loss = 0.0
+        # else:
+        #     metrics = dict()
+
+        return self
     
     def apply_model(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
         r"""Apply model forward.
@@ -1201,15 +1264,12 @@ class DevTrainer(object):
     def _get_loss(self,
                   prediction : torch.Tensor,
                   objective  : str = None,
-                  mode       : str = None,
                   **kwargs) -> torch.Tensor:
         r"""Method to calculate loss of trainer.
         
         Args:
             prediction (T): Predicted values of model in trainer.
             objective (str, optional): Objective of trainer. 
-                Defaults to None.
-            mode (str, optional): Mode of trainer. 
                 Defaults to None.
         
         Raises:
@@ -1219,20 +1279,9 @@ class DevTrainer(object):
         Returns:
             T, dtype = torch.float, shape = (B, 1): loss.
         """
-        # Get current objective and mode of trainer
+        # Get current objective of trainer
         if objective is None:
             objective = self._objective
-
-        if mode is None:
-            mode = self._current_mode
-
-        # Get criterion by mode
-        if mode is "train":
-            criterion = self.criterion
-        elif mode is "eval":
-            criterion = self.validate_criterion
-        else:
-            raise AssertionError(f"{mode} not allowed.")
         
         # Calculate loss by criterion
         if objective is "clickthroughrate":
@@ -1244,7 +1293,7 @@ class DevTrainer(object):
             # inputs: prediction, shape = (B, 1)
             # inputs: targets, shape = (B, ...)
             # output: loss, shape = (B, 1)
-            loss = criterion(prediction, targets)
+            loss = self.criterion(prediction, targets)
 
         elif objective is "embedding":
             pass
@@ -1264,7 +1313,7 @@ class DevTrainer(object):
 
             # Calculate loss
             # output: loss, shape = (B, 1)
-            loss = criterion(pos_out, neg_out)
+            loss = self.criterion(pos_out, neg_out)
 
         else:
             raise AssertionError(f"{self._objective} not allowed.")
@@ -1347,9 +1396,72 @@ class DevTrainer(object):
     
     @classmethod
     def build(cls, **trainer_config):
-        """Factory method to build the trainer.
+        r"""(In development) Factory method to build the trainer.
+
+        Args:
+            load_from (str): load full config from a file path
+            inputs_config (str): Dictionary to build inputs.
+            model_config (str): Dictionary to build model.
+            regularizer_config (str): Dictionary to build regularizer.
+            criterion_config (str): Dictionary to build criterion.
+            optimizer_config (str): Dictionary to build optimizer.
+            train_set_config (str): Dictionary to build train set.
+            eval_set_config (str): Dictionary to build eval set.
+            targets_name (str): Targets field name to be setted on trainer.
+            dtype (str): Data type to be setted on trainer.
+            max_num_epochs (int): Maximum number of training epochs.
+            max_num_iterations (int): Maximum number of training iterations per epoch.
+            objective (str): Objective to be setted on trainer.
+            use_cuda (Union[bool, dict]): Configuration to enable cuda of trainer.
+            use_jit (bool): Configuration to enable jit of trainer.
         """
+        # Initialize trainer class
+        trainer = cls()
+
+        if trainer_config.get("load_from"):
+            # Load checkpoint config
+            trainer = trainer.load(trainer_config.get("load_from"))
+        else:
+            # configurate trainer with inputs' arguments
+            if trainer_config.get("inputs_config"):
+                trainer.bind_inputs(**trainer_config.get("inputs_config"))
+            if trainer_config.get("model_config"):
+                trainer.build_model(**trainer_config.get("model_config"))
+            if trainer.has_inputs and trainer.has_model:
+                # build sequential after configurated inputs and model
+                trainer.build_sequential()
+            if trainer_config.get("regularizer_config"):
+                trainer.build_regularizer(**trainer_config.get("regularizer_config"))
+            if trainer_config.get("criterion_config"):
+                trainer.build_criterion(**trainer_config.get("criterion_config"))
+            if trainer_config.get("optimizer_config"):
+                trainer.build_optimizer(**trainer_config.get("optimizer_config"))
+            # if "metrics_config" in trainer_config:
+            #     trainer.build_metric(**trainer_config.get("metrics_config"))
+            # if "logger_config" in trainer_config:
+            #     trainer.build_logger(**trainer_config.get("logger_config"))
+            if trainer_config.get("train_set"):
+                trainer.build_loader(name="train", **trainer_config.get("train_set_config"))
+            if trainer_config.get("eval_set"):
+                trainer.build_loader(name="eval", **trainer_config.get("eval_set_config"))
+            if trainer_config.get("targets_name"):
+                trainer.set_targets_name(trainer_config.get("targets_name"))
+            if trainer_config.get("set_dtype"):
+                trainer.set_dtype(trainer_config.get("dtype"))
+            if trainer_config.get("max_num_epochs"):
+                trainer.set_max_num_epochs(trainer_config.get("max_num_epochs"))
+            if trainer_config.get("max_num_iterations"):
+                trainer.set_max_num_iterations(trainer_config.get("max_num_iterations"))
+            if trainer_config.get("objective"):
+                trainer.bind_objective(trainer_config.get("objective"))
+            if trainer_config.get("use_cuda"):
+                devices = trainer_config.get("use_cuda").get("devices") \
+                    if isinstance(trainer_config.get("use_cuda")) else None
+                trainer.cuda(devices=devices)
+            if trainer_config.get("use_jit"):
+                trainer.jit()
         
+        return trainer
 
 class Trainer(object):
     r"""Trainer object to train model, including trs.inputs.inputs_wrapper and trs.model.

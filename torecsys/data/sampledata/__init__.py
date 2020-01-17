@@ -20,14 +20,14 @@ def get_downloaded_data(dir : str = None) -> List[str]:
     # set directory name of the downloaded data
     if dir is None:
         script_dir = os.path.dirname(__file__)
-        samples_dir = os.path.join(script_dir, "sample_data")
+        dir = os.path.join(script_dir, "sample_data")
     else:
-        samples_dir = dir
+        pass
     
     # scan the directory and check if it is a directory
-    dirs = [f.name for f in os.scandir(samples_dir) if f.is_dir()]
-
-    return dirs
+    files = [f.name for f in os.scandir(dir) if f.is_dir()] if os.path.isdir(dir) else []
+    
+    return files
 
 def check_downloaded(dataset : str,
                      dir     : str = None) -> bool:

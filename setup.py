@@ -13,7 +13,7 @@ setup(
     # Required: project name
     name    = "torecsys",
     # Required: tag
-    version = "0.0.5.dev1",
+    version = "dev",
     # Optional: short description
     description="Pure PyTorch Recommender System Module",
     # Optional: long description
@@ -40,6 +40,7 @@ setup(
     packages = find_packages(exclude=["contrib", "docs", "tests"]),
     # Optional: install_requires
     install_requires = [
+        "click==7.0",
         "matplotlib>=3.1.1", 
         "numpy>=1.17.0",
         "pandas>=0.25.0",
@@ -48,12 +49,14 @@ setup(
         "sqlalchemy>=1.3.6",
         "tensorboard==1.14.0",
         "texttable>=1.6.2",
-        "torch==1.2.0",
-        "torchaudio==0.3.0",
+        "torch==1.3.0+cpu",
         "torchtext==0.4.0",
-        "torchvision==0.4.0",
-        "tqdm>=4.33.0"
+        "torchvision==0.4.1+cpu",
+        "tqdm==4.33.0"
     ],
+    entry_points = {
+        'console_scripts': ["torecsys=torecsys.cli:main"]
+    },
     # Optional: python_requires,
     python_requires  = ">=3.7",
     # Optional: extras_required 
