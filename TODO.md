@@ -141,17 +141,3 @@ but what should i build?
     2. .recall
     3. .precision
     4. .nauc
-
-### torecsys.utils
-
-1. .logging.tqdm
-    * .TqdmHandler
-2. .cli
-    * .train
-        * ```torecsys --mode="train" --filepath="./dataset/example.csv" --model="./model/modeldir"```
-    * .eval
-        * ```torecsys --model="eval" --filepath="./dataset/example.csv" --model="./model/modeldir"```
-    * .test
-        * ```torecsys --model="test" --filepath="./dataset/example.csv" --model="./model/modeldir"```
-    * .serve
-        * ```torecsys --model="serve" --filepath="./dataset/example.csv" --model="./model/modeldir" --host="localhost" --port=8080```

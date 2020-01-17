@@ -73,9 +73,114 @@ Thank you for ReadTheDocs! You are the best!
 
 ## Getting Started
 
-TBU
+There are several ways using ToR[e]cSys to develop a Recommendation System. Before talking about them, we first need to discuss about components of ToR[e]cSys.
+
+A model in ToR[e]cSys is constructed by two parts mainly: inputs and model, and they will be wrapped into a sequential module ([torecsys.models.sequential](https://github.com/p768lwy3/torecsys/blob/master/torecsys/models/sequential.py)) to be trained by Trainer ([torecsys.trainer.Trainer](https://github.com/p768lwy3/torecsys/blob/master/torecsys/trainer/trainer.py)). \
+
+For inputs module ([torecsys.inputs](https://github.com/p768lwy3/torecsys/tree/master/torecsys/inputs)), it will handle most kinds of inputs in recommendation system, like categorical features, images, etc, with several kinds of methods, including token embedding, pre-trained image models, etc.
+
+For models module ([torecsys.models](https://github.com/p768lwy3/torecsys/tree/master/torecsys/models)), it will implement some famous models in recommendation system, like Factorization Machine famiry. I hope I can make the library rich. To construct a model in the module, in addition to the modules implemented in [PyTorch](https://pytorch.org/docs/stable/nn.html), I will also implement some layers in [torecsys.layers](https://github.com/p768lwy3/torecsys/tree/master/torecsys/layers) which are called by models usually.
+
+After the explanation of ToR[e]cSys, let's move on to the `Getting Started`. We can use ToR[e]cSys in the following ways:
+
+1. Run by command-line (In development)
+
+    ```bash
+    > torecsys build --inputs_config='{}' \
+    --model_config='{"method":"FM", "embed_size": 8, "num_fields": 2}' \
+    --regularizer_config='{"weight_decay": 0.1}' \
+    --criterion_config='{"method": "MSELoss"}' \
+    --optimizer_config='{"method": "SGD", "lr": "0.01"}' \
+    ...
+    ```
+
+2. Run by class method
+
+    ```python
+    import torecsys as trs
+
+    # build trainer by class method
+    trainer = trs.trainer.Trainer() \
+        .bind_objective("CTR") \
+        .bind_inputs() \
+        .build_model(method="FM", embed_size=8, num_fields=2) \
+        .build_sequential() \
+        .build_regularizer(weight_decay=0.1) \
+        .build_criterion(method="MSELoss") \
+        .build_optimizer(method="SGD", lr="0.01") \
+        .build_loader(name="train", ...) \
+        .build_loader(name="eval", ...) \
+        .set_targets_name("labels") \
+        .set_max_num_epochs(10) \
+        .use_cuda()
+
+    # start to fit the model
+    trainer.fit()
+    ```
+
+3. Run like PyTorch Module
+
+    ```python
+    import torch
+    import torch.nn as nn
+    import torecsys as trs
+
+    # some codes here
+    inputs = trs.inputs.InputsWrapper(schema=schema)
+    model = trs.models.FactorizationMachineModel(embed_size=8, num_fields=2)
+
+    for i in range(epochs):
+        optimizer.zero_grad()
+
+        outputs = model(**inputs(batchs))
+        loss = criterion(outputs, labels)
+
+        loss.backward()
+        optimizer.step()
+    ```
+
+(In development) You can anyone you like to train a Recommender System and serve it in the following ways:
+
+1. Run by command-line
+
+    ```bash
+    > torecsys serve --load_from='{}'
+    ```
+
+2. Run by class method
+
+    ```python
+    import torecsys as trs
+
+    serving = trs.serving.Model() \
+        .load_from(filepath=filepath)
+        .run()
+    ```
+
+3. Serve it yourself
+
+    ```python
+    from flask import Flask, request
+    import torecsys as trs
+
+    model = trs.serving.Model() \
+        .load_from(filepath=filepath)
+
+    @app.route("/predict")
+    def predict():
+        args = request.json
+        inference = model.predict(args)
+        return inference, 200
+
+    if __name__ == "__main__":
+        app.run()
+    ```
+
+For further details, please refer to the [example](https://github.com/p768lwy3/torecsys/tree/master/example) in repository or read the [documentation](https://torecsys.readthedocs.io/en/latest/). Hope you enjoy~
 
 ## Examples
+
+TBU
 
 ### Sample Codes
 
@@ -87,7 +192,7 @@ TBU
 
 ## Authors
 
-- [Jasper Li](https://github.com) - Developer
+- [Jasper Li](https://github.com/p768lwy3) - Developer
 
 ## License
 
