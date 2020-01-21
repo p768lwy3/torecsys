@@ -6,14 +6,14 @@ from .functional import apply_mask, margin_ranking_loss_parser, soft_margin_loss
 from .functional import bayesian_personalized_ranking_loss, hinge_loss, adaptive_hinge_loss
 import torch
 import torch.nn as nn
-from typing import Callable
+from torecsys.utils import get_reduction
+from typing import Callable, Union
 
 class _PairwiseRankingLoss(_RankingLoss):
     r"""Base Class of pairwise ranking loss
     """
     def __init__(self):
         super(_PairwiseRankingLoss, self).__init__()
-
 
 class BayesianPersonalizedRankingLoss(_PairwiseRankingLoss):
     r"""pairwise loss calculated bayesian personalized ranking, by the following equation: 
@@ -25,62 +25,90 @@ class BayesianPersonalizedRankingLoss(_PairwiseRankingLoss):
 
     """
     def __init__(self, 
-                 aggregation: Callable[[torch.Tensor], torch.Tensor] = torch.sum):
+                 reduction: Union[Callable[[torch.Tensor], torch.Tensor], str] = "sum"):
         r"""Initialize BayesianPersonalizedRankingLoss
         
         Args:
-            aggregation (Callable[T, T], optional): aggregation method to calculate loss.
+            reduction Union[Callable[T, T], str], optional): reduction method to calculate loss.
                 Defaults to torch.sum.
         
         Attributes:
-            aggregation (Callable[T, T], optional): aggregation method to calculate loss.
+            reduction (Union[Callable[T, T], str]): reduction method to calculate loss.
         """
+        # Refer to parent class
         super(BayesianPersonalizedRankingLoss, self).__init__()
-        self.aggregation = aggregation
+
+        # Bind reduction to reduction
+        self.reduction = get_reduction(reduction)
     
     def forward(self,
                 pos_outputs: torch.Tensor,
                 neg_outputs: torch.Tensor,
                 mask: torch.Tensor = None) -> torch.Tensor:
-        r"""feed forward of pairwise ranking loss with bayesian personalized ranking
+        r"""Forward calculation of BayesianPersonalizedRankingLoss
         
         Args:
-            pos_outputs (torch.Tensor), shape = (batch size, 1): scores of positive items
-            neg_outputs (torch.Tensor), shape = (batch size, number of negative samples): scores of sampled negative items
-            mask (torch.Tensor, optional), shape = (batch size, ), dtype = torch.bool: boolean tensor to mask training loss. Defaults to None.
+            pos_outputs (T), shape = (B, 1): Predicted values of positive samples.
+            neg_outputs (T), shape = (B, num_neg): Predicted values of negative smaples.
+            mask (T, optional), shape = (batch size, ), dtype = torch.bool: Boolean tensor to mask loss. 
+                Defaults to None.
         
         Returns:
-            torch.Tensor: aggregated (masked) loss
+            T: reduced (masked) loss
         """
+        # Calculate loss by functional method
         loss = bayesian_personalized_ranking_loss(pos_outputs, neg_outputs)
-        return apply_mask(loss, mask) if mask is not None else self.aggregation(loss)
 
+        # Apply masking and take reduction on loss
+        return self.reduction(apply_mask(loss, mask)) if mask is not None \
+            else self.reduction(loss)
 
 class HingeLoss(_PairwiseRankingLoss):
     r"""HingeLoss is a pairwise ranking loss function which calculated loss with the following equation: 
     :math:`loss = max ( 0.0, 1.0 + y_{pos} - y_{neg} )` .
     """
-    def __init__(self, margin: float = 1.0):
+    def __init__(self, 
+                 margin: float = 1.0,
+                 reduction: Callable[[torch.Tensor], torch.Tensor] = torch.sum):
+        r"""Initialize HingeLoss
+        
+        Args:
+            margin (float, optional): Margin size of loss. Defaults to 1.0.
+            reduction (Callable[T, T], optional): Reduction method to calculate loss.
+                Defaults to torch.sum.
+        
+        Attributes:
+            margin (float): Margin size of loss.
+            reduction (Callable[T, T]): Reduction method to calculate loss.
+        """
+        # Refer to parent class
         super(HingeLoss, self).__init__()
+
+        # Bind margin and reduction to margin and reduction
         self.margin = margin
+        self.reduction = get_reduction(reduction)
 
     def forward(self,
                 pos_outputs: torch.Tensor,
                 neg_outputs: torch.Tensor,
                 mask: torch.Tensor = None) -> torch.Tensor:
-        r"""feed forward of pairwise hinge ranking loss
-
+        r"""Forward calculation of HingeLoss
+        
         Args:
-            pos_outputs (torch.Tensor), shape = (batch size, 1): scores of positive items
-            neg_outputs (torch.Tensor), shape = (batch size, number of negative samples): scores of sampled negative items
-            mask (torch.Tensor, optional), shape = (batch size, ), dtype = torch.bool: boolean tensor to mask training loss. Defaults to None.
+            pos_outputs (T), shape = (B, 1): Predicted values of positive samples.
+            neg_outputs (T), shape = (B, num_neg): Predicted values of negative smaples.
+            mask (T, optional), shape = (batch size, ), dtype = torch.bool: Boolean tensor to mask loss. 
+                Defaults to None.
         
         Returns:
-            torch.Tensor: aggregated (masked) loss
+            T: reduced (masked) loss
         """
+        # Calculate loss by functional method
         loss = hinge_loss(pos_outputs, neg_outputs, self.margin)
-        return apply_mask(loss, mask) if mask is not None else loss.mean()
-
+        
+        # Apply masking and take reduction on loss
+        return self.reduction(apply_mask(loss, mask)) if mask is not None \
+            else self.reduction(loss)
 
 class AdaptiveHingeLoss(_PairwiseRankingLoss):
     r"""AdaptiveHingeLoss is a pairwise ranking loss function which is a variant of hinge loss and
@@ -92,27 +120,48 @@ class AdaptiveHingeLoss(_PairwiseRankingLoss):
     #. `Jason Weston el at, 2011. WSABIE: Scaling Up To Large Vocabulary Image Annotation <http://www.thespermwhale.com/jaseweston/papers/wsabie-ijcai.pdf>`_.
 
     """
-    def __init__(self, margin: float = 1.0):
+    def __init__(self, 
+                 margin: float = 1.0,
+                 reduction: Callable[[torch.Tensor], torch.Tensor] = torch.sum):
+        r"""Initialize HingeLoss
+        
+        Args:
+            margin (float, optional): Margin size of loss. Defaults to 1.0.
+            reduction (Callable[T, T], optional): Reduction method to calculate loss.
+                Defaults to torch.sum.
+        
+        Attributes:
+            margin (float): Margin size of loss.
+            reduction (Callable[T, T]): Reduction method to calculate loss.
+        """
+        # Refer to parent class
         super(AdaptiveHingeLoss, self).__init__()
+
+        # Bind margin and reduction to margin and reduction
         self.margin = margin
+        self.reduction = get_reduction(reduction)
     
     def forward(self,
                 pos_outputs: torch.Tensor,
                 neg_outputs: torch.Tensor,
                 mask: torch.Tensor = None) -> torch.Tensor:
-        r"""feed forward of pairwise adaptive hinge ranking loss
-
+        r"""Forward calculation of AdaptiveHingeLoss
+        
         Args:
-            pos_outputs (torch.Tensor), shape = (batch size, 1): scores of positive items
-            neg_outputs (torch.Tensor), shape = (batch size, number of negative samples): scores of sampled negative items
-            mask (torch.Tensor, optional), shape = (batch size, ), dtype = torch.bool: boolean tensor to mask training loss. Defaults to None.
+            pos_outputs (T), shape = (B, 1): Predicted values of positive samples.
+            neg_outputs (T), shape = (B, num_neg): Predicted values of negative smaples.
+            mask (T, optional), shape = (batch size, ), dtype = torch.bool: Boolean tensor to mask loss. 
+                Defaults to None.
         
         Returns:
-            torch.Tensor: aggregated (masked) loss
+            T: reduced (masked) loss
         """
+        # Calculate loss by functional method
         loss = adaptive_hinge_loss(pos_outputs, neg_outputs, self.margin)
-        return apply_mask(loss, mask) if mask is not None else loss.mean()
 
+        # Apply masking and take reduction on loss
+        return self.reduction(apply_mask(loss, mask)) if mask is not None \
+            else self.reduction(loss)
 
 class TripletLoss(_PairwiseRankingLoss):
     r"""TripletLoss is a pairwise ranking loss which is used in FaceNet at first, 
@@ -129,13 +178,16 @@ class TripletLoss(_PairwiseRankingLoss):
     def __init__(self, 
                  margin    : float = 1.0, 
                  reduction : str = None):
-        r"""initialize triplet loss module
+        r"""Initialize TripletLoss
         
         Args:
             margin (float, optional): size of margin. Defaults to 1.0.
             reduction (str, optional): method of reduction. Defaults to None.
         """
+        # Refer to parent class
         super(TripletLoss, self).__init__()
+
+        # Initialize module with input margin
         if margin:
             self.parser = margin_ranking_loss_parser
             self.loss = nn.MarginRankingLoss(margin=margin, reduction=reduction)
@@ -147,15 +199,16 @@ class TripletLoss(_PairwiseRankingLoss):
                 pos_outputs: torch.Tensor,
                 neg_outputs: torch.Tensor,
                 mask: torch.Tensor = None) -> torch.Tensor:
-        r"""feed forward of pairwise triplet ranking loss
-
+        r"""Forward calculation of TripletLoss
+        
         Args:
-            pos_outputs (torch.Tensor), shape = (batch size, 1): scores of positive items
-            neg_outputs (torch.Tensor), shape = (batch size, number of negative samples): scores of sampled negative items
-            mask (torch.Tensor, optional), shape = (batch size, ), dtype = torch.bool: boolean tensor to mask training loss. Defaults to None.
+            pos_outputs (T), shape = (B, 1): Predicted values of positive samples.
+            neg_outputs (T), shape = (B, num_neg): Predicted values of negative smaples.
+            mask (T, optional), shape = (batch size, ), dtype = torch.bool: Boolean tensor to mask loss. 
+                Defaults to None.
         
         Returns:
-            torch.Tensor: aggregated (masked) loss
+            T: reduced (masked) loss
         """
         # masking inputs if needed
         if mask is not None:

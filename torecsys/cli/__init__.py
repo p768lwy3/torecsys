@@ -3,7 +3,7 @@
 
 import click
 import json
-from torecsys.trainer import DevTrainer
+from torecsys.trainer import Trainer
 
 @click.group()
 @click.option("--debug/--no-debug", default=False)
@@ -51,7 +51,7 @@ def build(load_from             : str,
         load_from = json.loads(load_from)
 
         # Build trainer with trainer.build(...)
-        trainer = DevTrainer.build(
+        trainer = Trainer.build(
             load_from = load_from
         )
     else:
@@ -76,7 +76,7 @@ def build(load_from             : str,
             use_cuda = enable_cuda
 
         # Initialize trainer with trainer.build(...)
-        trainer = DevTrainer.build(
+        trainer = Trainer.build(
             inputs_config         = inputs_config,
             model_config          = model_config,
             regularizer_config    = regularizer_config,
