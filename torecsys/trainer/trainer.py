@@ -1683,3 +1683,9 @@ class Trainer(object):
                 trainer.jit()
         
         return trainer
+
+    @classmethod
+    def GridSearchCV(cls, **trainer_config):
+        for i in range(len(trainer_config)):
+            trainer = cls.build()
+    
