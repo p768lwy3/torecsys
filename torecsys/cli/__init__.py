@@ -3,12 +3,7 @@
 
 import click
 import json
-<<<<<<< HEAD
 from torecsys.trainer import Trainer
-=======
-from torecsys import __version__
-from torecsys.trainer import DevTrainer
->>>>>>> 34b858f29f45780dc87587de034ec7dc1a770099
 
 def print_version(ctx, param, value):
     if not value or ctx.resilient_parsing:
