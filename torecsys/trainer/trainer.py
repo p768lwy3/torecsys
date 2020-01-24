@@ -1462,6 +1462,8 @@ class Trainer(object):
         else:
             save_file = path.join(save_path, "%s.tar" % (file_name))
             torch.save(self.sequential.state_dict(), save_file)
+        
+        return self
     
     def load(self):
         r"""Load the state dict of model.
@@ -1479,11 +1481,23 @@ class Trainer(object):
         else:
             load_file = path.join(load_path, "%s.tar" % (file_name))
             self.sequential.load_state_dict(torch.load(load_file))
+        
+        return self
     
     def summary(self,                
                 deco        : int = Texttable.BORDER,
                 cols_align  : List[str] = ["l", "l"],
                 cols_valign : List[str] = ["t", "t"]) -> TypeVar("Trainer"):
+        r"""Get summary of trainer.
+
+        Args:
+            deco (int): Border of texttable
+            cols_align (List[str]): List of string of columns' align
+            cols_valign (List[str]): List of string of columns' valign
+        
+        Returns:
+            torecsys.trainer.Trainer: self
+        """
         # Get attributes from self and initialize _vars of parameters 
         _vars = {
             "objective"     : self._objective,
