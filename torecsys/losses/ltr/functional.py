@@ -52,7 +52,7 @@ def bayesian_personalized_ranking_loss(pout: torch.Tensor, nout: torch.Tensor) -
     #. `Steffen Rendle et al, 2009. BPR: Bayesian Personalized Ranking from Implicit Feedback <https://arxiv.org/abs/1205.2618>`_.
 
     """
-    loss = (1.0 - torch.sigmoid(pout - nout))
+    loss = - (pout - nout).sigmoid().log()
     return loss
 
 def hinge_loss(pout: torch.Tensor, nout: torch.Tensor, margin: float = 1.0) -> torch.Tensor:

@@ -5,14 +5,13 @@ from typing import Dict
 class MultinomialSampler(_NegativeSampler):
     r"""MutlinomialSampler is to generate negative samplers by multinomial distribution, i.e. draw samples by given probabilities
     """
-    @staticmethod
-    def _getlen(v: Dict[str, int]) -> int:
+    def size(self) -> Dict[str, int]:
         r"""Get length of field.
         
         Returns:
-            int: Length of field.
+            Dict[str, int]: Length of field.
         """
-        return len(v["weights"])
+        return {k: len(v["weights"]) for k, v in self.kwargs.items()}
         
     def _generate(self, 
                   weights          : torch.Tensor,
@@ -20,7 +19,7 @@ class MultinomialSampler(_NegativeSampler):
                   size             : int) -> torch.Tensor:
         """A function to generate negative samples with multinomial distribution.
         
-        Args:
+        Arguments:
             weights (torch.Tensor): the input tensor containing probabilities
             with_replacement (bool): whether to draw with replacement or not
             size (int): number of samples to draw

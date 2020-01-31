@@ -123,12 +123,12 @@ class CompressInteractionNetworkLayer(nn.Module):
             xi = hidden_list[-1]
             xi = xi.unflatten("N", [("H", 1), ("Ny", xi.size("N"))])
 
-            # Calculate outer product of x0 and x1
+            # Calculate outer product of x0 and xi
             # inputs: x0, shape = (B, E, Nx = N, H = 1)
-            # inputs: x1, shape = (B, E, H = 1, Ny = N) 
+            # inputs: xi, shape = (B, E, H = 1, Ny = N) 
             # output: out_prod, shape = (B, E, Nx = N, Ny = N)
             ## out_prod = torch.matmul(x0, xi)
-            out_prod = torch.einsum("ijkn,ijnh->ijkh", [x0.rename(None), x1.rename(None)])
+            out_prod = torch.einsum("ijkn,ijnh->ijkh", [x0.rename(None), xi.rename(None)])
             out_prod.names = ("B", "E", "Nx", "Ny")
             
             # Reshape out_prod
@@ -159,7 +159,7 @@ class CompressInteractionNetworkLayer(nn.Module):
                     # inputs: outputs, shape = (B, Hi * 2, E)
                     # output: direct, shape = (B, N = Hi, E)
                     # output: hidden, shape = (B, N = Hi, E)
-                    direct, hidden = torch.chunk(outputs, 2, dim="N")
+                    direct, hidden = torch.chunk(outputs, 2, dim=1)
                     
                     # Reshape and pass to next step
                     # inputs: hidden, shape = (B, N = Hi, E)

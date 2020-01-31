@@ -106,5 +106,9 @@ venv.bak/
 # dir
 logdir/
 
-# Untitled.ipynb
+# developing resource
 Untitled.ipynb
+develop.ipynb
+.csv
+.xls
+.xlsx

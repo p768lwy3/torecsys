@@ -10,23 +10,16 @@ with open(path.join(rootdir, "README.md"), encoding="utf-8") as readme:
     long_description = readme.read()
 
 setup(
-    # Required: project name
     name    = "torecsys",
-    # Required: tag
-    version = "0.0.5.dev1",
-    # Optional: short description
-    description="Pure PyTorch Recommender System Module",
-    # Optional: long description
+    version = "dev",
+    description=(
+        "ToR[e]cSys is a PyTorch Framework to implement recommendation system algorithms, "
+        "including but not limited to click-through-rate (CTR) prediction, learning-to-ranking "
+        "(LTR), and Matrix/Tensor Embedding. The project objective is to develop a ecosystem "
+        "to experiment, share, reproduce, and deploy in real world in a smooth and easy way."
+    ),
     long_description=long_description,
-    # Optional: long description type
     long_description_content_type = "text/markdown",
-    # Optional: project url
-    url = "https://github.com/p768lwy3/torecsys",
-    # Optional: author
-    author = "Jasper Li",
-    # Optional: author email
-    author_email = "jasper.li.wy@gmail.com",
-    # Classifier
     classifiers = [
         "Development Status :: 1 - Planning",
         "Intended Audience :: Science/Research",
@@ -34,12 +27,15 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3.7"
     ],
-    # Optional: keywords
-    keywords = "recommendationsystem machinelearning research",
-    # Required: packages
+    keywords = (
+        "recsys recommendersystem recommendationsystem "
+        "machinelearning deeplearning research ctr "
+        "clickthroughrate"
+    ),
     packages = find_packages(exclude=["contrib", "docs", "tests"]),
-    # Optional: install_requires
+    python_requires  = ">=3.7",
     install_requires = [
+        "click==7.0",
         "matplotlib>=3.1.1", 
         "numpy>=1.17.0",
         "pandas>=0.25.0",
@@ -48,20 +44,18 @@ setup(
         "sqlalchemy>=1.3.6",
         "tensorboard==1.14.0",
         "texttable>=1.6.2",
-        "torch==1.2.0",
-        "torchaudio==0.3.0",
-        "torchtext==0.4.0",
-        "torchvision==0.4.0",
-        "tqdm>=4.33.0"
+        "tqdm==4.33.0"
     ],
-    # Optional: python_requires,
-    python_requires  = ">=3.7",
-    # Optional: extras_required 
-    # extras_required = {},
-    # Optional: extra project url
+    entry_points = {
+        'console_scripts': ["torecsys=torecsys.cli:main"]
+    },
+
+    url = "https://github.com/p768lwy3/torecsys",
     projects_url = {
         "Bug Reports": "https://github.com/p768lwy3/torecsys/issues",
         "Documentation": "https://torecsys.readthedocs.io/en/latest/",
         "Source": "https://github.com/p768lwy3/torecsys"
-    }
+    },
+    author = "Jasper Li",
+    author_email = "jasper_liwaiyin@protonmail.com"
 )

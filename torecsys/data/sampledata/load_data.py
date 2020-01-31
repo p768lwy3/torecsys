@@ -5,7 +5,8 @@ import os
 from typing import Tuple
 
 def load_ml_data(size : str,
-                 dir  : str = None) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+                 dir  : str = None,
+                 force: bool = False) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     r"""Load movielens dataset from dir/ml-[size] to pd.DataFrame.
     Args:
         size (str): Movielens dataset size, allows: 20m, latest-small, latest, 100k, 1m, 10m
@@ -33,7 +34,7 @@ def load_ml_data(size : str,
         samples_dir = dir
 
     # check if the dataset is in the directory
-    is_exist = check_downloaded("-".join(["ml", size]))
+    is_exist = check_downloaded("-".join(["ml", size]), dir)
     if force is False and is_exist is False:
         raise ValueError("dataset haven't been found in %s" % samples_dir)
     elif force is True and is_exist is False:
@@ -54,11 +55,14 @@ def load_ml_data(size : str,
 
     return links_df, movies_df, ratings_df, tags_df
 
-def load_criteo_data(dir: str = None) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def load_criteo_data(dir   : str = None,
+                     force : bool = False) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """Load criteo dataset from dir/dac to pd.DataFrame.
     
     Args:
         dir (str, optional): Directory to save downloaded data. Default to None.
+        force (bool, optional): Download dataset if it is not found in directory when force is True.
+            Defaults to False.
     
     Returns:
         Tuple[df, df]: Tuple of criteo click-thorugh-rate dataframe, with 39 columns.
@@ -69,6 +73,8 @@ def load_criteo_data(dir: str = None) -> Tuple[pd.DataFrame, pd.DataFrame]:
         samples_dir = os.path.join(script_dir, "sample_data")
     else:
         samples_dir = dir
+    
+    # force download
     
     # set file path to dac
     train_path = os.path.join(samples_dir, ("dac/train.txt"))
@@ -85,7 +91,7 @@ def load_criteo_data(dir: str = None) -> Tuple[pd.DataFrame, pd.DataFrame]:
     return train_file, test_file
 
 def load_bx_data(dir   : str = None,
-                 force : bool = False) -> List[pd.DataFrame]:
+                 force : bool = False) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     r"""Load Book-Crossing dataset from ./sample_data/bx to pd.DataFrame.
     
     Args:
@@ -98,7 +104,7 @@ def load_bx_data(dir   : str = None,
         ValueError: when dataset cannot be found in given directory
     
     Returns:
-        List[pd.DataFrame]: Book-Crossing dataset
+        Tuple[df, df, df]: Book-Crossing dataset
     """
     # set directory name of the downloaded data
     if dir is None:
@@ -108,7 +114,7 @@ def load_bx_data(dir   : str = None,
         samples_dir = dir
     
     # check if the dataset is in the directory
-    is_exist = check_downloaded("bx")
+    is_exist = check_downloaded("bx", dir)
     if force is False and is_exist is False:
         raise ValueError("dataset haven't been found in %s" % samples_dir)
     elif force is True and is_exist is False:
@@ -132,5 +138,5 @@ def load_bx_data(dir   : str = None,
 
 def load_jester_data(label : str,
                      dir   : str = None,
-                     force : bool = False) -> List[pd.DataFrame]:
-    return 
+                     force : bool = False) -> Tuple[pd.DataFrame]:
+    raise NotImplementedError

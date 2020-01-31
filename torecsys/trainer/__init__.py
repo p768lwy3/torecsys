@@ -3,4 +3,3 @@ including Traniner and RankingTrainer.
 """
 
 from .trainer import Trainer
-from .ranking_trainer import RankingTrainer

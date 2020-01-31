@@ -8,5 +8,3 @@ class _EmbEstimator(_Estimator):
     r"""Base class of embedding estimator provide several functions would be called"""
     def __init__(self, **kwargs):
         super(_EmbEstimator, self).__init__(**kwargs)
-
-from .starspace import StarSpaceEstimator
