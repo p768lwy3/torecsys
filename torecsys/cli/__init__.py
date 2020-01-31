@@ -3,6 +3,7 @@
 
 import click
 import json
+from torecsys import __version__
 from torecsys.trainer import Trainer
 
 def print_version(ctx, param, value):
