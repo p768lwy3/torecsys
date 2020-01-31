@@ -2,4 +2,4 @@ r"""torecsys.data.dataloader is a sub module to convert dataset to torch.utils.d
 """
 
 from .fields import *
-from .collate_fn import dict_collate_fn
+from .collate_fn import DataloaderCollator

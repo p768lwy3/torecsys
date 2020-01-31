@@ -1,11 +1,8 @@
 r"""torecsys.losses is a sub module of implementation of losses in recommendation system.
 """
+import torch.nn.modules.loss
 
-import torch.nn.modules.loss as nn_loss
-
-# TODO. change _Loss to loss instead of module
-# 
-class _Loss(nn_loss._Loss):
+class _Loss(torch.nn.modules.loss._Loss):
     r"""General Loss class.
     """
     def __init__(self, 
@@ -26,6 +23,6 @@ class _Loss(nn_loss._Loss):
         # refer to parent class
         super(_Loss, self).__init__(size_average, reduce, reduction)
 
-import torecsys.losses.ctr
-import torecsys.losses.emb
-import torecsys.losses.ltr
+from .ctr import *
+from .emb import *
+from .ltr import *

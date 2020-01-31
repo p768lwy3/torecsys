@@ -2,153 +2,202 @@ from io import BytesIO
 from PIL import Image
 import os
 import requests
+from texttable import Texttable
 import torch
 import torch.nn.utils.rnn as rnn_utils
 import torchvision
 import torchvision.transforms as transforms
-from typing import Dict, List, Tuple
+from torecsys.data.dataloader import IndexField
+from typing import Dict, List, Tuple, TypeVar, Union
 import warnings
 
 __field_type__ = [
-    "values", "single_index", "list_index", "sequence_index", "image_dir", "image_url", 
-    "sentence"
+    "values", "indices", "images"
 ]
 
-def dict_collate_fn(batch_data: List[Dict[str, list]],
-                    schema    : Dict[str, Tuple[str, str]],
-                    device    : str = "cpu",
-                    **kwargs) -> Dict[str, torch.Tensor]:
-    r"""Collate function to transform data from dataset to batch in dataloader.
+class DataloaderCollator(object):
+    def __init__(self, 
+                 schema : dict,
+                 device : str  = "cpu",
+                 kwargs : dict = {}):
+        
+        if not isinstance(schema, dict):
+            raise TypeError(f"{type(schema).__name__} not allowed.")
+
+        self.schema = schema
+
+        if not isinstance(device, str):
+            raise TypeError(f"{type(device).__name__} not allowed.")
+        
+        self.device = device
+
+        if not isinstance(kwargs, dict):
+            raise TypeError(f"{type(kwargs).__name__} not allowed.")
+        
+        self.kwargs = kwargs
     
-    Args:
-        batch_data (List[Dict[str, list]]): List of dictionary, where its keys are inputs' field names
-        schema (Dict[str, Tuple[str, str]]): Schema to transform the raw inputs to the form of inputting to model
-        device (str, optional): Device of torch. 
-            Defaults to "cpu".
+    def _collate_values(self, inp_values: List[list]) -> torch.Tensor:
+        r"""Convert inp_values from list to torch.tensor.
+        
+        Args:
+            inp_values (List[list]): list of batch values.
+        
+        Returns:
+            T, dtype=torch.float32: torch tensor of batch values.
+        """
+        return torch.Tensor(inp_values).to(self.device)
     
-    Raises:
-        warning: when output type defined in schema does not exist.
-    
-    Returns:
-        Dict[str, T]: Dictionary of input of model, where its keys are the name of arguments of model, and the values are \
-            tensors which their device types should be equal to the model.
-    """
-    # initialize outputs dictionary to store tensors of fields
-    outputs = dict()
-
-    # loop through schema for each input's field
-    for inp_key, (out_key, out_type) in schema.items():
-        # get input's values by using input name as a key
-        inp_value = [data[inp_key] for data in batch_data]
-
-        if out_type == "values":
-            # return tensor with dtype = torch.float()
-            outputs[out_key] = torch.Tensor(inp_value).to(device)
+    def _collate_indices(self, 
+                         inp_values : List[list], 
+                         mapping    : IndexField = None) -> torch.Tensor:
+        r"""Convert inp_values from list to torch.tensor.
         
-        elif out_type == "single_index":
-            # return tensor with dtype = torch.long()
-            outputs[out_key] = torch.Tensor(inp_value).long().to(device)
+        Args:
+            inp_values (List[list]): list of batch values.
+            mapping (IndexField, optional): IndexField to map index to token. 
+                Defaults to None.
         
-        elif out_type == "list_index":
-            # to get the descending sorted list and their perm index
-            perm_tuple = [(c, s) for c, s in sorted(zip(inp_value, range(len(inp_value))), key=lambda x: len(x[0]), reverse=True)]
-
-            # to convert lists in the list to tensor for rnn_utils.pad_sequence
-            perm_tensors = [torch.Tensor(v[0]) for v in perm_tuple]
-            perm_idx = [v[1] for v in perm_tuple]
-
-            # pad the list of tensors
-            pad_tensors = rnn_utils.pad_sequence(perm_tensors, batch_first=True, padding_value=0)
-
-            # to get the desort index
-            desort_idx = list(sorted(range(len(perm_idx)), key=perm_idx.__getitem__))
-            desort_tensors = pad_tensors[desort_idx]
-
-            # return tensor with dtype = torch.long()
-            outputs[out_key] = desort_tensors.long().to(device)
+        Returns:
+            T, dtype=torch.int32: torch tensor of batch values.
+        """
+        inp_values = mapping.fit_predict(inp_values) if mapping is not None \
+            else inp_values
         
-        elif out_type == "sequence_index":
-            warnings.warn("this is not yet checked")
-            
-            # to get the descending sorted list and their perm index
-            perm_tuple = [(c, s) for c, s in sorted(zip(inp_value, range(len(inp_value))), key=lambda x: len(x[0]), reverse=True)]
+        max_len = max([len(lst) for lst in inp_values])
 
-            # to convert lists in the list to tensor for rnn_utils.pad_sequence
-            perm_tensors = [torch.Tensor(v[0]) for v in perm_tuple]
-            perm_lengths = torch.Tensor([len(sq) for sq in perm_tensors])
-            perm_idx = [v[1] for v in perm_tuple]
-
-            # pad the list of tensors
-            pad_tensors = rnn_utils.pad_sequence(perm_tensors, batch_first=True, padding_value=0)
-
-            # to get the desort index
-            desort_idx = list(sorted(range(len(perm_idx)), key=perm_idx.__getitem__))
-            desort_tensors = pad_tensors[desort_idx].long().to(device)
-            desort_lengths = perm_lengths[desort_idx].long().to(device)
-
-            # save desort_tensors to outputs dictionary
-            outputs[out_type] = desort_tensors
-            outputs[out_type + "_length"] = desort_lengths
-        
-        elif out_type == "image_dir":
-            warnings.warn("this is not yet checked")
-
-            # get root dir from kwargs
-            root_dir = kwargs.get("image_rootdir", {}).get(out_key, os.getcwd())
-
-            # get transform
-            img_transforms = kwargs.get("image_transforms", {}).get(out_key, transforms.ToTensor())
-            
-            # join root directory with file path
-            img_files = [os.path.join(root_dir, img_path[0]) for img_path in inp_value]
-
-            # read image with skimage.io
-            img_files = [Image.open(img_file) for img_file in img_files]
-
-            # apply transform with torch.transforms and stack them into a tensor
-            img_tensors = [img_transforms(img_file) for img_file in img_files]
-            img_tensors = torch.stack(img_tensors)
-
-            # save to outputs dictionary where the shape = (batch size, dimensionality of color, height, width)
-            outputs[out_type] = img_tensors.to(device)
-        
-        elif out_type == "image_url":
-            warnings.warn("this is not yet checked")
-
-            # get root url from kwargs
-            root_url = kwargs.get("image_rooturl", {}).get(out_key, "")
-
-            # get transform
-            img_transforms = kwargs.get("image_transforms", {}).get(out_key, transforms.ToTensor())
-
-            # join root url with file path
-            img_urls = [root_url + img_url[0] for img_url in inp_value]
-            
-            # read image with skimage.io
-            img_files = [Image.open(BytesIO(requests.get(img_url).content)) for img_url in img_urls]
-            
-            # apply transform with torch.transforms and stack them into a tensor
-            img_tensors = [img_transforms(img_file) for img_file in img_files]
-            img_tensors = torch.stack(img_tensors)
-
-            # save to outputs dictionary where the shape = (batch size, dimensionality of color, height, width)
-            outputs[field_name] = img_tensors.to(device)
-        
-        elif out_type == "sentence":
-            warnings.warn("this is not yet checked")
-
-            # get vocab field which is initialized
-            sentence_field = kwargs.get("sentence_fields", {}).get(out_key)
-
-            # apply sentence_field.to_index
-            sent_tensors, sent_lengths = sentence_field.to_index(inp_value)
-
-            # save to outputs dictionary
-            outputs[field_name] = sent_tensors.to(device)
-            outputs[field_name + "_length"] = sent_lengths.to(device)
+        if max_len == 1:
+            # Convert to torch.tensor directly
+            return torch.Tensor(inp_values).long().to(self.device)
         
         else:
-            # raise warning if the output type is not found
-            warnings.warn("output type : %s doesn't exist." % out_type)
+            warnings.warn("Not checked.")
+
+            # Sort inp_values in descending order
+            inp_values_index = zip(inp_values, range(len(inp_values)))
+            inp_values_index = sorted(inp_values_index, key=lambda x: len(x[0]), reverse=True)
+            perm_tuple = [(c, s) for c, s in inp_values_index]
+
+            # Convert lists inside list to tensor
+            perm_tensors = [torch.Tensor(lst) for lst, _ in perm_tuple]
+            perm_lengths = torch.Tensor([len(t) for t in perm_tensors])
+            perm_idx = [idx for _, idx in perm_tuple]
+
+            # Pad sequences
+            padded_t = rnn_utils.pad_sequence(perm_tensors, batch_first=True, padding_value=0)
+
+            # Desort padded tensor
+            desort_idx = list(sorted(range(len(perm_idx)), key=perm_idx.__getitem__))
+            desorted_t = padded_t[desort_idx].long().to(self.device)
+            desorted_len = perm_lengths[desort_idx].long().to(self.device)
+
+            return desorted_t, desorted_len
+    
+    def _collate_images(self,
+                        inp_values        : List[list],
+                        input_type        : str,
+                        transforms_method : transforms = transforms.ToTensor(),
+                        file_root         : str = None) -> torch.Tensor:
+        r"""Load image with inp_values and convert them to tensor
         
-    return outputs
+        Args:
+            batch_inp (List[list]): list of batch values.
+            input_type (str): Type of inp_values.
+            transforms_method (transforms, optional): Trasforms method from torchvision. 
+                Defaults to transforms.ToTensor().
+            file_root (str, optional): String of files' root.
+                Defaults to None.
+        
+        Returns:
+            T: torch tensor of batch values.
+        """
+        warnings.warn("Not checked.")
+
+        if file_root is not None:
+            inp_values = [file_root + inp for inp in inp_values]
+        
+        if not isinstance(input_type, str):
+            raise TypeError(f"{type(input_type).__name__} not allowed.")
+        
+        if input_type not in ["file", "url"]:
+            raise AssertionError(f"{input_type} not allowed.")
+
+        load_method = Image.open if input_type == "file" \
+            else lambda url: Image.open(BytesIO(requests.get(url).content))
+        
+        images = [load_method(img) for img in inp_values]
+        images = [transforms_method(img) for img in images]
+        images = torch.stack(images)
+
+        return images
+
+    def _collate(self,
+                 inp_values   : List[list],
+                 collate_type : str,
+                 kwargs       : dict = None) \
+            -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+        r"""Convert batch of input to tensor.
+        
+        Args:
+            inp_values (List[list]): list of batch values.
+            collate_type (str): Type of collation.
+        
+        Returns:
+            Union[T, Tuple[T, T]]: torch tensor of batch values.
+        """
+        if not isinstance(collate_type, str):
+            raise TypeError(f"{type(collate_type).__name__} not allowed.")
+        
+        if collate_type not in __field_type__:
+            raise AssertionError(f"{collate_type} not allowed.")
+
+        _collate_func = "_collate_" + collate_type
+        _collate_method = getattr(self, _collate_func)
+        
+        return _collate_method(inp_values, **kwargs)
+    
+    def to_tensor(self, 
+                  batch_data: List[Dict[str, list]]) -> Dict[str, Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]]:
+        
+        outputs = dict()
+
+        for field_name, field_type in self.schema.items():
+            # Get inputs and kwargs by input_key in self.schema.items()
+            inp_values = [b[field_name] for b in batch_data]
+            kwargs = self.kwargs.get(field_name, {})
+
+            # Return tensor by _collate
+            outputs[field_name] = self._collate(inp_values, field_type, kwargs)
+        
+        return outputs
+
+    def summary(self,
+                deco        : int = Texttable.BORDER,
+                cols_align  : List[str] = ["l", "l", "l"],
+                cols_valign : List[str] = ["t", "t", "t"]) -> TypeVar("DataloaderCollator"):
+        r"""Get summary of trainer.
+
+        Args:
+            deco (int): Border of texttable
+            cols_align (List[str]): List of string of columns' align
+            cols_valign (List[str]): List of string of columns' valign
+        
+        Returns:
+            torecsys.data.dataloader.DataloaderCollator: self
+        """
+         # Create and configurate Texttable
+        t = Texttable()
+        t.set_deco(deco)
+        t.set_cols_align(cols_align)
+        t.set_cols_valign(cols_valign)
+        
+        # Append data to texttable
+        t.add_rows(
+            [["Field Name: ", "Field Type: ", "Arguments: "]] + \
+            [[k, v, ", ".join(self.kwargs.get(k, {}).keys())] \
+                for k, v in self.schema.items()]
+        )
+
+        # Print summary with texttable
+        print(t.draw())
+
+        return self

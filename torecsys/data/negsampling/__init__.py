@@ -9,34 +9,16 @@ class _NegativeSampler(object):
     generate negative samples for each iteration to calculate pairwise ranking loss.
     """
     def __init__(self, 
-                 kwargs_dict: Dict[str, Dict[str, int]]):
+                 **kwargs):
         r"""Initialize _NegativeSampler.
         
         Args:
-            kwargs_dict (Dict[str, Dict[str, int]]): A dictionary, where key is field's name 
+            kwargs (Dict[str, Dict[str, int]]): A dictionary, where key is field's name 
                 and value, including low and high, is a dictionary, where key is name of 
                 argument and value is value of argument.
+                e.g. _NegativeSampler(user_id={"high": 100, "low": 0})
         """
-        self.kwargs_dict = kwargs_dict
-    
-    def _getlen(self) -> int:
-        r"""Get length of field.
-        
-        Raises:
-            NotImplementedError: when the function `_getlen` is not implemented.
-        
-        Returns:
-            int: Length of field.
-        """
-        raise NotImplementedError("_getlen is not implemented in Base Class.")
-
-    def __len__(self) -> Dict[str, int]:
-        r"""Return size of dictionary.
-        
-        Returns:
-            Dict[str, int]: A dictionary, where key is field's name and value is the total number of words in that field
-        """
-        return self._getlen(self.kwargs_dict)
+        self.kwargs = kwargs
 
     def size(self) -> Dict[str, int]:
         r"""Return size of dictionary.
@@ -44,7 +26,7 @@ class _NegativeSampler(object):
         Returns:
             Dict[str, int]: A dictionary, where key is field's name and value is the total number of words in that field
         """
-        return __len__()
+        return NotImplementedError("size is not implemented in Base Class.")
 
     def __call__(self, *args, **kwargs) -> Dict[str, torch.Tensor]:
         """Return drawn samples.
@@ -86,7 +68,7 @@ class _NegativeSampler(object):
                 that field with shape = (N * Nneg, ...) and dtype = torch.long.
         """
         # Get field in sampler which is to replace by sampler,
-        keys = list(self.kwargs_dict.keys())
+        keys = list(self.kwargs.keys())
         
         neg_samples = {}
         
@@ -101,7 +83,7 @@ class _NegativeSampler(object):
                 num_neg = size * batch_size
                 
                 # Get arguments of the field to be called in _generate.
-                kwargs = self.kwargs_dict[k]
+                kwargs = self.kwargs[k]
                 kwargs["size"] = num_neg
                 
                 # Generate the negative samples.
@@ -116,5 +98,4 @@ class _NegativeSampler(object):
         return neg_samples
 
 from .multinomial_sampler import MultinomialSampler
-from .uniform_sampler import UniformSamplerWithoutReplacement
-from .uniform_sampler import UniformSamplerWithReplacement
+from .uniform_sampler import UniformSampler

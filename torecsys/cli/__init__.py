@@ -4,7 +4,7 @@
 import click
 import json
 from torecsys import __version__
-from torecsys.trainer import DevTrainer
+from torecsys.trainer import Trainer
 
 def print_version(ctx, param, value):
     if not value or ctx.resilient_parsing:
@@ -65,7 +65,7 @@ def build(load_from             : str,
         load_from = json.loads(load_from)
 
         # Build trainer with trainer.build(...)
-        trainer = DevTrainer.build(
+        trainer = Trainer.build(
             load_from = load_from
         )
     else:
@@ -90,7 +90,7 @@ def build(load_from             : str,
             use_cuda = enable_cuda
 
         # Initialize trainer with trainer.build(...)
-        trainer = DevTrainer.build(
+        trainer = Trainer.build(
             inputs_config         = inputs_config,
             model_config          = model_config,
             regularizer_config    = regularizer_config,
