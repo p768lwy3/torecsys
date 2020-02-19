@@ -17,7 +17,7 @@ class MultinomialSampler(_NegativeSampler):
                   weights          : torch.Tensor,
                   with_replacement : bool,
                   size             : int) -> torch.Tensor:
-        """A function to generate negative samples with multinomial distribution.
+        r"""A function to generate negative samples with multinomial distribution.
         
         Arguments:
             weights (torch.Tensor): the input tensor containing probabilities
