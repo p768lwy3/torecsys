@@ -7,8 +7,8 @@ import torch.nn as nn
 import torch.nn.parallel as nn_parallel
 import torch.optim as optim
 import torch.utils.data
-import torecsys.data.negsampling
-from torecsys.data.negsampling import _NegativeSampler
+import torecsys.sampling.negsampling
+from torecsys.sampling.negsampling import _NegativeSampler
 from torecsys.inputs.base import _Inputs
 from torecsys.layers.regularization import Regularizer
 import torecsys.losses
@@ -812,7 +812,7 @@ class Trainer(object):
             torecsys.trainer.Trainer: self
         """
         if isinstance(method, str):
-            negative_sampler_method = getattr(torecsys.data.negsampling, method, None)
+            negative_sampler_method = getattr(torecsys.sampling.negsampling, method, None)
             if negative_sampler_method is None:
                 raise AssertionError(f"{method} not found.")
         elif callable(method) and isinstance(method, type):

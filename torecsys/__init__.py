@@ -11,5 +11,6 @@ import torecsys.layers
 import torecsys.losses
 import torecsys.metrics
 import torecsys.models
+import torecsys.sampling
 import torecsys.trainer
 import torecsys.utils
