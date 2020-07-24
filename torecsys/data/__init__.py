@@ -8,7 +8,7 @@ r"""torecsys.data is a module to handling data preprocessing before embedding la
 
 #. create DataLoader to batch Dataset for inputs and embeddings
 
-#. create subsampler to clip data before training
+#. create sampler to clip data before training
 
 """
 

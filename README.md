@@ -18,7 +18,7 @@ TBU
 
 ## Documentation
 
-The complete documentation for ToR[e]cSys is avaiable via [ReadTheDocs website](https://torecsys.readthedocs.io/en/latest/). \
+The complete documentation for ToR[e]cSys is available via [ReadTheDocs website](https://torecsys.readthedocs.io/en/latest/). \
 Thank you for ReadTheDocs! You are the best!
 
 ## Implemented Models

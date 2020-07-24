@@ -1,9 +1,12 @@
-from . import _CtrModel
+from typing import Callable, List
+
 import torch
 import torch.nn as nn
+
 from torecsys.layers import DNNLayer, MOELayer
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
-from typing import Callable, List
+from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+from . import _CtrModel
+
 
 class DeepMixtureOfExpertsModel(_CtrModel):
     r"""Model class of Deep Mixture-of-Experts (MoE) model.
@@ -11,22 +14,24 @@ class DeepMixtureOfExpertsModel(_CtrModel):
     Deep Mixture-of-Experts is purposed by David Eigen et at at 2013, which is to combine 
     outputs of several `expert` models, each of which specializes in a different part of input 
     space. To combine them, a gate, which is a stack of linear and softmax, will be trained 
-    for weigthing outputs of expert before return.
+    for weighing outputs of expert before return.
 
     :Reference:
 
-    #. `David Eigen et al, 2013. Learning Factored Representations in a Deep Mixture of Experts <https://arxiv.org/abs/1312.4314>`_.
+    #. `David Eigen et al, 2013. Learning Factored Representations in a Deep Mixture of Experts
+    <https://arxiv.org/abs/1312.4314>`_.
 
     """
+
     @no_jit_experimental_by_namedtensor
     def __init__(self,
-                 embed_size       : int,
-                 num_fields       : int,
-                 num_experts      : int,
-                 moe_layer_sizes  : List[int],
-                 deep_layer_sizes : List[int],
-                 deep_dropout_p   : List[float] = None,
-                 deep_activation  : Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
+                 embed_size: int,
+                 num_fields: int,
+                 num_experts: int,
+                 moe_layer_sizes: List[int],
+                 deep_layer_sizes: List[int],
+                 deep_dropout_p: List[float] = None,
+                 deep_activation: Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
         r"""Initialize DeepMixtureOfExpertsModel
         
         Args:
@@ -54,15 +59,15 @@ class DeepMixtureOfExpertsModel(_CtrModel):
             # Calculate input's size from last moe layer
             inp = num_experts * inp if i != 0 else inp
             moe = MOELayer(
-                inputs_size = inp,
-                output_size = num_experts * out,
-                num_experts = num_experts,
-                expert_func = DNNLayer,
-                expert_inputs_size = inp,
-                expert_output_size = out,
-                expert_layer_sizes = deep_layer_sizes,
-                expert_dropout_p   = deep_dropout_p,
-                expert_activation  = deep_activation
+                inputs_size=inp,
+                output_size=num_experts * out,
+                num_experts=num_experts,
+                expert_func=DNNLayer,
+                expert_inputs_size=inp,
+                expert_output_size=out,
+                expert_layer_sizes=deep_layer_sizes,
+                expert_dropout_p=deep_dropout_p,
+                expert_activation=deep_activation
             )
             self.moes.append(moe)
 
@@ -81,13 +86,13 @@ class DeepMixtureOfExpertsModel(_CtrModel):
             # inputs: emb_inputs, shape = (B, N, E)
             # output: emb_inputs, shape = (B, N = 1, E = O)
             emb_inputs = moe(emb_inputs).rename(O="E")
-        
+
         # Aggregate emb_inputs on dimension E = O
         # inputs: emb_inputs, shape = (B, N, E)
         # output: output, shape = (B, O = 1)
         output = emb_inputs.sum(dim="E").rename(N="O")
-        
-        # Drop names of outputs, since autograd doesn't support NamedTensor yet.
+
+        # Drop names of outputs, since auto grad doesn't support NamedTensor yet.
         output = output.rename(None)
-        
+
         return output

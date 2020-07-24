@@ -1,7 +1,10 @@
+from typing import Tuple
+
 import torch
 import torch.nn as nn
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
-from typing import Tuple
+
+from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+
 
 class AttentionalFactorizationMachineLayer(nn.Module):
     r"""Layer class of Attentional Factorization Machine (AFM). 
@@ -12,15 +15,17 @@ class AttentionalFactorizationMachineLayer(nn.Module):
     
     :Reference:
 
-    #. `Jun Xiao et al, 2017. Attentional Factorization Machines: Learning the Weight of Feature Interactions via Attention Networks∗ <https://arxiv.org/abs/1708.04617>`_.
+    #. `Jun Xiao et al, 2017. Attentional Factorization Machines: Learning the Weight of Feature Interactions via
+    Attention Networks∗ <https://arxiv.org/abs/1708.04617>`_.
 
     """
+
     @no_jit_experimental_by_namedtensor
-    def __init__(self, 
+    def __init__(self,
                  embed_size: int,
                  num_fields: int,
-                 attn_size : int,
-                 dropout_p : float = 0.1):
+                 attn_size: int,
+                 dropout_p: float = 0.1):
         r"""Initialize AttentionalFactorizationMachineLayer
         
         Args:
@@ -32,8 +37,8 @@ class AttentionalFactorizationMachineLayer(nn.Module):
         
         Attributes:
             attention (torch.nn.Sequential): Sequential of Attention-layers.
-            rowidx (T), dtype = torch.long: 1st indices to index inputs in 2nd dimension for inner product.
-            colidx (T), dtype = torch.long: 2nd indices to index inputs in 2nd dimension for inner product.
+            row_idx (T), dtype = torch.long: 1st indices to index inputs in 2nd dimension for inner product.
+            col_idx (T), dtype = torch.long: 2nd indices to index inputs in 2nd dimension for inner product.
             dropout (torch.nn.Module): Dropout layer.
         """
         # Refer to parent class
@@ -49,7 +54,7 @@ class AttentionalFactorizationMachineLayer(nn.Module):
         self.attention.add_module("Softmax", nn.Softmax(dim=1))
         self.attention.add_module("Dropout", nn.Dropout(dropout_p))
 
-        # Generate rowidx and colidx to index inputs for inner product
+        # Generate row_idx and col_idx to index inputs for inner product
         self.rowidx = list()
         self.colidx = list()
         for i in range(num_fields - 1):
@@ -58,24 +63,24 @@ class AttentionalFactorizationMachineLayer(nn.Module):
                 self.colidx.append(j)
         self.rowidx = torch.LongTensor(self.rowidx)
         self.colidx = torch.LongTensor(self.colidx)
-        
+
         # Initialize dropout layer
         self.dropout = nn.Dropout(dropout_p)
-    
+
     def forward(self, emb_inputs: torch.Tensor) -> Tuple[torch.Tensor]:
         r"""Forward calculation of AttentionalFactorizationMachineLayer
 
         Args:
             emb_inputs (T), shape = (B, N, E), dtype = torch.float: Embedded features tensors.
         
-        Returns:
-            Tuple[T], shape = ((B, E) (B, NC2, 1)), dtype = torch.float: Output of AttentionalFactorizationMachineLayer and Attention weights.
+        Returns: Tuple[T], shape = ((B, E) (B, NC2, 1)), dtype = torch.float: Output of
+        AttentionalFactorizationMachineLayer and Attention weights.
         """
         # Calculate hadamard product
         # inputs: emb_inputs, shape = (B, N, E)
         # output: products, shape = (B, NC2, E)
         emb_inputs = emb_inputs.rename(None)
-        ## products = emb_inputs[:, self.rowidx] * emb_inputs[:, self.colidx]
+        ## products = emb_inputs[:, self.row_idx] * emb_inputs[:, self.col_idx]
         products = torch.einsum("ijk,ijk->ijk", [emb_inputs[:, self.rowidx], emb_inputs[:, self.colidx]])
         ## products.names = ("B", "N", "E")
 
@@ -84,7 +89,7 @@ class AttentionalFactorizationMachineLayer(nn.Module):
         # output: attn_scores, shape = (B, NC2, 1)
         attn_scores = self.attention(products.rename(None))
         ## attn_scores.names = ("B", "N", "E")
-        
+
         # Apply attention on inner product
         # inputs: products, shape = (B, NC2, E)
         # inputs: attn_scores, shape = (B, NC2, 1)
@@ -100,4 +105,3 @@ class AttentionalFactorizationMachineLayer(nn.Module):
         outputs = self.dropout(outputs)
 
         return outputs, attn_scores
-    

@@ -2,17 +2,19 @@ r"""torecsys.inputs.base is a sub-module of base inputs class.
 """
 
 from collections import namedtuple
-import torch.nn as nn
 from typing import List, Union
 
+import torch.nn as nn
 
-class _Inputs(nn.Module):
+
+class Inputs(nn.Module):
     r"""General Input class.
     """
+
     def __init__(self):
         # refer to parent class
-        super(_Inputs, self).__init__()
-    
+        super(Inputs, self).__init__()
+
     def __len__(self) -> int:
         r"""Return outputs size.
         
@@ -20,7 +22,7 @@ class _Inputs(nn.Module):
             int: Size of embedding tensor, or Number of inputs' fields.
         """
         return self.length
-    
+
     def set_schema(self, inputs: Union[str, List[str]]):
         r"""Initialize input layer's schema.
         
@@ -30,7 +32,7 @@ class _Inputs(nn.Module):
         # convert string to list of string
         if isinstance(inputs, str):
             inputs = [inputs]
-        
+
         # create a namedtuple of schema
         schema = namedtuple("Schema", ["inputs"])
 

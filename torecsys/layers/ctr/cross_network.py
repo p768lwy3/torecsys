@@ -1,22 +1,25 @@
 import torch
 import torch.nn as nn
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
+
+from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+
 
 class CrossNetworkLayer(nn.Module):
     r"""Layer class of Cross Network. 
     
-    Cross Network was used in Deep & Cross Network, to calculate cross features interaction 
-    between element, by the following equation: for i-th layer, :math:`x_{i} = x_{0} * (w_{i} * x_{i-1} + b_{i}) + x_{0}`.
+    Cross Network was used in Deep & Cross Network, to calculate cross features interaction between element,
+    by the following equation: for i-th layer, :math:`x_{i} = x_{0} * (w_{i} * x_{i-1} + b_{i}) + x_{0}`.
 
     :Reference:
 
     #. `Ruoxi Wang et al, 2017. Deep & Cross Network for Ad Click Predictions <https://arxiv.org/abs/1708.05123>`
     
     """
+
     @no_jit_experimental_by_namedtensor
-    def __init__(self, 
-                 inputs_size : int,
-                 num_layers  : int):
+    def __init__(self,
+                 inputs_size: int,
+                 num_layers: int):
         r"""Initialize CrossNetworkLayer
         
         Args:
@@ -27,19 +30,19 @@ class CrossNetworkLayer(nn.Module):
             inputs_size (int): Inputs size of Cross Network.
             model (torch.nn.ModuleList): Module List of Cross Network Layers.
         """
-        # Refer to parent class
+        # refer to parent class
         super(CrossNetworkLayer, self).__init__()
 
-        # Bind inputs_size to inputs_size
+        # bind inputs_size to inputs_size
         self.inputs_size = inputs_size
 
-        # Initialize module list for Cross Network
+        # initialize module list for Cross Network
         self.model = nn.ModuleList()
 
-        # Initialize linear layer and add to module list of Cross Network
+        # initialize linear layer and add to module list of Cross Network
         for _ in range(num_layers):
             self.model.append(nn.Linear(inputs_size, inputs_size))
-    
+
     def forward(self, emb_inputs: torch.Tensor) -> torch.Tensor:
         """Forward calculation of CrossNetworkLayer
         
@@ -49,16 +52,16 @@ class CrossNetworkLayer(nn.Module):
         Returns:
             T, shape = (B, N, E), dtype = torch.float: Output of CrossNetworkLayer
         """
-        # Deep copy emb_inputs to outputs as residual
+        # deep copy emb_inputs to outputs as residual
         # inputs: emb_inputs, shape = (B, N, E)
         # output: outputs, shape = (B, N, E = O)
         outputs = emb_inputs.detach().requires_grad_()
-        
-        # Drop names since einsum doesn't support NamedTensor now
+
+        # drop names since einsum doesn't support NamedTensor now
         emb_inputs.names = None
         outputs.names = None
 
-        # Calculate with linear forwardly and add residual to outputs
+        # calculate with linear forwardly and add residual to outputs
         # inputs: emb_inputs, shape = (B, N, E)
         # inputs: outputs, shape = (B, N, E)
         # output: outputs, shape = (B, N, E)
@@ -67,8 +70,8 @@ class CrossNetworkLayer(nn.Module):
             outputs = layer(outputs)
             outputs = torch.einsum("ijk,ijk->ijk", [emb_inputs, outputs])
             outputs = outputs + emb_inputs
-        
-        # Rename tensor names
+
+        # rename tensor names
         if outputs.dim() == 2:
             outputs.names = ("B", "O")
         elif outputs.dim() == 3:

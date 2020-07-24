@@ -1,14 +1,16 @@
 r"""torecsys.utils.opeations is a sub module of utils including anything used in the package, 
-and I don't know where should I put them to.
+and i don't know where should i put them to.
 """
+import operator as op
 from functools import reduce
+from typing import List, Tuple, Union
+
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
-import operator as op
 import torch
 import torch.nn as nn
-from typing import List, Tuple, Tuple, Union
+
 
 def combination(n: int, r: int) -> int:
     r"""function to calculate combination.
@@ -25,8 +27,9 @@ def combination(n: int, r: int) -> int:
     denom = reduce(op.mul, range(1, r + 1), 1)
     return int(numer / denom)
 
-def dummy_attention(key  : torch.Tensor, 
-                    query: torch.Tensor, 
+
+def dummy_attention(key: torch.Tensor,
+                    query: torch.Tensor,
                     value: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
     r"""function for dummy in jit-compile features of torch, which have the same inputs and 
     outputs to nn.MultiheadAttention().__call__()
@@ -41,6 +44,7 @@ def dummy_attention(key  : torch.Tensor,
     """
     return key, torch.Tensor([])
 
+
 def inner_product_similarity(a: torch.Tensor, b: torch.Tensor, dim=1) -> torch.Tensor:
     r"""function to calculate inner-product of two vectors
     
@@ -54,9 +58,10 @@ def inner_product_similarity(a: torch.Tensor, b: torch.Tensor, dim=1) -> torch.T
     outputs = (a * b).sum(dim=dim)
     return outputs
 
-def regularize(parametes    : List[Tuple[str, nn.Parameter]], 
-               weight_decay : float = 0.01,
-               norm         : int = 2) -> torch.Tensor:
+
+def regularize(parametes: List[Tuple[str, nn.Parameter]],
+               weight_decay: float = 0.01,
+               norm: int = 2) -> torch.Tensor:
     r"""function to calculate p-th order regularization of paramters in the model
     
     Args:
@@ -72,8 +77,9 @@ def regularize(parametes    : List[Tuple[str, nn.Parameter]],
     for name, param in parametes:
         if "weight" in name:
             loss += torch.norm(param, p=norm)
-    
+
     return loss * weight_decay
+
 
 def replicate_tensor(tensor: torch.Tensor, size: int, dim: int) -> torch.Tensor:
     r"""replicate tensor by batch / by row
@@ -104,15 +110,16 @@ def replicate_tensor(tensor: torch.Tensor, size: int, dim: int) -> torch.Tensor:
     # reshape repeat_tensor to (batch_size * size, ...)
     # inputs: repeat_tensor, shape = (B, size, ...) / (1, B * size, ...)
     # output: repeat_tensor, shape = (B * size, ...)
-    reshape_size = (batch_size * size, ) + tensor_shape
+    reshape_size = (batch_size * size,) + tensor_shape
     repeat_tensor = repeat_tensor.view(reshape_size)
 
     return repeat_tensor
 
-def show_attention(attentions : np.ndarray, 
-                   xaxis      : Union[list, str] = None, 
-                   yaxis      : Union[list, str] = None, 
-                   savedir    : str = None):
+
+def show_attention(attentions: np.ndarray,
+                   xaxis: Union[list, str] = None,
+                   yaxis: Union[list, str] = None,
+                   savedir: str = None):
     r"""Show attention of MultiheadAttention in a mpl heatmap
     
     Args:
@@ -123,7 +130,7 @@ def show_attention(attentions : np.ndarray,
     """
     # set up figure with colorbar
     fig = plt.figure()
-    ax  = fig.add_subplot(111)
+    ax = fig.add_subplot(111)
     cax = ax.matshow(attentions)
     fig.colorbar(cax)
 
@@ -134,22 +141,23 @@ def show_attention(attentions : np.ndarray,
         elif isinstance(xaxis, list):
             xaxis = [""] + xaxis
         ax.set_xticklabels(xaxis, rotation=90)
-    
+
     if yaxis is not None:
         if isinstance(yaxis, str):
             yaxis = [""] + yaxis.split(",")
         elif isinstance(yaxis, list):
             yaxis = [""] + yaxis
         ax.set_yticklabels(yaxis)
-    
+
     # show label at every tick
     ax.xaxis.set_major_locator(ticker.MultipleLocator(1))
     ax.yaxis.set_major_locator(ticker.MultipleLocator(1))
-    
+
     if savedir is None:
         plt.show()
     else:
         plt.savefig(savedir)
+
 
 def squash(inputs: torch.Tensor, dim=-1) -> torch.Tensor:
     r"""apply `squashing` non-linearity to inputs
@@ -169,4 +177,3 @@ def squash(inputs: torch.Tensor, dim=-1) -> torch.Tensor:
     c_j = (squared_norm / (1 + squared_norm)) * (inputs / (torch.sqrt(squared_norm) + 1e-8))
 
     return c_j
-    

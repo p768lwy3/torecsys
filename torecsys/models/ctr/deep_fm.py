@@ -1,9 +1,11 @@
-from . import _CtrModel
-from torecsys.layers import FMLayer, DNNLayer
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
+from typing import Callable, List
+
 import torch
 import torch.nn as nn
-from typing import Callable, List
+
+from torecsys.layers import FMLayer, DNNLayer
+from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+from . import _CtrModel
 
 
 class DeepFactorizationMachineModel(_CtrModel):
@@ -17,17 +19,19 @@ class DeepFactorizationMachineModel(_CtrModel):
 
     :Reference:
 
-    #. `Huifeng Guo et al, 2017. DeepFM: A Factorization-Machine based Neural Network for CTR Prediction <https://arxiv.org/abs/1703.04247>`_.
+    #. `Huifeng Guo et al, 2017. DeepFM: A Factorization-Machine based Neural Network for CTR Prediction
+    <https://arxiv.org/abs/1703.04247>`_.
     
     """
+
     @no_jit_experimental_by_namedtensor
-    def __init__(self, 
-                 embed_size       : int,
-                 num_fields       : int,
-                 deep_layer_sizes : List[int],
-                 fm_dropout_p     : float = 0.0,
-                 deep_dropout_p   : List[float] = None,
-                 deep_activation  : Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
+    def __init__(self,
+                 embed_size: int,
+                 num_fields: int,
+                 deep_layer_sizes: List[int],
+                 fm_dropout_p: float = 0.0,
+                 deep_dropout_p: List[float] = None,
+                 deep_activation: Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
         r"""Initialize DeepFactorizationMachineModel
         
         Args:
@@ -53,14 +57,14 @@ class DeepFactorizationMachineModel(_CtrModel):
 
         # Initialize dense layer
         self.deep = DNNLayer(
-            output_size = 1,
-            layer_sizes = deep_layer_sizes,
-            embed_size  = embed_size,
-            num_fields  = num_fields,
-            dropout_p   = deep_dropout_p,
-            activation  = deep_activation
+            output_size=1,
+            layer_sizes=deep_layer_sizes,
+            embed_size=embed_size,
+            num_fields=num_fields,
+            dropout_p=deep_dropout_p,
+            activation=deep_activation
         )
-    
+
     def forward(self, feat_inputs: torch.Tensor, emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""Forward calculation of DeepFactorizationMachineModel
         
@@ -102,7 +106,7 @@ class DeepFactorizationMachineModel(_CtrModel):
         # inputs: fm_out, shape = (B, O = 1)
         # output: outputs, shape = (B, O = 1)
         outputs = deep_out + fm_out
-        
+
         # Drop names of outputs, since autograd doesn't support NamedTensor yet.
         outputs = outputs.rename(None)
 

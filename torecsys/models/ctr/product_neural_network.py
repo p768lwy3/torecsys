@@ -1,10 +1,13 @@
-from . import _CtrModel
+from typing import Callable, List
+
 import torch
 import torch.nn as nn
+
 from torecsys.layers import InnerProductNetworkLayer, OuterProductNetworkLayer, DNNLayer
 from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
 from torecsys.utils.operations import combination
-from typing import Callable, List
+from . import _CtrModel
+
 
 class ProductNeuralNetworkModel(_CtrModel):
     r"""Model class of Product Neural Network (PNN).
@@ -19,15 +22,16 @@ class ProductNeuralNetworkModel(_CtrModel):
     #. `Yanru QU, 2016. Product-based Neural Networks for User Response Prediction <https://arxiv.org/abs/1611.00144>`_.
 
     """
+
     @no_jit_experimental_by_namedtensor
     def __init__(self,
-                 embed_size       : int,
-                 num_fields       : int,
-                 deep_layer_sizes : List[int],
-                 output_size      : int = 1,
-                 prod_method      : str = "inner", 
-                 deep_dropout_p   : List[float] = None,
-                 deep_activation  : Callable[[torch.Tensor], torch.Tensor] = nn.ReLU(),
+                 embed_size: int,
+                 num_fields: int,
+                 deep_layer_sizes: List[int],
+                 output_size: int = 1,
+                 prod_method: str = "inner",
+                 deep_dropout_p: List[float] = None,
+                 deep_activation: Callable[[torch.Tensor], torch.Tensor] = nn.ReLU(),
                  **kwargs):
         r"""Initialize ProductNeuralNetworkModel
         
@@ -62,28 +66,28 @@ class ProductNeuralNetworkModel(_CtrModel):
 
         # Initialize product network
         if prod_method == "inner":
-            self.pnn = InnerProductNetworkLayer(num_fields  = num_fields)
+            self.pnn = InnerProductNetworkLayer(num_fields=num_fields)
         elif prod_method == "outer":
-            self.pnn = OuterProductNetworkLayer(embed_size  = embed_size, 
-                                                num_fields  = num_fields, 
-                                                kernel_type = kwargs.get("kernel_type", "mat"))
+            self.pnn = OuterProductNetworkLayer(embed_size=embed_size,
+                                                num_fields=num_fields,
+                                                kernel_type=kwargs.get("kernel_type", "mat"))
         else:
             raise ValueError("'%s' is not allowed in prod_method. Please use ['inner', 'outer'].")
-        
+
         # Calculate size of inputs of dense layer
         cat_size = combination(num_fields, 2) + num_fields + 1
 
         # Initialize dense layer
         self.deep = DNNLayer(
-            output_size = output_size,
-            layer_sizes = deep_layer_sizes,
-            inputs_size = cat_size,
-            dropout_p   = deep_dropout_p,
-            activation  = deep_activation
+            output_size=output_size,
+            layer_sizes=deep_layer_sizes,
+            inputs_size=cat_size,
+            dropout_p=deep_dropout_p,
+            activation=deep_activation
         )
 
         # Initialize bias parameter
-        self.bias = nn.Parameter(torch.zeros((1, 1), names = ("B", "O")))
+        self.bias = nn.Parameter(torch.zeros((1, 1), names=("B", "O")))
         nn.init.uniform_(self.bias.data)
 
     def forward(self, feat_inputs: torch.Tensor, emb_inputs: torch.Tensor) -> torch.Tensor:

@@ -1,8 +1,11 @@
 import math
+
 import torch
 import torch.nn as nn
+
 from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
 from torecsys.utils.operations import combination
+
 
 class FieldAllTypeBilinear(nn.Module):
     r"""Applies a bilinear transformation to the incoming data:
@@ -54,23 +57,22 @@ class FieldAllTypeBilinear(nn.Module):
             self.register_parameter("bias", None)
 
         self.reset_parameters()
-    
+
     def reset_parameters(self):
         bound = 1 / math.sqrt(self.weight.size(0))
         nn.init.uniform_(self.weight, -bound, bound)
         if self.bias is not None:
             nn.init.uniform_(self.bias, -bound, bound)
-    
+
     def forward(self, input1, input2):
         output = torch.mul(torch.matmul(input1, self.weight), input2)
         if self.bias is not None:
             output += self.bias
         return output
-    
+
     def extra_repr(self):
-        return 'in1_features={}, in2_features={}, bias={}'.format(
-            self.in1_features, self.in2_features, self.bias is not None
-        )
+        return f'in1_features={self.in1_features}, in2_features={self.in2_features}, bias={self.bias is not None}'
+
 
 class FieldEachTypeBilinear(nn.Module):
     r"""Applies a bilinear transformation to the incoming data:
@@ -124,43 +126,44 @@ class FieldEachTypeBilinear(nn.Module):
             self.register_parameter("bias", None)
 
         self.reset_parameters()
-    
+
     def reset_parameters(self):
         bound = 1 / math.sqrt(self.weight.size(0))
         nn.init.uniform_(self.weight, -bound, bound)
         if self.bias is not None:
             nn.init.uniform_(self.bias, -bound, bound)
-    
+
     def forward(self, input1, input2):
         output = torch.matmul(input1.unsqueeze(-2), self.weight).squeeze(-2)
         output = torch.mul(output, input2)
         if self.bias is not None:
             output += self.bias
         return output
-    
+
     def extra_repr(self):
-        return 'in1_features={}, in2_features={}, bias={}'.format(
-            self.in1_features, self.in2_features, self.bias is not None
-        )
+        return f'in1_features={self.in1_features}, in2_features={self.in2_features}, bias={self.bias is not None}'
+
 
 class BilinearInteractionLayer(nn.Module):
     r"""Layer class of Bilinear-Interaction.
 
     Bilinear-Interaction layer is used in FiBiNet proposed by `Tongwen Huang et al`[1] to 
-    combine inner-product and hadamard-product to learn features' interactions with extra 
+    combine inner-product and Hadamard product to learn features' interactions with extra
     parameters W.
 
     :Reference:
 
-    #. `Tongwen Huang et al, 2019. FibiNET: Combining Feature Importance and Bilinear feature Interaction for Click-Through Rate Prediction <https://arxiv.org/abs/1905.09433>`_.
+    #. `Tongwen Huang et al, 2019. FibiNET: Combining Feature Importance and Bilinear feature Interaction for
+    Click-Through Rate Prediction <https://arxiv.org/abs/1905.09433>`_.
      
     """
+
     @no_jit_experimental_by_namedtensor
     def __init__(self,
-                 embed_size    : int,
-                 num_fields    : int,
-                 bilinear_type : str = "all",
-                 bias          : bool = True):
+                 embed_size: int,
+                 num_fields: int,
+                 bilinear_type: str = "all",
+                 bias: bool = True):
         """Initialize BilinearInteractionLayer
         
         Args:
@@ -171,9 +174,10 @@ class BilinearInteractionLayer(nn.Module):
             bias (bool, optional): Flag to control using bias. 
                 Defaults to True.
         
-        Attributes:
-            rowidx (T), dtype = torch.long: 1st indices to index inputs in 2nd dimension for inner product.
-            colidx (T), dtype = torch.long: 2nd indices to index inputs in 2nd dimension for inner product.
+
+        Attribute:
+            row_idx (T), dtype = torch.long: 1st indices to index inputs in 2nd dimension for inner product.
+            col_idx (T), dtype = torch.long: 2nd indices to index inputs in 2nd dimension for inner product.
             bilinear (nn.Module): Module of bilinear-interaction.
             bilinear_type (str): Type of bilinear to calculate interactions.
         
@@ -184,15 +188,15 @@ class BilinearInteractionLayer(nn.Module):
         # Refer to parent class
         super(BilinearInteractionLayer, self).__init__()
 
-        # Create rowidx and colidx to index inputs for outer product
-        self.rowidx = list()
-        self.colidx = list()
+        # Create row_idx and col_idx to index inputs for outer product
+        self.row_idx = list()
+        self.col_idx = list()
         for i in range(num_fields - 1):
             for j in range(i + 1, num_fields):
-                self.rowidx.append(i)
-                self.colidx.append(j)
-        self.rowidx = torch.LongTensor(self.rowidx)
-        self.colidx = torch.LongTensor(self.colidx)
+                self.row_idx.append(i)
+                self.col_idx.append(j)
+        self.row_idx = torch.LongTensor(self.row_idx)
+        self.col_idx = torch.LongTensor(self.col_idx)
 
         # calculate number of interactive fields
         num_interaction = combination(num_fields, 2)
@@ -206,7 +210,7 @@ class BilinearInteractionLayer(nn.Module):
             # self.bilinear = FieldInteractionTypeBilinear(num_interaction, embed_size, embed_size, bias=bias)
         else:
             raise ValueError('bilinear_type only allows: ["all", "each", "interaction"].')
-        
+
         # Bind kernel_type to kernel_type
         self.bilinear_type = bilinear_type
 
@@ -216,8 +220,8 @@ class BilinearInteractionLayer(nn.Module):
         Returns:
             str: Information of print-statement of layer.
         """
-        return 'bilinear_type={}'.format(self.bilinear_type)
-    
+        return f'bilinear_type={self.bilinear_type}'
+
     def forward(self, emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""Forward calculation of BilinearInteractionLayer
         
@@ -231,8 +235,8 @@ class BilinearInteractionLayer(nn.Module):
         # inputs: emb_inputs, shape = (B, N, E)
         # output: p, shape = (B, NC2, E)
         # output: q, shape = (B, NC2, E)
-        p = emb_inputs.rename(None)[:, self.rowidx]
-        q = emb_inputs.rename(None)[:, self.colidx]
+        p = emb_inputs.rename(None)[:, self.row_idx]
+        q = emb_inputs.rename(None)[:, self.col_idx]
 
         # Calculate bilinear interaction with index slicing
         # inputs: p, shape = (B, NC2, E)
@@ -241,6 +245,6 @@ class BilinearInteractionLayer(nn.Module):
         output = self.bilinear(p, q)
 
         # Rename tensor names
-        outputs.names = ("B", "N", "O")
+        output.names = ("B", "N", "O")
 
         return output

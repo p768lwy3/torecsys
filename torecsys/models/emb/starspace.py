@@ -1,10 +1,12 @@
-from . import _EmbModel
 from functools import partial
-import torch
-from torecsys.layers import StarSpaceLayer
-from torecsys.utils.decorator import jit_experimental
-from torecsys.utils.operations import inner_product_similarity
 from typing import Callable, Tuple
+
+import torch
+
+from torecsys.layers import StarSpaceLayer
+from torecsys.utils.operations import inner_product_similarity
+from . import _EmbModel
+
 
 class StarSpaceModel(_EmbModel):
     r"""Model class of StatSpaceModel.
@@ -19,10 +21,12 @@ class StarSpaceModel(_EmbModel):
     #. `Ledell Wu et al, 2017 StarSpace: Embed All The Things! <https://arxiv.org/abs/1709.03856>`_.
     
     """
-    def __init__(self, 
+
+    def __init__(self,
                  embed_size: int,
-                 num_neg   : int,
-                 similarity: Callable[[torch.Tensor, torch.Tensor], torch.Tensor] = partial(inner_product_similarity, dim=2)):
+                 num_neg: int,
+                 similarity: Callable[[torch.Tensor, torch.Tensor], torch.Tensor] = partial(inner_product_similarity,
+                                                                                            dim=2)):
         r"""Initialize StarSpaceModel
         
         Args:
@@ -45,9 +49,9 @@ class StarSpaceModel(_EmbModel):
         # Initialize starspace layer
         self.starspace = StarSpaceLayer(similarity)
 
-    def forward(self, 
-                context_inputs: torch.Tensor, 
-                target_inputs : torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(self,
+                context_inputs: torch.Tensor,
+                target_inputs: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         r"""Forward calculation of StarSpaceModel
         
         Args:
@@ -127,6 +131,5 @@ class StarSpaceModel(_EmbModel):
 
         # Drop names of outputs, since autograd doesn't support NamedTensor yet.
         outputs = outputs.rename(None)
-        
+
         return outputs
-        

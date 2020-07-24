@@ -11,9 +11,10 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
-import six
-from subprocess import check_call
 import sys
+from subprocess import check_call
+
+import six
 
 sys.path.insert(0, os.path.abspath("../.."))
 
@@ -115,6 +116,7 @@ intersphinx_mapping = {
     'numpy': ('https://docs.scipy.org/doc/numpy/', None)
 }
 
+
 def on_init(app):  # pylint: disable=unused-argument
     """
     Run sphinx-apidoc after Sphinx initialization.
@@ -128,7 +130,8 @@ def on_init(app):  # pylint: disable=unused-argument
         # If we are, assemble the path manually
         bin_path = os.path.abspath(os.path.join(sys.prefix, 'bin'))
         apidoc_path = os.path.join(bin_path, apidoc_path)
-    check_call([apidoc_path, '-o', docs_path,  os.path.join(root_path, 'torecsys')])
+    check_call([apidoc_path, '-o', docs_path, os.path.join(root_path, 'torecsys')])
+
 
 def setup(app):
     """Sphinx extension: run sphinx-apidoc."""

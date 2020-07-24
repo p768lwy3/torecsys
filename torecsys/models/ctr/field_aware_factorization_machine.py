@@ -1,8 +1,9 @@
-from . import _CtrModel
-from torecsys.layers import FFMLayer
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 import torch
 import torch.nn as nn
+
+from torecsys.layers import FFMLayer
+from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+from . import _CtrModel
 
 
 class FieldAwareFactorizationMachineModel(_CtrModel):
@@ -16,11 +17,12 @@ class FieldAwareFactorizationMachineModel(_CtrModel):
     #. `Yuchin Juan et al, 2016. Field-aware Factorization Machines for CTR Prediction <https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf>`_.
 
     """
+
     @no_jit_experimental_by_namedtensor
     def __init__(self,
-                 embed_size    : int,
-                 num_fields    : int,
-                 dropout_p     : float = 0.0):
+                 embed_size: int,
+                 num_fields: int,
+                 dropout_p: float = 0.0):
         r"""Initialize FieldAwareFactorizationMachineModel
         
         Args:
@@ -38,7 +40,7 @@ class FieldAwareFactorizationMachineModel(_CtrModel):
 
         # initialize ffm layer
         self.ffm = FFMLayer(num_fields, dropout_p=dropout_p)
-            
+
         # initialize bias parameter
         self.bias = nn.Parameter(torch.zeros((1, 1), names=("B", "O")))
         nn.init.uniform_(self.bias.data)

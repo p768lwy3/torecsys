@@ -1,8 +1,7 @@
+import torch
+
 from . import _EmbLoss
 from .functional import skip_gram_loss
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
 
 
 class SkipGramLoss(_EmbLoss):
@@ -12,29 +11,31 @@ class SkipGramLoss(_EmbLoss):
     
     :Reference:
 
-    #. `Tomas Mikolov et al, 2013. Efficient Estimation of Word Representations in Vector Space <https://arxiv.org/abs/1301.3781>`_.
+    #. `Tomas Mikolov et al, 2013. Efficient Estimation of Word Representations in Vector Space
+    <https://arxiv.org/abs/1301.3781>`_.
     
     """
+
     def __init__(self):
         r"""Initialize SkipGramLoss
         """
         # refer to parent class
         super(SkipGramLoss, self).__init__()
-    
-    def forward(self, 
-                content_inputs: torch.Tensor, 
-                pos_inputs    : torch.Tensor, 
-                neg_inputs    : torch.Tensor) -> torch.Tensor:
-        r"""Foward calculation of SkipGramLoss
-        
+
+    def forward(self,
+                content_inputs: torch.Tensor,
+                pos_inputs: torch.Tensor,
+                neg_inputs: torch.Tensor) -> torch.Tensor:
+        r"""Forward calculation of SkipGramLoss
+
         Args:
             content_inputs (T), shape = (B, 1, E), dtype = torch.float: Predicted scores of content or anchor.
             pos_inputs (T), shape = (B, 1, E), dtype = torch.float: Predicted scores of positive samples.
             neg_inputs (T, shape = (B, Nneg, E), dtype = torch.float: Predicted scores of negative samples.
-        
+
         Returns:
             T, shape = (1, ), dtype = torch.float: Output of SkipGramLoss.
         """
         # calculate skip gram loss
-        loss = skip_gram_loss(content_inputs, pos_inputs, neg_inputs)
+        loss = skip_gram_loss(content_inputs, pos_inputs)
         return loss

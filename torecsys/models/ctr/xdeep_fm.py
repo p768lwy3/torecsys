@@ -1,9 +1,10 @@
-from . import _CtrModel
-from torecsys.layers import CINLayer, DNNLayer
-from torecsys.utils.decorator import jit_experimental
+from typing import Callable, List
+
 import torch
 import torch.nn as nn
-from typing import Callable, List
+
+from torecsys.layers import CINLayer, DNNLayer
+from . import _CtrModel
 
 
 class xDeepFactorizationMachineModel(_CtrModel):
@@ -19,17 +20,18 @@ class xDeepFactorizationMachineModel(_CtrModel):
     #. `Jianxun Lian et al, 2018. xDeepFM: Combining Explicit and Implicit Feature Interactions for Recommender Systems <https://arxiv.org/abs/1803.05170.pdf>`_.
 
     """
-    def __init__(self, 
-                 embed_size        : int,
-                 num_fields        : int,
-                 cin_layer_sizes   : List[int],
-                 deep_layer_sizes  : List[int],
-                 cin_is_direct     : bool = False,
-                 cin_use_bias      : bool = True,
-                 cin_use_batchnorm : bool = True,
-                 cin_activation    : Callable[[torch.Tensor], torch.Tensor] = nn.ReLU(),
-                 deep_dropout_p    : List[float] = None,
-                 deep_activation   : Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
+
+    def __init__(self,
+                 embed_size: int,
+                 num_fields: int,
+                 cin_layer_sizes: List[int],
+                 deep_layer_sizes: List[int],
+                 cin_is_direct: bool = False,
+                 cin_use_bias: bool = True,
+                 cin_use_batchnorm: bool = True,
+                 cin_activation: Callable[[torch.Tensor], torch.Tensor] = nn.ReLU(),
+                 deep_dropout_p: List[float] = None,
+                 deep_activation: Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
         r"""Initialize xDeepFactorizationMachineModel
         
         Args:
@@ -55,7 +57,7 @@ class xDeepFactorizationMachineModel(_CtrModel):
         
         Attributes:
             cin (torecsys.layers.CompressInteractionNetworkLayer): Compress Interaction Network Layer.
-            deep (torecsys.layers.MultilayerPerceptronLayer): Deep Neural Network Layer.
+            deep (torecsys.layers.MultilayerPerceptionLayer): Deep Neural Network Layer.
             bias (torch.nn.Tensor): Bias variable, which is a trainable tensor.
         """
         # refer to parent class
@@ -63,29 +65,29 @@ class xDeepFactorizationMachineModel(_CtrModel):
 
         # initialize cin layer
         self.cin = CINLayer(
-            embed_size    = embed_size,
-            num_fields    = num_fields,
-            output_size   = 1,
-            layer_sizes   = cin_layer_sizes,
-            is_direct     = cin_is_direct,
-            use_bias      = cin_use_bias,
-            use_batchnorm = cin_use_batchnorm,
-            activation    = cin_activation
+            embed_size=embed_size,
+            num_fields=num_fields,
+            output_size=1,
+            layer_sizes=cin_layer_sizes,
+            is_direct=cin_is_direct,
+            use_bias=cin_use_bias,
+            use_batchnorm=cin_use_batchnorm,
+            activation=cin_activation
         )
 
         # initialize deep layer
         self.deep = DNNLayer(
-            inputs_size = embed_size * num_fields,
-            output_size = 1,
-            layer_sizes = deep_layer_sizes,
-            dropout_p   = deep_dropout_p,
-            activation  = deep_activation
+            inputs_size=embed_size * num_fields,
+            output_size=1,
+            layer_sizes=deep_layer_sizes,
+            dropout_p=deep_dropout_p,
+            activation=deep_activation
         )
 
         # initialize bias variable
         self.bias = nn.Parameter(torch.zeros(1))
         nn.init.uniform_(self.bias.data)
-    
+
     def forward(self, feat_inputs: torch.Tensor, emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""Forward calculation of xDeepFactorizationMachineModel
         
@@ -105,21 +107,21 @@ class xDeepFactorizationMachineModel(_CtrModel):
         # inputs: emb_inputs, shape = (B, N, E)
         # output: cin_out, shape = (B, O = 1)
         cin_out = self.cin(emb_inputs)
-        
+
         # Forward calculation of deep layer
         # inputs: deep_inputs, shape = (B, N * E)
         # output: deep_out, shape = (B, O = 1)
         deep_out = self.deep(deep_inputs)
-        
+
         # Aggregate feat_inputs
         # inputs: feat_inputs, shape = (B, N, 1)
         # output: feat_output, shape = (B, O = 1)
         feat_output = feat_inputs.sum(dim="N")
         feat_output.names = ("B", "O")
-        
+
         # Add up values
         outputs = feat_output + cin_out + deep_out + self.bias
-        
+
         # Drop names of outputs, since autograd doesn't support NamedTensor yet.
         outputs = outputs.rename(None)
 

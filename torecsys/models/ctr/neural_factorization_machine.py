@@ -1,9 +1,12 @@
-from . import _CtrModel
-from torecsys.layers import FMLayer, DNNLayer
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
+from typing import Callable, List
+
 import torch
 import torch.nn as nn
-from typing import Callable, List
+
+from torecsys.layers import FMLayer, DNNLayer
+from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+from . import _CtrModel
+
 
 class NeuralFactorizationMachineModel(_CtrModel):
     r"""Model class of Neural Factorization Machine (NFM).
@@ -17,14 +20,15 @@ class NeuralFactorizationMachineModel(_CtrModel):
     #. `Xiangnan He et al, 2017. Neural Factorization Machines for Sparse Predictive Analytics <https://arxiv.org/abs/1708.05027>`_.
 
     """
+
     @no_jit_experimental_by_namedtensor
     def __init__(self,
-                 embed_size       : int,
-                 deep_output_size : int,
-                 deep_layer_sizes : List[int],
-                 fm_dropout_p     : float = 0.0,
-                 deep_dropout_p   : List[float] = None,
-                 deep_activation  : Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
+                 embed_size: int,
+                 deep_output_size: int,
+                 deep_layer_sizes: List[int],
+                 fm_dropout_p: float = 0.0,
+                 deep_dropout_p: List[float] = None,
+                 deep_activation: Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
         r"""Initialize NeuralFactorizationMachineModel.
         
         Args:
@@ -54,17 +58,17 @@ class NeuralFactorizationMachineModel(_CtrModel):
 
         # initialize dense layer
         self.sequential.add_module("Deep", DNNLayer(
-            output_size = deep_output_size,
-            layer_sizes = deep_layer_sizes,
-            inputs_size = embed_size,
-            dropout_p   = deep_dropout_p,
-            activation  = deep_activation
+            output_size=deep_output_size,
+            layer_sizes=deep_layer_sizes,
+            inputs_size=embed_size,
+            dropout_p=deep_dropout_p,
+            activation=deep_activation
         ))
 
         # initialize bias parameter
         self.bias = nn.Parameter(torch.zeros((1, 1), names=("B", "O")))
         nn.init.uniform_(self.bias.data)
-    
+
     def forward(self, feat_inputs: torch.Tensor, emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""Forward calculation of NeuralFactorizationMachineModel
         

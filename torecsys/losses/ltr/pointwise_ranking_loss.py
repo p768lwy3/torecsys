@@ -2,25 +2,28 @@ r"""torecsys.models.ltr.losses.pointwise_ranking_loss is a sub module of algorit
 pointwise ranking loss
 """
 
+import torch
+
 from . import _RankingLoss
 from .functional import apply_mask, pointwise_logistic_ranking_loss
-import torch
 
 
 class _PointwiseRankingLoss(_RankingLoss):
     r"""Base Class of pointwise ranking loss
     """
+
     def __init__(self):
         super(_PointwiseRankingLoss, self).__init__()
 
 
 class PointwiseLogisticLoss(_PointwiseRankingLoss):
-    r"""pointwise logitic loss
+    r"""pointwise logistic loss
     """
+
     def __init__(self):
         super(PointwiseLogisticLoss, self).__init__()
 
-    def forward(self, 
+    def forward(self,
                 pos_outputs: torch.Tensor,
                 neg_outputs: torch.Tensor,
                 mask: torch.Tensor = None) -> torch.Tensor:

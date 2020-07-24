@@ -1,27 +1,27 @@
+import warnings
 from logging import Logger
 from os import path
 from pathlib import Path
-from texttable import Texttable
+from typing import Callable, Dict, List, Tuple, TypeVar, Union
+
 import torch
 import torch.nn as nn
 import torch.nn.parallel as nn_parallel
 import torch.optim as optim
 import torch.utils.data
-import torecsys.sampling.negsampling
-from torecsys.sampling.negsampling import _NegativeSampler
-from torecsys.inputs.base import _Inputs
-from torecsys.layers.regularization import Regularizer
+from texttable import Texttable
+
 import torecsys.losses
 import torecsys.models as trs_model
+import torecsys.sampling.negsampling
+from torecsys.inputs.base import Inputs
+from torecsys.layers.regularization import Regularizer
 from torecsys.models.sequential import Sequential
-from torecsys.utils.logging import TqdmHandler
-from typing import Callable, Dict, List, Tuple, TypeVar, Union
-import warnings
+from torecsys.sampling.negsampling import _NegativeSampler
 
 # ignore import warnings of the below packages
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
-    from torch.utils.tensorboard import SummaryWriter
     from tqdm.autonotebook import tqdm
 
 obj_dict = {
@@ -30,9 +30,11 @@ obj_dict = {
     "ltr": "learningtorank"
 }
 
+
 class Trainer(object):
     r"""Trainer object to train model, including trs.inputs.inputs_wrapper and trs.model.
     """
+
     def __init__(self):
         r"""Initialize Trainer.
         """
@@ -40,7 +42,7 @@ class Trainer(object):
         # Model Core
         self._objective = "clickthroughrate"
         self._inputs = None
-        self._model  = None
+        self._model = None
         self._sequential = None
 
         self._regularizer = None
@@ -90,7 +92,7 @@ class Trainer(object):
         # Checkpoint
         # Early Stopping
         # Callback
-    
+
     @property
     def objective(self) -> str:
         r"""Get the objective of trainer.
@@ -101,14 +103,14 @@ class Trainer(object):
         return self._objective
 
     @property
-    def inputs(self) -> _Inputs:
+    def inputs(self) -> Inputs:
         r"""Get the inputs.
         
         Returns:
-            _Inputs: Inputs of the trainer.
+            Inputs: Inputs of the trainer.
         """
         return self._inputs
-    
+
     @property
     def model(self) -> nn.Module:
         r"""Get the model.
@@ -117,7 +119,7 @@ class Trainer(object):
             torch.nn.Module: Model of the trainer.
         """
         return self._model
-    
+
     @property
     def sequential(self) -> nn.Sequential:
         r"""Get the sequential.
@@ -126,7 +128,7 @@ class Trainer(object):
             torch.nn.Sequential: Sequential of the trainer.
         """
         return self._sequential
-    
+
     @property
     def regularizer(self) -> Regularizer:
         r"""Get the regularizer.
@@ -135,7 +137,7 @@ class Trainer(object):
             torecsys.layers.regularization.Regularizer: Regularizer of the trainer.
         """
         return self._regularizer
-    
+
     @property
     def criterion(self) -> nn.modules.loss._Loss:
         r"""Get the criterion.
@@ -144,7 +146,7 @@ class Trainer(object):
             torch.nn.modules.loss._Loss: Criterion of the trainer.
         """
         return self._criterion
-    
+
     @property
     def optimizer(self) -> optim:
         r"""Get the optimizer
@@ -153,7 +155,7 @@ class Trainer(object):
             torch.optim: Optimizer of the trainer.
         """
         return self._optimizer
-    
+
     @property
     def negative_sampler(self) -> _NegativeSampler:
         r"""Get the negative sampler
@@ -162,7 +164,7 @@ class Trainer(object):
             _NegativeSampler: Negative sampler of the trainer.
         """
         return self._negative_sampler
-    
+
     @property
     def negative_size(self) -> int:
         r"""Get the negative size
@@ -171,7 +173,7 @@ class Trainer(object):
             int: Negative size of the trainer.
         """
         return self._negative_size
-    
+
     @property
     def train_loader(self) -> torch.utils.data.DataLoader:
         r"""Get the data loader for training.
@@ -185,7 +187,7 @@ class Trainer(object):
         if self._loaders.get("train") is None:
             raise AssertionError("Data loader for training not setted.")
         return self._loaders.get("train")
-    
+
     @property
     def eval_loader(self) -> torch.utils.data.DataLoader:
         r"""Get the data loader for eval.
@@ -200,7 +202,7 @@ class Trainer(object):
         if self._loaders.get("eval") is None:
             raise AssertionError("Data loader for eval not setted.")
         return self._loaders.get("eval")
-    
+
     @property
     def targets_name(self) -> str:
         r"""Get the target field name.
@@ -209,7 +211,7 @@ class Trainer(object):
             str: Name of target field.
         """
         return self._targets_name
-    
+
     @property
     def negative_sampler(self) -> _NegativeSampler:
         r"""Get the negative sampler used for negative sampling in learning-to-rank.
@@ -218,7 +220,7 @@ class Trainer(object):
             _NegativeSampler: Negative sampler of the trainer.
         """
         return self._negative_sampler
-    
+
     @property
     def negative_size(self) -> int:
         r"""Get the size of sampling to generate negative samples.
@@ -227,7 +229,7 @@ class Trainer(object):
             int: Size of sampling.
         """
         return self._negative_size
-    
+
     @property
     def dtype(self) -> str:
         r"""Get the data type of model.
@@ -236,7 +238,7 @@ class Trainer(object):
             str: Data type of model.
         """
         return self._dtype
-    
+
     @property
     def logger(self) -> Logger:
         r"""Get the logger.
@@ -245,7 +247,7 @@ class Trainer(object):
             logging.Logger: Logger of the trainer
         """
         return self._logger
-    
+
     @property
     def log_directory(self) -> str:
         r"""Get the logging directory.
@@ -254,7 +256,7 @@ class Trainer(object):
             str: Logging directory of the trainer.
         """
         return self._log_directory
-    
+
     @property
     def max_num_epochs(self) -> int:
         r"""Get the maximum number of training epochs.
@@ -263,7 +265,7 @@ class Trainer(object):
             int: Maximum number of training epochs.
         """
         return self._max_num_epochs
-    
+
     @property
     def max_num_iterations(self) -> int:
         r"""Get the maximum number of training iterations.
@@ -281,7 +283,7 @@ class Trainer(object):
             bool: True if inputs is binded else False.
         """
         return self._inputs is not None
-    
+
     @property
     def has_model(self) -> bool:
         r"""Return whether model is binded to the trainer.
@@ -290,7 +292,7 @@ class Trainer(object):
             bool: True if model is binded else False.
         """
         return self._model is not None
-    
+
     @property
     def has_regularizer(self) -> bool:
         r"""Return whether regularizer is binded to the trainer.
@@ -299,7 +301,7 @@ class Trainer(object):
             bool: True if regularizer is binded else False.
         """
         return self._regularizer is not None
-    
+
     @property
     def has_criterion(self) -> bool:
         r"""Return whether criterion is binded to the trainer.
@@ -322,7 +324,7 @@ class Trainer(object):
         if self._optimizer is None:
             raise ValueError("optimizer is not set yet.")
         return self._optimizer
-    
+
     @property
     def has_negative_sampler(self) -> bool:
         r"""Return whether negative sampler is binded to the trainer.
@@ -331,7 +333,7 @@ class Trainer(object):
             bool: True if negative sampler is binded else False.
         """
         return self._negative_sampler is not None
-    
+
     @property
     def has_negative_size(self) -> bool:
         r"""Return whether negative size is binded to the trainer.
@@ -340,7 +342,7 @@ class Trainer(object):
             bool: True if negative size is binded else False.
         """
         return self._negative_size is not None
-    
+
     @property
     def has_train_loader(self) -> bool:
         r"""Return whether loaders.get("train") is setted to the trainer.
@@ -349,7 +351,7 @@ class Trainer(object):
             bool: True if loaders.get("train") is setted else False.
         """
         return self._loaders.get("train") is not None
-    
+
     @property
     def has_eval_loader(self) -> bool:
         r"""Return whether loaders.get("eval") is setted to the trainer.
@@ -358,7 +360,7 @@ class Trainer(object):
             bool: True if loaders.get("eval") is setted else False.
         """
         return self._loaders.get("eval") is not None
-    
+
     @property
     def has_max_num_epochs(self) -> int:
         """Return max_num_epochs setted to the trainer.
@@ -372,7 +374,7 @@ class Trainer(object):
         if self._max_num_epochs is None:
             raise ValueError("max_num_epochs is not set yet.")
         return self._max_num_epochs
-    
+
     @property
     def has_max_num_iterations(self) -> bool:
         r"""Return whether max_num_iterations is setted to the trainer.
@@ -381,7 +383,7 @@ class Trainer(object):
             bool: True if max_num_iterations is setted else False.
         """
         return self._max_num_iterations is not None
-    
+
     def is_cuda(self) -> bool:
         r"""Return whether using GPU for training.
         
@@ -389,7 +391,7 @@ class Trainer(object):
             bool: True if cuda is enable else False.
         """
         return self._use_cuda
-    
+
     def is_jit(self) -> bool:
         r"""Return whether using jit for training.
         
@@ -397,7 +399,7 @@ class Trainer(object):
             bool: True if jit is enabled else False.
         """
         return self._use_jit
-    
+
     @objective.setter
     def objective(self, objective: str):
         r"""Set objective to the trainer.
@@ -406,9 +408,9 @@ class Trainer(object):
             objective (str): objective to be setted to the trainer.
         """
         self.set_objective(objective)
-    
+
     @inputs.setter
-    def inputs(self, inputs: _Inputs):
+    def inputs(self, inputs: Inputs):
         r"""Set Inputs to the trainer.
         
         Args:
@@ -416,7 +418,7 @@ class Trainer(object):
         """
         # Bind inputs to _inputs
         self.bind_inputs(inputs)
-    
+
     @model.setter
     def model(self, model: nn.Module):
         r"""Set model to the trainer.
@@ -426,7 +428,7 @@ class Trainer(object):
         """
         # Bind model to _model
         self.build_model(model)
-    
+
     @regularizer.setter
     def regularizer(self, regularizer: Regularizer):
         r"""Set regularizer to the trainer.
@@ -436,7 +438,7 @@ class Trainer(object):
         """
         # Bind regularizer to _regularizer
         self.build_regularizer(regularizer)
-    
+
     @criterion.setter
     def criterion(self, value: Union[str, Callable[[torch.Tensor], torch.Tensor], dict]):
         r"""Set loss to the trainer.
@@ -454,7 +456,7 @@ class Trainer(object):
             self.build_criterion(value)
         else:
             raise TypeError(f"{type(value).__name__} not allowed.")
-    
+
     @optimizer.setter
     def optimizer(self, value: Union[str, Callable[[torch.Tensor], torch.Tensor], dict]):
         r"""Set optimizer to the trainer.
@@ -472,7 +474,7 @@ class Trainer(object):
             self.build_optimizer(**value)
         else:
             raise TypeError(f"{type(value).__name__} not allowed.")
-    
+
     @negative_sampler.setter
     def negative_sampler(self, value: Union[str, Callable[[torch.Tensor], torch.Tensor], dict]):
         r"""Set negative sampler to the trainer.
@@ -499,7 +501,7 @@ class Trainer(object):
         """
         # Bind negative_size to _negative_size
         self.set_negative_size(value)
-    
+
     @train_loader.setter
     def train_loader(self, dataloader: torch.utils.data.DataLoader):
         r"""Set data loader for training to the trainer.
@@ -512,8 +514,8 @@ class Trainer(object):
         """
         if isinstance(dataloader, torch.utils.data.DataLoader):
             raise TypeError("dataloader must be a torch.utils.data.DataLoader object.")
-        self._loaders.update({"train" : dataloader})
-    
+        self._loaders.update({"train": dataloader})
+
     @eval_loader.setter
     def eval_loader(self, dataloader: torch.utils.data.DataLoader):
         r"""Set data loader for training to the trainer.
@@ -526,8 +528,8 @@ class Trainer(object):
         """
         if isinstance(dataloader, torch.utils.data.DataLoader):
             raise TypeError("dataloader must be a torch.utils.data.DataLoader object.")
-        self._loaders.update({"eval" : dataloader})
-    
+        self._loaders.update({"eval": dataloader})
+
     @targets_name.setter
     def targets_name(self, targets_name: str):
         """Set targets_name of the trainer.
@@ -536,7 +538,7 @@ class Trainer(object):
             targets_name (str): targets name to be setted for getting targets field in batch.
         """
         self.set_targets_name(targets_name)
-    
+
     @dtype.setter
     def dtype(self, dtype: str):
         r"""Set dtype of the trainer.
@@ -546,7 +548,7 @@ class Trainer(object):
         """
         # Bind dtype to _dtype
         self.set_dtype(dtype)
-    
+
     @max_num_epochs.setter
     def max_num_epochs(self, max_num_epochs: int):
         r"""Set maximum number of training epochs to the trainer
@@ -555,7 +557,7 @@ class Trainer(object):
             max_num_epochs (int): maximum number of training epochs.
         """
         self.set_max_num_epochs(max_num_epochs)
-    
+
     @max_num_iterations.setter
     def max_num_iterations(self, max_num_iterations: int):
         r"""Set maximum number of training iterations to the trainer
@@ -564,23 +566,23 @@ class Trainer(object):
             max_num_iterations (int): maximum number of training iterations.
         """
         self.set_max_num_iterations(max_num_iterations)
-    
+
     def set_objective(self, objective: str) -> TypeVar("Trainer"):
 
         if not isinstance(objective, str):
             raise TypeError("objective must be a str.")
-        
+
         objective = objective.lower()
         objective = obj_dict.get(objective) if objective in obj_dict else objective
-        
+
         if objective not in ["clickthroughrate", "embedding", "learningtorank"]:
             raise AssertionError(f"{objective} not allowed.")
-        
+
         self._objective = objective
 
         return self
-    
-    def bind_inputs(self, inputs: _Inputs) -> TypeVar("Trainer"):
+
+    def bind_inputs(self, inputs: Inputs) -> TypeVar("Trainer"):
         r"""Bind inputs to the trainer.inputs
         
         Args:
@@ -593,9 +595,9 @@ class Trainer(object):
             torecsys.trainer.Trainer: self
         """
         # Check if the type of inputs is allowed
-        if not isinstance(inputs, _Inputs):
+        if not isinstance(inputs, Inputs):
             raise TypeError("inputs must be a torecsys.inputs.base._Inputs object.")
-        
+
         # Bind inputs to _inputs
         self._inputs = inputs
 
@@ -605,7 +607,7 @@ class Trainer(object):
 
         return self
 
-    def build_model(self, 
+    def build_model(self,
                     method: Union[str, Callable[[torch.Tensor], torch.Tensor], nn.Module],
                     **kwargs) -> TypeVar("Trainer"):
         r"""Build model of the trainer
@@ -632,7 +634,7 @@ class Trainer(object):
             return self
         else:
             raise TypeError("{type(method).__name__} not allowed.")
-        
+
         # Bind model to _model
         self._model = model_method(**kwargs)
 
@@ -641,8 +643,8 @@ class Trainer(object):
             self._model.cuda()
 
         return self
-    
-    def build_regularizer(self, 
+
+    def build_regularizer(self,
                           regularizer: Regularizer = None,
                           **kwargs) -> TypeVar("Trainer"):
         r"""Build regularizer of the trainer
@@ -665,24 +667,24 @@ class Trainer(object):
                 pass
             else:
                 raise TypeError("regularizer must be a torecsys.layers.regularization.Regularizer.")
-        
+
         # Bind regularizer to _regularizer
         self._regularizer = regularizer
-        
+
         # Apply cuda to regularizer if is_cuda is True
         if self.is_cuda():
             self._regularizer.cuda()
-        
+
         return self
-    
-    def build_sequential(self, 
-                         inputs : _Inputs = None,
-                         model  : nn.Module = None,
+
+    def build_sequential(self,
+                         inputs: Inputs = None,
+                         model: nn.Module = None,
                          **kwargs) -> TypeVar("Trainer"):
         r"""Build sequential with inputs and model.
 
         Args:
-            inputs (_Inputs): Inputs object.
+            inputs (Inputs): Inputs object.
                 Required: output fields' names = model inputs' names.
             model (_Model): Model object.
         
@@ -698,26 +700,26 @@ class Trainer(object):
 
         if model is not None:
             self._model = model
-        
+
         # Check if private variables _inputs or _model is None
         if not self.has_inputs or not self.has_model:
             raise AssertionError("inputs or model not found")
-        
+
         # Build sequential with _inputs and model
         self._sequential = Sequential(inputs_wrapper=self._inputs, model=self._model)
 
         # Enable GPU process if is_cuda is True
         if self.is_cuda():
             self.cuda()
-        
+
         # Enable jit process if is_jit is True
         if self.is_jit():
             self._to_jit(_sequentail, kwargs.get("sample_inputs"))
 
         return self
-    
+
     def build_criterion(self,
-                        method  : Union[str, Callable[[torch.Tensor], torch.Tensor], torch.nn.modules.loss._Loss],
+                        method: Union[str, Callable[[torch.Tensor], torch.Tensor], torch.nn.modules.loss._Loss],
                         **kwargs) -> TypeVar("Trainer"):
         r"""Build criterion.
         
@@ -747,7 +749,7 @@ class Trainer(object):
             return self
         else:
             raise TypeError(f"{type(method).__name__} not allowed.")
-        
+
         self._criterion = criterion_method(**kwargs)
 
         # Enable GPU process if data parallelism is allowed
@@ -758,12 +760,12 @@ class Trainer(object):
 
         if self.is_cuda() and base_device_ordinal != -1:
             self._criterion.cuda()
-        
+
         return self
-    
-    def build_optimizer(self, 
-                        method     : Union[str, Callable[[torch.Tensor], torch.Tensor], optim.Optimizer], 
-                        parameters : nn.parameter.Parameter = None, 
+
+    def build_optimizer(self,
+                        method: Union[str, Callable[[torch.Tensor], torch.Tensor], optim.Optimizer],
+                        parameters: nn.parameter.Parameter = None,
                         **kwargs) -> TypeVar("Trainer"):
         r"""Build optimizer.
 
@@ -790,12 +792,12 @@ class Trainer(object):
             return self
         else:
             raise TypeError(f"{type(method).__name__} not allowed.")
-        
+
         # Get parameters from self._sequential and set them to self._optimizer
         parameters = self._sequential.parameters() if parameters is None else parameters
         self._optimizer = optimizer_method(parameters, **kwargs)
         return self
-    
+
     def build_negative_sampler(self,
                                method: Union[str, Callable[[torch.Tensor], torch.Tensor], _NegativeSampler],
                                **kwargs) -> TypeVar("Trainer"):
@@ -822,10 +824,10 @@ class Trainer(object):
             return self
         else:
             raise TypeError(f"{type(method).__name__} not allowed.")
-            
+
         self._negative_sampler = negative_sampler_method(**kwargs)
         return self
-    
+
     def set_negative_size(self, negative_size: int) -> TypeVar("Trainer"):
         r"""Set number of negative samples to be generated per batch to the trainer
         
@@ -840,14 +842,14 @@ class Trainer(object):
         """
         if not isinstance(negative_size, int):
             raise TypeError("negative_size must be int.")
-        
+
         self._negative_size = negative_size
 
         return self
-    
-    def set_loader(self, 
-                   name   : str, 
-                   loader : torch.utils.data.DataLoader) -> TypeVar("Trainer"):
+
+    def set_loader(self,
+                   name: str,
+                   loader: torch.utils.data.DataLoader) -> TypeVar("Trainer"):
         r"""Set data loader to the trainer.
         
         Args:
@@ -863,20 +865,20 @@ class Trainer(object):
         """
         if name not in ["train", "eval", "test"]:
             raise AssertionError(f"name must be in [\"train\", \"eval\", \"test\"], got {name} instead.")
-        
+
         if not isinstance(loader, torch.utils.data.DataLoader):
             raise TypeError(f"{type(loader).__name__} not allowed.")
-        
+
         # Check if the dataloader is new
         is_new_loader = loader is not self._loaders.get(name)
-        self._loaders.update({ name : loader })
+        self._loaders.update({name: loader})
 
         # Remove cached of DataLoaderIter
         if is_new_loader and name in self._loader_iters:
             del self._loader_iters[name]
-        
+
         return self
-    
+
     def set_targets_name(self, targets_name: str) -> TypeVar("Trainer"):
         r"""Set targets_name of the trainer.
         
@@ -894,7 +896,7 @@ class Trainer(object):
 
         self._targets_name = targets_name
         return self
-    
+
     def set_dtype(self, dtype: str) -> TypeVar("Trainer"):
         r"""Set data type of trainer.
         
@@ -910,7 +912,7 @@ class Trainer(object):
         # Check if dtype is allowed
         if dtype not in ["double", "float", "half"]:
             raise AssertionError(f"{dtype} not found.")
-        
+
         # Bind dtype to _dtype
         self._dtype = dtype
 
@@ -919,7 +921,7 @@ class Trainer(object):
         self._model = getattr(self._model, dtype)()
 
         return self
-    
+
     def set_max_num_epochs(self, max_num_epochs: int) -> TypeVar("Trainer"):
         r"""Set maximum number of training epochs to the trainer
         
@@ -934,11 +936,11 @@ class Trainer(object):
         """
         if not isinstance(max_num_epochs, int):
             raise TypeError("max_num_epochs must be int.")
-        
+
         self._max_num_epochs = max_num_epochs
 
         return self
-    
+
     def set_max_num_iterations(self, max_num_iterations: int) -> TypeVar("Trainer"):
         r"""Set maximum number of training iterations to the trainer
         
@@ -953,13 +955,13 @@ class Trainer(object):
         """
         if not isinstance(max_num_iterations, int):
             raise TypeError("max_num_iterations must be int.")
-        
+
         self._max_num_iterations = max_num_iterations
 
         return self
-    
+
     def cast(self, objects: Union[torch.Tensor, List[torch.Tensor], Tuple[torch.Tensor]]) \
-        -> Union[torch.Tensor, List[torch.Tensor], Tuple[torch.Tensor]]:
+            -> Union[torch.Tensor, List[torch.Tensor], Tuple[torch.Tensor]]:
         r"""Cast objects to the trainer's data type.
         
         Args:
@@ -977,12 +979,12 @@ class Trainer(object):
                 cast_fn = getattr(objects, self._dtype, None)
             else:
                 cast_fn = None
-            
+
             if cast_fn is not None:
                 return cast_fn()
             else:
                 return objects
-    
+
     def to(self, device: Union[str, torch.device]) -> TypeVar("Trainer"):
         r"""Set device of trainer.
         
@@ -1003,10 +1005,10 @@ class Trainer(object):
             self.to(device.type)
         else:
             raise TypeError(f"{type(device).__name__} not allowed.")
-    
-    def cuda(self, 
-             devices      : Union[int, list, tuple] = None, 
-             base_devices : str = None) -> TypeVar("Trainer"):
+
+    def cuda(self,
+             devices: Union[int, list, tuple] = None,
+             base_devices: str = None) -> TypeVar("Trainer"):
         r"""Enable GPU computation of trainer.
 
         Args:
@@ -1024,7 +1026,7 @@ class Trainer(object):
         # check if base_devices is allowed
         if base_devices not in [None, "cpu", "cuda"]:
             raise ValueError(f"base_device must either be \"cpu\" or \"cuda\", got {base_devices} instead.")
-        
+
         if isinstance(devices, int) or (isinstance(devices, (list, tuple)) and len(devices) == 1):
             # no data-parallelism, make sure base_device is not CPU
             raise ValueError("base_device cannot be \"cpu\" if data parallelism is not allowed.")
@@ -1034,10 +1036,10 @@ class Trainer(object):
         # Enable GPU in inputs, model and criterion
         if self.has_inputs:
             self._inputs.cuda()
-        
+
         if self.has_model:
             self._model.cuda()
-        
+
         if self.has_criterion and self._base_device_ordinal != -1:
             self.criterion.cuda()
         elif self.has_criterion and self._base_device_ordinal == -1:
@@ -1047,7 +1049,7 @@ class Trainer(object):
         self._devices = devices
 
         return self
-    
+
     def cpu(self) -> TypeVar("Trainer"):
         r"""Disable GPU computation of trainer.
         
@@ -1059,15 +1061,15 @@ class Trainer(object):
 
         if self.has_model:
             self._model.cpu()
-        
+
         if self.has_criterion:
             self.criterion.cpu()
-        
+
         self._use_cuda = False
         self._devices = None
-        
+
         return self
-    
+
     def train(self) -> TypeVar("Trainer"):
         r"""Set trainer to train mode.
         
@@ -1079,12 +1081,12 @@ class Trainer(object):
 
         if self.has_criterion and isinstance(self.criterion, nn.Module):
             self.criterion.train()
-        
+
         # if self.has_metrics and isinstance(self.metric, nn.Module):
         #     self.metric.train()
-        
+
         return self
-    
+
     def eval(self) -> TypeVar("Trainer"):
         r"""Set trainer to eval mode.
         
@@ -1096,12 +1098,12 @@ class Trainer(object):
 
         if self.has_criterion and isinstance(self.criterion, nn.Module):
             self.criterion.eval()
-        
+
         # if self.has_metrics and isinstance(self.metric, nn.Module):
         #     self.metric.eval()
-        
+
         return self
-    
+
     def jit(self) -> TypeVar("Trainer"):
         r"""To enable jit in the trainer.
         
@@ -1109,10 +1111,10 @@ class Trainer(object):
             self (Trainer): self.
         """
         raise NotImplementedError(".jit() is not implemented.")
-    
-    def fit(self, 
-            mode  : str = None, 
-            reset : bool = True):
+
+    def fit(self,
+            mode: str = None,
+            reset: bool = True):
         r"""Method to train the model
         
         Args:
@@ -1125,11 +1127,11 @@ class Trainer(object):
             self._global_step_cnt = 0
             self._iteration_cnt = 0
             self._epoch_cnt = 0
-        
+
         # Get current mode from self
         if mode is None:
             mode = self._current_mode
-        
+
         # Get dataloader of current mode
         dataloader = self._loaders[mode]
         num_batch = len(dataloader)
@@ -1148,7 +1150,7 @@ class Trainer(object):
             self._epoch_cnt += 1
 
             # Logging and Callback
-    
+
     def _fit_for(self, epoch: int, mode: str):
 
         # Get current mode from trainer
@@ -1226,7 +1228,7 @@ class Trainer(object):
 
             self._global_step_cnt += 1
             self._iteration_cnt += 1
-        
+
         # Logging for the epoch
         # if (self._global_step_cnt) % self._log_step == 0:
         #     metrics.update({"avg_epoch_loss": _epoch_loss / num_batch})
@@ -1240,7 +1242,7 @@ class Trainer(object):
         #     metrics = dict()
 
         return self
-    
+
     def apply_model(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
         r"""Apply model forward.
 
@@ -1254,16 +1256,17 @@ class Trainer(object):
             base_device_ordinal = self._base_device_ordinal
         else:
             base_device_ordinal = None
-        
+
         if self._devices is not None:
-            return nn_parallel.data_parallel(self._sequential, inputs, list(self._devices), output_device=base_device_ordinal)
+            return nn_parallel.data_parallel(self._sequential, inputs, list(self._devices),
+                                             output_device=base_device_ordinal)
         else:
             return self._sequential(inputs)
-    
-    def _iterate(self, 
-                 batch_values : Dict[str, torch.Tensor],
-                 mode         : str = None,
-                 backward     : bool = True) -> Tuple[torch.Tensor, torch.Tensor]:
+
+    def _iterate(self,
+                 batch_values: Dict[str, torch.Tensor],
+                 mode: str = None,
+                 backward: bool = True) -> Tuple[torch.Tensor, torch.Tensor]:
         r"""Iteration for each batch of inputs.
         
         Args:
@@ -1289,22 +1292,22 @@ class Trainer(object):
 
         # Calculate loss and regularized loss
         loss = self._get_loss(prediction, **batch_data)
-        
+
         if self.has_regularizer:
             # Apply regularization to loss if required
             named_params = list(self._sequential.named_parameters())
             reg_loss = self.regularizer(named_params)
             loss += reg_loss
-        
+
         if backward:
             # Take backpropagation of loss if required 
             loss.backward()
-        
+
         return prediction, loss
-    
-    def _get_batch(self, 
-                   batch_values : Dict[str, torch.Tensor],
-                   objective    : str = None) -> Dict[str, torch.Tensor]:
+
+    def _get_batch(self,
+                   batch_values: Dict[str, torch.Tensor],
+                   objective: str = None) -> Dict[str, torch.Tensor]:
         r"""Method to convert batch_values to batch_data to calculate forward and loss.
         
         Args:
@@ -1365,10 +1368,10 @@ class Trainer(object):
                 # inputs: pos_tensors, shape = (B, 1, N)
                 # inputs: neg_tensors, shape = (B, num_neg, N)
                 # output: b_tensors, shape = (B * (1 + num_neg), N)
-                b_tensors = torch.cat([pos_tensors, neg_tensors], dim = 1)
+                b_tensors = torch.cat([pos_tensors, neg_tensors], dim=1)
                 b_tensors = b_tensors.view(batch_size * (1 + num_neg), field_size)
                 batch_inputs[inp_field] = b_tensors
-            
+
             # Store batch_inputs to batch_data
             batch_data["batch_inputs"] = batch_inputs
             batch_data["batch_size"] = batch_size
@@ -1377,10 +1380,10 @@ class Trainer(object):
             raise AssertionError(f"{self._objective} not allowed.")
 
         return batch_data
-    
+
     def _get_loss(self,
-                  prediction : torch.Tensor,
-                  objective  : str = None,
+                  prediction: torch.Tensor,
+                  objective: str = None,
                   **kwargs) -> torch.Tensor:
         r"""Method to calculate loss of trainer.
         
@@ -1399,13 +1402,13 @@ class Trainer(object):
         # Get current objective of trainer
         if objective is None:
             objective = self._objective
-        
+
         # Calculate loss by criterion
         if objective == "clickthroughrate":
             # Get targets from kwargs
             # output: targets, shape = (B, ...)
             targets = kwargs.pop("batch_targets")
-            
+
             # Calculate loss with prediction and targets
             # inputs: prediction, shape = (B, 1)
             # inputs: targets, shape = (B, ...)
@@ -1434,15 +1437,15 @@ class Trainer(object):
 
         else:
             raise AssertionError(f"{self._objective} not allowed.")
-        
+
         return loss
-    
+
     def predict(self):
         return
-    
+
     def save_for(self):
         return
-    
+
     def save(self):
         r"""Save the state dict of model.
         
@@ -1462,9 +1465,9 @@ class Trainer(object):
         else:
             save_file = path.join(save_path, "%s.tar" % (file_name))
             torch.save(self.sequential.state_dict(), save_file)
-        
+
         return self
-    
+
     def load(self):
         r"""Load the state dict of model.
         
@@ -1481,13 +1484,13 @@ class Trainer(object):
         else:
             load_file = path.join(load_path, "%s.tar" % (file_name))
             self.sequential.load_state_dict(torch.load(load_file))
-        
+
         return self
-    
-    def summary(self,                
-                deco        : int = Texttable.BORDER,
-                cols_align  : List[str] = ["l", "l"],
-                cols_valign : List[str] = ["t", "t"]) -> TypeVar("Trainer"):
+
+    def summary(self,
+                deco: int = Texttable.BORDER,
+                cols_align: List[str] = ["l", "l"],
+                cols_valign: List[str] = ["t", "t"]) -> TypeVar("Trainer"):
         r"""Get summary of trainer.
 
         Args:
@@ -1500,23 +1503,23 @@ class Trainer(object):
         """
         # Get attributes from self and initialize _vars of parameters 
         _vars = {
-            "objective"     : self._objective,
-            "inputs"        : self._inputs.__class__.__name__ if self.has_inputs else None,
-            "model"         : self._model.__class__.__name__ if self.has_model else None,
-            "loss"          : self.criterion.__class__.__name__ if self.has_criterion else None,
-            "optimizer"     : self._optimizer.__class__.__name__ \
+            "objective": self._objective,
+            "inputs": self._inputs.__class__.__name__ if self.has_inputs else None,
+            "model": self._model.__class__.__name__ if self.has_model else None,
+            "loss": self.criterion.__class__.__name__ if self.has_criterion else None,
+            "optimizer": self._optimizer.__class__.__name__ \
                 if getattr(self, "_optimizer", None) is not None else None,
-            "reg norm"      : self.regularizer.norm if self.has_regularizer else None,
-            "reg lambda"    : self.regularizer.weight_decay if self.has_regularizer else None,
-            "num of epochs" : self._max_num_epochs,
-            "log directory" : self._log_directory
+            "reg norm": self.regularizer.norm if self.has_regularizer else None,
+            "reg lambda": self.regularizer.weight_decay if self.has_regularizer else None,
+            "num of epochs": self._max_num_epochs,
+            "log directory": self._log_directory
         }
 
         if self._objective == "clickthroughrate":
             _vars.update({
                 "target field name": self._targets_name
             })
-        
+
         elif self._objective == "embedding":
             pass
 
@@ -1527,7 +1530,7 @@ class Trainer(object):
                 "negative size": self._negative_size \
                     if self.has_negative_size else None
             })
-        
+
         # Create and configurate Texttable
         t = Texttable()
         t.set_deco(deco)
@@ -1544,33 +1547,33 @@ class Trainer(object):
         print(t.draw())
 
         return self
-    
-    def add_graph(self, 
-                  samples_inputs : Dict[str, torch.Tensor] = None,
-                  verbose        : bool = False) -> TypeVar("Trainer"):
+
+    def add_graph(self,
+                  samples_inputs: Dict[str, torch.Tensor] = None,
+                  verbose: bool = False):
         r"""Add graph data to summary.
         
         Args:
             samples_inputs (Dict[str, T]): Sample inputs, which is a dictionary of tensors feed to inputs wrapper.
-            verboses (bool, optional): Whether to print graph structure in console. Defaults to True.
+            verbose (bool, optional): Whether to print graph structure in console. Defaults to True.
         """
         # Get sample_inputs from _loaders with _current_mode
         if samples_inputs is None:
             samples_inputs = next(iter(self._loaders[self._current_mode]))
-        
+
         # Add graph to tensorboard writer
         self.writer.add_graph(self.sequential, samples_inputs, verbose=verbose)
-    
+
     def add_embedding(self,
-                      param_name  : str, 
-                      metadata    : list = None,
-                      label_img   : torch.Tensor = None,
-                      global_step : int = None,
-                      tag         : str = None):
+                      param_name: str,
+                      metadata: list = None,
+                      label_img: torch.Tensor = None,
+                      global_step: int = None,
+                      tag: str = None):
         r"""Add embedding to summary writer of tensorboard.
         
         Args:
-            param_name (str): Name of paramter in the sequential.
+            param_name (str): Name of parameter in the sequential.
             metadata (list, optional): A list of labels, each element will be convert to string. 
                 Defaults to None.
             label_img (T, optional): Tensors of images correspond to each data point. 
@@ -1596,7 +1599,7 @@ class Trainer(object):
         #         self.logger.warn("_add_embedding only can be called when self.verboses >= 2.")
         # else:
         #     raise AssertionError("parameter %s cannot found." % param_name)
-    
+
     def generate_report(self) -> str:
         r"""Summarize report of experiment of model.
 
@@ -1624,7 +1627,7 @@ class Trainer(object):
         # append data to texttable
 
         return t.draw()
-    
+
     @classmethod
     def build(cls, **trainer_config):
         r"""(In development) Factory method to build the trainer.
@@ -1695,11 +1698,13 @@ class Trainer(object):
                 trainer.cuda(devices=devices)
             if trainer_config.get("use_jit"):
                 trainer.jit()
-        
+
         return trainer
 
     @classmethod
-    def GridSearchCV(cls, **trainer_config):
+    def grid_search_cv(cls, **trainer_config):
         for i in range(len(trainer_config)):
             trainer = cls.build()
-    
+
+    def bind_objective(self, param):
+        pass

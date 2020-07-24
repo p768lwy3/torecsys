@@ -1,9 +1,12 @@
-from . import _CtrModel
-from torecsys.layers import GMFLayer, DNNLayer
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
+from typing import Callable, List
+
 import torch
 import torch.nn as nn
-from typing import Callable, List
+
+from torecsys.layers import GMFLayer, DNNLayer
+from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+from . import _CtrModel
+
 
 class NeuralCollaborativeFilteringModel(_CtrModel):
     r"""Model class of Neural Collaborative Filtering (NCF).
@@ -16,13 +19,14 @@ class NeuralCollaborativeFilteringModel(_CtrModel):
     #. `Xiangnan He, 2017. Neural Collaborative Filtering <https://arxiv.org/abs/1708.05031>`_.
 
     """
+
     @no_jit_experimental_by_namedtensor
-    def __init__(self, 
-                 embed_size       : int,
-                 deep_output_size : int,
-                 deep_layer_sizes : int,
-                 deep_dropout_p   : List[float] = None,
-                 deep_activation  : Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
+    def __init__(self,
+                 embed_size: int,
+                 deep_output_size: int,
+                 deep_layer_sizes: int,
+                 deep_dropout_p: List[float] = None,
+                 deep_activation: Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
         r"""Initialize NeuralCollaborativeFilteringModel
         
         Args:
@@ -43,11 +47,11 @@ class NeuralCollaborativeFilteringModel(_CtrModel):
 
         # initialize dense layer
         self.deep = DNNLayer(
-            inputs_size = embed_size * 2,
-            output_size = deep_output_size, 
-            layer_sizes = deep_layer_sizes, 
-            dropout_p   = deep_dropout_p, 
-            activation  = deep_activation
+            inputs_size=embed_size * 2,
+            output_size=deep_output_size,
+            layer_sizes=deep_layer_sizes,
+            dropout_p=deep_dropout_p,
+            activation=deep_activation
         )
 
         # initialize gmf layer
@@ -82,5 +86,5 @@ class NeuralCollaborativeFilteringModel(_CtrModel):
 
         # Drop names of outputs, since autograd doesn't support NamedTensor yet.
         outputs = outputs.rename(None)
-        
+
         return outputs

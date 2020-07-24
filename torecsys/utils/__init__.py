@@ -1,10 +1,12 @@
 r"""torecsys.utils is a sub module of utils
 """
-import torch
 from typing import Callable, Union
 
+import torch
+
+
 def get_reduction(method: Union[Callable[[torch.Tensor], torch.Tensor], str]) \
-    -> Callable[[torch.Tensor], torch.Tensor]:
+        -> Callable[[torch.Tensor], torch.Tensor]:
     r"""[summary]
     Args:
         method Union[Callable[[torch.Tensor], torch.Tensor], str]: method of reduction.
@@ -24,6 +26,5 @@ def get_reduction(method: Union[Callable[[torch.Tensor], torch.Tensor], str]) \
         reduction_method = method
     else:
         raise TypeError(f"{type(method).__name__} not allowed.")
-    
+
     return reduction_method
-    

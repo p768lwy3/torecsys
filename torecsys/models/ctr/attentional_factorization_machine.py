@@ -1,8 +1,9 @@
-from . import _CtrModel
 import torch
 import torch.nn as nn
+
 from torecsys.layers import AFMLayer
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
+from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+from . import _CtrModel
 
 
 class AttentionalFactorizationMachineModel(_CtrModel):
@@ -10,15 +11,17 @@ class AttentionalFactorizationMachineModel(_CtrModel):
     
     :Reference:
 
-    #. `Jun Xiao et al, 2017. Attentional Factorization Machines: Learning the Weight of Feature Interactions via Attention Networks∗ <https://arxiv.org/abs/1708.04617>`_.
+    #. `Jun Xiao et al, 2017. Attentional Factorization Machines: Learning the Weight of Feature Interactions via
+    Attention Networks∗ <https://arxiv.org/abs/1708.04617>`_.
 
     """
+
     @no_jit_experimental_by_namedtensor
     def __init__(self,
-                 embed_size : int,
-                 num_fields : int,
-                 attn_size  : int,
-                 dropout_p  : float = 0.0):
+                 embed_size: int,
+                 num_fields: int,
+                 attn_size: int,
+                 dropout_p: float = 0.0):
         r"""Initialize AttentionalFactorizationMachineModel
         
         Args:
@@ -34,14 +37,14 @@ class AttentionalFactorizationMachineModel(_CtrModel):
         """
         # Refer to parent class
         super(AttentionalFactorizationMachineModel, self).__init__()
-        
+
         # Initialize attentional factorization machine layer
         self.afm = AFMLayer(embed_size, num_fields, attn_size, dropout_p)
 
         # Initialize bias parameter
         self.bias = nn.Parameter(torch.zeros(size=(1, 1), names=("B", "O")))
         nn.init.uniform_(self.bias.data)
-        
+
     def forward(self, feat_inputs: torch.Tensor, emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""Forward calculation of AttentionalFactorizationMachineModel
         
@@ -75,8 +78,7 @@ class AttentionalFactorizationMachineModel(_CtrModel):
         # output: outputs, shape = (B, O = 1)
         outputs = afm_second + afm_first + self.bias
 
-        # Drop names of outputs, since autograd doesn't support NamedTensor yet.
+        # Drop names of outputs, since auto grad doesn't support NamedTensor yet.
         outputs = outputs.rename(None)
 
         return outputs
-    

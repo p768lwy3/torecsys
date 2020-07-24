@@ -1,17 +1,18 @@
-from . import _Inputs
-from collections import namedtuple
 import torch
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
+
+from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+from . import Inputs
 
 
-class ValueInputs(_Inputs):
+class ValueInputs(Inputs):
     r"""Base Inputs class for value to be passed directly.
     
     :Todo:
 
-    #. add transforms for value inputs to do preprocessing
+    #. add transforms for value inputs to do pre-processing
 
     """
+
     @no_jit_experimental_by_namedtensor
     def __init__(self, num_fields: int):
         r"""Initialize ValueInputs
@@ -28,7 +29,7 @@ class ValueInputs(_Inputs):
         # bind length to length of inp_fields 
         self.num_fields = num_fields
         self.length = 1
-    
+
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         r"""Forward calculation of ValueInputs.
         

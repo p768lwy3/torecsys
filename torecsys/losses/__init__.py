@@ -2,13 +2,15 @@ r"""torecsys.losses is a sub module of implementation of losses in recommendatio
 """
 import torch.nn.modules.loss
 
+
 class _Loss(torch.nn.modules.loss._Loss):
     r"""General Loss class.
     """
-    def __init__(self, 
-                 size_average : bool = None,
-                 reduce       : bool = None,
-                 reduction    : str  = "mean"):
+
+    def __init__(self,
+                 size_average: bool = None,
+                 reduce: bool = None,
+                 reduction: str = "mean"):
         r"""Initialize _Loss
         
         Args:
@@ -22,6 +24,7 @@ class _Loss(torch.nn.modules.loss._Loss):
         """
         # refer to parent class
         super(_Loss, self).__init__(size_average, reduce, reduction)
+
 
 from .ctr import *
 from .emb import *

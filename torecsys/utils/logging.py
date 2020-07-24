@@ -11,12 +11,13 @@ with warnings.catch_warnings():
 
 class TqdmHandler(logging.StreamHandler):
     r"""logging.StreamHandler for logging with tqdm progress bar"""
+
     def __init__(self):
         r"""initialize TqdmHandler
         """
         logging.StreamHandler.__init__(self)
-    
-    def emit(self, record : str):
+
+    def emit(self, record: str):
         r"""Format and write message
         
         Args:

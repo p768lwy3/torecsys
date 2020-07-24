@@ -1,16 +1,20 @@
+from typing import Dict
+
 import torch
 import torch.nn as nn
+
 from torecsys.inputs.inputs_wrapper import InputsWrapper
 from torecsys.models import _Model
-from typing import Dict
+
 
 class Sequential(nn.Module):
     r"""Sequential container, where the module of embeddings and model will be added to it 
     in the order they are passed in the constructor. 
     """
-    def __init__(self, 
-                 inputs_wrapper : InputsWrapper, 
-                 model          : _Model):
+
+    def __init__(self,
+                 inputs_wrapper: InputsWrapper,
+                 model: _Model):
         r"""Initialize Sequential container.
         
         Args:
@@ -29,7 +33,7 @@ class Sequential(nn.Module):
         # bind inputs and model to inputs and model
         self.inputs_wrapper = inputs_wrapper
         self.model = model
-    
+
     def forward(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
         r"""Forward calculation of Sequential.
         
@@ -45,6 +49,5 @@ class Sequential(nn.Module):
 
         # calculate forward propagation of model
         outputs = self.model(**inputs)
-        
+
         return outputs
-        

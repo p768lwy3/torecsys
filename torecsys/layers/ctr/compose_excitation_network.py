@@ -1,7 +1,10 @@
+from typing import Callable
+
 import torch
 import torch.nn as nn
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
-from typing import Callable
+
+from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+
 
 class ComposeExcitationNetworkLayer(nn.Module):
     r"""Layer class of Compose Excitation Network (CEN) / Squeeze-and-Excitation Network (SENET).
@@ -9,7 +12,7 @@ class ComposeExcitationNetworkLayer(nn.Module):
     Compose Excitation Network was used in FAT-Deep :title:`Junlin Zhang et al, 2019`[1] and 
     Squeeze-and-Excitation Network was used in FibiNET :title:`Tongwen Huang et al, 2019`[2]
     
-    #. compose field-aware embedded tensors by a 1D convalution with a :math:`1 * 1` kernel 
+    #. compose field-aware embedded tensors by a 1D convolution with a :math:`1 * 1` kernel
     feature-wisely from a :math:`k * n` tensor of field i into a :math:`k * 1` tensor. 
     
     #. concatenate the tensors and feed them to dense network to calculate attention 
@@ -20,16 +23,19 @@ class ComposeExcitationNetworkLayer(nn.Module):
 
     :Reference:
 
-    #. `Junlin Zhang et al, 2019. FAT-DeepFFM: Field Attentive Deep Field-aware Factorization Machine <https://arxiv.org/abs/1905.06336>`_.
+    #. `Junlin Zhang et al, 2019. FAT-DeepFFM: Field Attentive Deep Field-aware Factorization Machine
+    <https://arxiv.org/abs/1905.06336>`_.
 
-    #. `Tongwen Huang et al, 2019. FibiNET: Combining Feature Importance and Bilinear feature Interaction for Click-Through Rate Prediction <https://arxiv.org/abs/1905.09433>`_.
+    #. `Tongwen Huang et al, 2019. FibiNET: Combining Feature Importance and Bilinear feature Interaction for
+    Click-Through Rate Prediction <https://arxiv.org/abs/1905.09433>`_.
 
     """
+
     @no_jit_experimental_by_namedtensor
-    def __init__(self, 
-                 num_fields : int,
-                 reduction  : int = 1,
-                 activation : Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
+    def __init__(self,
+                 num_fields: int,
+                 reduction: int = 1,
+                 activation: Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
         r"""Initialize ComposeExcitationNetworkLayer
         
         Args:
@@ -43,15 +49,15 @@ class ComposeExcitationNetworkLayer(nn.Module):
             pooling (torch.nn.Module): Adaptive average pooling layer to compose tensors.
             fc (torch.nn.Sequential): Sequential of linear and activation to calculate weights of 
                 attention, which the linear layers are: 
-                :math:`[Linear(N^2, \frac{N^2}{reduction}), Linear(\frac{N^2}{reduction}, N^2)]`. 
+                :math:`[Linear(N^2, \frac{N^2}{reduction}), Linear(\frac{N^2}{reduction}, N^2)]`.
         """
-        # Refer to parent class
+        # refer to parent class
         super(ComposeExcitationNetworkLayer, self).__init__()
 
-        # Initialize 1d pooling layer
+        # initialize 1d pooling layer
         self.pooling = nn.AdaptiveAvgPool1d(1)
-        
-        # Initialize dense layers
+
+        # initialize dense layers
         squared_num_fields = num_fields ** 2
         reduced_num_fields = squared_num_fields // reduction
 
@@ -81,18 +87,18 @@ class ComposeExcitationNetworkLayer(nn.Module):
         # output: pooled_inputs, shape = (B, N)
         pooled_inputs = pooled_inputs.flatten(["N", "E"], "N")
 
-        # Calculate attention weight with dense layer fowardly
+        # Calculate attention weight with dense layer forwardly
         # inputs: pooled_inputs, shape = (B, N)
         # output: attn_w, shape = (B, N)
         attn_w = self.fc(pooled_inputs.rename(None))
         attn_w.names = ("B", "N")
 
-        # Unflatten attention weights and apply it to emb_inputs
+        # Un-flatten attention weights and apply it to emb_inputs
         # inputs: attn_w, shape = (B, N)
         # inputs: emb_inputs, shape = (B, N, E)
         # output: outputs, shape = (B, N, E)
         attn_w = attn_w.unflatten("N", (("N", attn_w.size("N")), ("E", 1)))
-        
+
         # Multiply attentional weights on field embedding tensors
         ## outputs = emb_inputs * attn_w
         outputs = torch.einsum("ijk,ijh->ijk", [emb_inputs.rename(None), attn_w.rename(None)])

@@ -1,20 +1,21 @@
-import numpy as np
-import pandas as pd
 from typing import Union
 
-def subsampling(data      : Union[np.ndarray, pd.DataFrame],
-                key       : Union[int, str],
-                formula   : str = "paper",
-                threshold : float = 1e-5) -> Union[np.ndarray, pd.DataFrame]:
-    
-    r"""Drop occurrences of the most frequent word tokens with the following condition by the given threshold 
+import numpy as np
+import pandas as pd
+
+
+def subsampling(data: Union[np.ndarray, pd.DataFrame],
+                key: Union[int, str],
+                formula: str = "paper",
+                threshold: float = 1e-5) -> Union[np.ndarray, pd.DataFrame]:
+    r"""Drop occurrences of the most frequent word tokens with the following condition by the given threshold
     value: if :math:`P_{\text{random}} > P_{\text{drop}}`, where :math:`P_{\text{random}} \in U(0, 1)` and 
     :math:`P_{drop} = 1 - \sqrt{\frac{t}{f}}` or :math:`P_{drop} = \frac{f - t}{f} - \sqrt{\frac{t}{f}}`,
-    where :math:`f = frequence and t = threshold.`
+    where :math:`f = frequency and t = threshold.`
 
     Hence,
 
-    #. more samples of token will be droped if the word token is more frequent, when threshold is larger.
+    #. more samples of token will be dropped if the word token is more frequent, when threshold is larger.
 
     #. samples of word token where the frequent of it is lower than the threshold will not be dropped.
     
@@ -29,7 +30,7 @@ def subsampling(data      : Union[np.ndarray, pd.DataFrame],
         ValueError: when formula is not in [\"code\"|\"paper\"].
     
     Returns:
-        Union[np.ndarray, pd.DataFrame], shape = (Number of subsampled samples, ...): A np.array or pd.DataFrame of subsampled data.
+        Union[np.ndarray, pd.DataFrame], shape = (Number of subsample samples, ...): A np.array or pd.DataFrame of subsample data.
 
     :Reference:
 
@@ -48,43 +49,45 @@ def subsampling(data      : Union[np.ndarray, pd.DataFrame],
 
     # initialize columns' selector with lambda function
     if isinstance(data, np.ndarray):
-        row_func = lambda data, row_key: data[row_key]
-        col_func = lambda data, col_key: data[:, col_key]
-        val_func = lambda data, row_key, col_key: data[row_key, col_key]
-        cat_func = lambda subsamples: np.vstack(subsamples)
+        row_func = lambda d, row_key: d[row_key]
+        col_func = lambda d, col_key: d[:, col_key]
+        val_func = lambda d, row_key, col_key: d[row_key, col_key]
+        cat_func = lambda samp: np.vstack(samp)
     elif isinstance(data, pd.DataFrame):
-        row_func = lambda data, row_key: data.iloc[row_key]
-        cat_func = lambda subsamples: pd.DataFrame(subsamples, columns=data.columns).reset_index(drop=True)
-        
+        row_func = lambda d, row_key: d.iloc[row_key]
+        cat_func = lambda samp: pd.DataFrame(samp, columns=data.columns).reset_index(drop=True)
+
         if isinstance(key, int):
-            col_func = lambda data, col_key: data.iloc[:, col_key]
-            val_func = lambda data, row_key, col_key: data.iloc[row_key, col_key]
+            col_func = lambda d, col_key: d.iloc[:, col_key]
+            val_func = lambda d, row_key, col_key: d.iloc[row_key, col_key]
         else:
-            col_func = lambda data, col_key: data[col_key]
-            val_func = lambda data, row_key, col_key: data.loc[row_key, col_key]
+            col_func = lambda d, col_key: d[col_key]
+            val_func = lambda d, row_key, col_key: d.loc[row_key, col_key]
+    else:
+        raise TypeError("type of data is not allowed.")
 
     # select columns from data
     columns = col_func(data, key)
-    
-    # count occurences of each token
+
+    # count occurrences of each token
     uniques, counts = np.unique(columns, return_counts=True)
-    
+
     # calculate the frequencies of each token
     freq = counts / np.sum(counts)
-    
+
     # calculate the subsampling probabilities
     prob = formula_func(freq, threshold)
-    
+
     # created subsampling probabilities dict
     prob = dict(zip(uniques, prob))
-    
+
     # generate random values for each row of samples
     rand_prob = np.random.random(size=(data.shape[0]))
-    
+
     # subsampling
-    subsampled_data = []
+    sampled_data = []
     for i in range(data.shape[0]):
         if rand_prob[i] > prob[val_func(data, i, key)]:
-            subsampled_data.append(row_func(data, i))
-    
-    return cat_func(subsampled_data)
+            sampled_data.append(row_func(data, i))
+
+    return cat_func(sampled_data)

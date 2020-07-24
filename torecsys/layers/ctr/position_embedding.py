@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+
 class PositionEmbeddingLayer(nn.Module):
     r"""Layer class of Position Embedding
 
@@ -13,6 +14,7 @@ class PositionEmbeddingLayer(nn.Module):
     `Changhua Pei et al, 2019. Personalized Re-ranking for Recommendation <https://arxiv.org/abs/1904.06813>`_.
 
     """
+
     def __init__(self, max_num_position: int):
         r"""Initialize PositionEmbedding
         
@@ -25,12 +27,12 @@ class PositionEmbeddingLayer(nn.Module):
         # refer to parent class
         super(PositionEmbeddingLayer, self).__init__()
 
-        # Initialize bias variables
+        # initialize bias variables
         self.bias = nn.Parameter(torch.Tensor(1, max_num_position, 1))
 
-        # Initialzie bias variables with normalization
+        # initialize bias variables with normalization
         nn.init.normal_(self.bias)
-    
+
     def forward(self, session_embed_inputs: torch.Tensor) -> torch.Tensor:
         r"""Forward calculation of PositionEmbedding
         
@@ -40,7 +42,7 @@ class PositionEmbeddingLayer(nn.Module):
         Returns:
             T, shape = (B, L, E), dtype = torch.float: Output of PositionEmbedding
         """
-        # Add positional bias to session embedding features
+        # add positional bias to session embedding features
         # inputs: session_embed_inputs, shape = (B, L, E)
         # inputs: self.bias, shape = (1, L, 1)
         # output: output, shape = (B, L, E)

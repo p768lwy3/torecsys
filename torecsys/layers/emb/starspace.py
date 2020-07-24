@@ -1,8 +1,10 @@
-from functools import partial
+from typing import Callable
+
 import torch
 import torch.nn as nn
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
-from typing import Callable
+
+from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+
 
 class StarSpaceLayer(nn.Module):
     r"""Layer class of Starspace.
@@ -23,8 +25,9 @@ class StarSpaceLayer(nn.Module):
     #. `Ledell Wu et al, 2017 StarSpace: Embed All The Things! <https://arxiv.org/abs/1709.03856>`_.
 
     """
+
     @no_jit_experimental_by_namedtensor
-    def __init__(self, 
+    def __init__(self,
                  similarity: Callable[[torch.Tensor, torch.Tensor], torch.Tensor]):
         r"""Initialize StarSpaceLayer
         
@@ -35,24 +38,22 @@ class StarSpaceLayer(nn.Module):
         Attributes:
             similarity (Callable[[T, T], T]): Function of similarity between two tensors. 
         """
-        # Refer to parent class
+        # refer to parent class
         super(StarSpaceLayer, self).__init__()
-        
-        # Bind similarity to similarity
+
+        # bind similarity to similarity
         self.similarity = similarity
-    
+
     def extra_repr(self) -> str:
         """Return information in print-statement of layer.
         
         Returns:
             str: Information of print-statement of layer.
         """
-        if (self.similarity, partial):
-            similarity_cls = self.similarity.func.__qualname__.split(".")[-1].lower()
-        else:
-            similarity_cls = self.similarity.__class__.__name__.lower()
-        return 'similarity={}'.format(similarity_cls)
-    
+        similarity_cls = self.similarity.func.__qualname__.split(".")[-1].lower()
+
+        return f'similarity={similarity_cls}'
+
     def forward(self, samples_inputs: torch.Tensor) -> torch.Tensor:
         r"""Forward calculation of StarSpaceLayer
         
@@ -74,7 +75,7 @@ class StarSpaceLayer(nn.Module):
         target = samples_inputs[:, 1, :]
         target = target.unflatten("E", [("N", 1), ("E", context.size("E"))])
 
-        # Calculate similarity bewteen context and target
+        # Calculate similarity between context and target
         # inputs: context, shape = (B, N = 1, E)
         # inputs: target, shape = (B, N = 1, E)
         # output: outputs, shape = (B, O = E)
@@ -82,5 +83,5 @@ class StarSpaceLayer(nn.Module):
         target = target.rename(None)
         outputs = self.similarity(context, target)
         outputs.names = ("B", "O")
-        
+
         return outputs

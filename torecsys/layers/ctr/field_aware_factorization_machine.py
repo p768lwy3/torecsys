@@ -1,11 +1,13 @@
 import torch
 import torch.nn as nn
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
+
+from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+
 
 class FieldAwareFactorizationMachineLayer(nn.Module):
-    """Layer class of Field-aware Factorication Machine (FFM).
+    """Layer class of Field-aware Factorization Machine (FFM).
     
-    Field-aware Factorication Machine is purposed by Yuchin Juan et al, 2016, to calculate 
+    Field-aware Factorization Machine is purposed by Yuchin Juan et al, 2016, to calculate
     element-wise cross feature interaction per field of sparse fields by using dot product 
     between field-wise feature tensors.
 
@@ -14,10 +16,11 @@ class FieldAwareFactorizationMachineLayer(nn.Module):
     #. `Yuchin Juan et al, 2016. Field-aware Factorization Machines for CTR Prediction <https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf>`_.
     
     """
+
     @no_jit_experimental_by_namedtensor
-    def __init__(self, 
-                 num_fields : int,
-                 dropout_p  : float = 0.0):
+    def __init__(self,
+                 num_fields: int,
+                 dropout_p: float = 0.0):
         r"""Initialize FieldAwareFactorizationMachineLayer
 
         Args:
@@ -29,15 +32,15 @@ class FieldAwareFactorizationMachineLayer(nn.Module):
             num_fields (int): Number of inputs' fields.
             dropout (torch.nn.Module): Dropout layer.
         """
-        # Refer to parent class
+        # refer to parent class
         super(FieldAwareFactorizationMachineLayer, self).__init__()
 
-        # Bind num_fields to num_fields
+        # bind num_fields to num_fields
         self.num_fields = num_fields
 
-        # Initialize dropout
+        # initialize dropout
         self.dropout = nn.Dropout(dropout_p)
-    
+
     def forward(self, field_emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""Forward calculation of FieldAwareFactorizationMachineLayer
 
@@ -47,16 +50,16 @@ class FieldAwareFactorizationMachineLayer(nn.Module):
         Returns:
             T, shape = (B, NC2, E), dtype = torch.float: Output of FieldAwareFactorizationMachineLayer
         """
-        # Initialize list to store tensors temporarily for output 
+        # initialize list to store tensors temporarily for output
         outputs = list()
 
-        # Chunk field_emb_inputs into num_fields parts
+        # chunk field_emb_inputs into num_fields parts
         # inputs: field_emb_inputs, shape = (B, N * N , E)
         # output: field_emb_inputs, shape = (B, Nx = N, Ny = N, E)
         field_emb_inputs = field_emb_inputs.unflatten("N", [("Nx", self.num_fields), ("Ny", self.num_fields)])
         field_emb_inputs.names = None
 
-        # Calculate dot-product between e_{i, fj} and e_{j, fi}
+        # calculate dot-product between e_{i, fj} and e_{j, fi}
         # inputs: field_emb_inputs, shape = (B, Nx = N, Ny = N, E)
         # output: output, shape = (B, N = 1, E)
         for i in range(self.num_fields - 1):
@@ -68,15 +71,15 @@ class FieldAwareFactorizationMachineLayer(nn.Module):
                 output.names = ("B", "E")
                 output = output.unflatten("B", [("B", output.size("B")), ("N", 1)])
                 outputs.append(output)
-        
-        # Concat outputs into a tensor
+
+        # concat outputs into a tensor
         # inputs: output, shape = (B, N = 1, E)
         # output: outputs, shape = (B, NC2, E)
         outputs = torch.cat(outputs, dim="N")
 
-        # Apply dropout
+        # apply dropout
         # inputs: outputs, shape = (B, NC2, E)
         # output: outputs, shape = (B, NC2, E)
         outputs = self.dropout(outputs)
-        
+
         return outputs

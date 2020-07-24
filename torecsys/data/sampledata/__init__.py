@@ -6,8 +6,9 @@ from typing import List
 __ml_size__ = ["20m", "latest-small", "latest", "100k", "1m", "10m"]
 __jester_label__ = ["1", "2", "3"]
 
-def get_downloaded_data(dir : str = None) -> List[str]:
-    r"""Get list of donwloaded dataset
+
+def get_downloaded_data(dir: str = None) -> List[str]:
+    r"""Get list of downloaded dataset
     
     Args:
         dir (str, optional): String of directory of downloaded data. 
@@ -23,14 +24,15 @@ def get_downloaded_data(dir : str = None) -> List[str]:
         dir = os.path.join(script_dir, "sample_data")
     else:
         pass
-    
+
     # scan the directory and check if it is a directory
     files = [f.name for f in os.scandir(dir) if f.is_dir()] if os.path.isdir(dir) else []
-    
+
     return files
 
-def check_downloaded(dataset : str,
-                     dir     : str = None) -> bool:
+
+def check_downloaded(dataset: str,
+                     dir: str = None) -> bool:
     r"""Check whether dataset is downloaded
     
     Args:
@@ -50,6 +52,7 @@ def check_downloaded(dataset : str,
         return True
     else:
         return False
+
 
 from .download_data import download_ml_data, download_bx_data, download_jester_data
 from .load_data import load_ml_data, load_bx_data

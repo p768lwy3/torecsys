@@ -1,12 +1,14 @@
-from . import _Inputs
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
+from typing import List
+
 import numpy as np
 import torch
 import torch.nn as nn
-from typing import List
+
+from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+from . import Inputs
 
 
-class MultiIndicesFieldAwareEmbedding(_Inputs):
+class MultiIndicesFieldAwareEmbedding(Inputs):
     r"""Base Inputs class for Field-aware embedding of multiple indices, which is used in Field-aware 
     Factorization (FFM) or the variants. The shape of output is :math:`(B, N * N, E)`, where the embedding 
     tensor :math:`E_{feat_{i, k}, field_{j}}` are looked up the k-th row from the j-th tensor of i-th feature.
@@ -16,11 +18,12 @@ class MultiIndicesFieldAwareEmbedding(_Inputs):
     #. `Yuchin Juan et al, 2016. Field-aware Factorization Machines for CTR Prediction <https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf>`_.
     
     """
+
     @no_jit_experimental_by_namedtensor
-    def __init__(self, 
-                 embed_size  : int, 
-                 field_sizes : List[int], 
-                 device      : str = "cpu"):
+    def __init__(self,
+                 embed_size: int,
+                 field_sizes: List[int],
+                 device: str = "cpu"):
         r"""Initialize MultiIndicesFieldAwareEmbedding.
         
         Args:
@@ -50,17 +53,17 @@ class MultiIndicesFieldAwareEmbedding(_Inputs):
         # create offsets to re-index inputs by adding them up
         ## self.offsets = torch.Tensor((0, *np.cumsum(field_sizes)[:-1])).long().unsqueeze(0)
         self.offsets = torch.Tensor((0, *np.cumsum(field_sizes)[:-1])).long()
-        self.offsets.names = ("N", )
+        self.offsets.names = ("N",)
         self.offsets = self.offsets.unflatten("N", [("B", 1), ("N", self.offsets.size("N"))])
         self.offsets.to(device)
 
         # initialize nn.Embedding with xavier_uniform_ initializer
         for embedding in self.embeddings:
             nn.init.xavier_uniform_(embedding.weight.data)
-        
+
         # bind length to embed_size
         self.length = embed_size
-    
+
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         r"""Forward calculation of MultiIndicesFieldAwareEmbedding.
         
@@ -75,7 +78,7 @@ class MultiIndicesFieldAwareEmbedding(_Inputs):
         inputs = inputs + self.offsets
         inputs = inputs.rename(None)
 
-        # concatenate embedded inputs into a single tensor for outputing
+        # concatenate embedded inputs into a single tensor for outputting
         outputs = torch.cat([self.embeddings[i](inputs) for i in range(self.num_fields)], dim=1)
         outputs.names = ("B", "N", "E")
         return outputs

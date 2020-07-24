@@ -15,7 +15,7 @@ def skip_gram_loss(cout: torch.Tensor, pout: torch.Tensor, nout: torch.Tensor) -
     Args:
         cout (T), shape = (B, 1, E), dtype = torch.float: Predicted scores of content or anchor.
         pout (T), shape = (B, 1, E), dtype = torch.float: Predicted scores of positive samples.
-        nout (T), shape = (B, Nneg, E), dtype = torch.float: Predicted scores of negative samples.
+        nout (T), shape = (B, 1, E), dtype = torch.float: Predicted scores of negative samples.
 
     Returns:
         T, shape = (1, ), dtype = torch.float: Output of skip_gram_loss
@@ -25,10 +25,10 @@ def skip_gram_loss(cout: torch.Tensor, pout: torch.Tensor, nout: torch.Tensor) -
 
     # negative values' part, bmm (B, num neg, E) 
     # by (B, E, 1). Hence, shape = (B, num nge, 1)
-    nval = torch.bmm(neg_inputs, content_inputs.transpose(1, 2))
+    nval = torch.bmm(nout, cout.transpose(1, 2))
 
     # sum by second dimension, and hence return shape = (B, 1, 1)
-    # take logsigmoid and squeeze, then return shape = (B, )
+    # take log sigmoid and squeeze, then return shape = (B, )
     nval = F.logsigmoid(- nval.sum(dim=1)).squeeze()
 
     # calculate loss and take aggregation

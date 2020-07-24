@@ -1,7 +1,9 @@
-from . import _RerankingModel
 import torch
 import torch.nn as nn
+
 from torecsys.layers import PositionEmbeddingLayer
+from . import _RerankingModel
+
 
 class PersonalizedRerankingModel(_RerankingModel):
     r"""Model class of Personalized Re-ranking Model (PRM).
@@ -23,14 +25,15 @@ class PersonalizedRerankingModel(_RerankingModel):
     #. `Changhua Pei et al, 2019. Personalized Re-ranking for Recommendation <https://arxiv.org/abs/1904.06813>`_.
 
     """
+
     def __init__(self,
-                 embed_size       : int,
-                 max_num_position : int,
-                 encoding_size    : int,
-                 num_heads        : int,
-                 num_layers       : int,
-                 dropout          : float = 0,
-                 use_bias         : bool = True,
+                 embed_size: int,
+                 max_num_position: int,
+                 encoding_size: int,
+                 num_heads: int,
+                 num_layers: int,
+                 dropout: float = 0,
+                 use_bias: bool = True,
                  **kwargs):
         r"""Initialize PersonalizedRerankingModel
         
@@ -62,11 +65,11 @@ class PersonalizedRerankingModel(_RerankingModel):
         self.layers["InputLayer"] = nn.ModuleDict()
         if use_bias:
             self.layers["InputLayer"]["PositionEmbedding"] = PositionEmbeddingLayer(
-                max_num_position = max_num_position
+                max_num_position=max_num_position
             )
         else:
             self.layers["InputLayer"]["PositionEmbedding"] = None
-        
+
         self.layers["InputLayer"]["FeedForward"] = nn.Linear(embed_size, encoding_size)
 
         # Initialize encoding layer, i.e. a stack of transformer
@@ -90,18 +93,18 @@ class PersonalizedRerankingModel(_RerankingModel):
                 feedforward.add_module("Activation", kwargs.get("fnn_activation"))
             else:
                 feedforward.add_module("Activation", nn.ReLU())
-            
+
             if kwargs.get("fnn_dropout_p"):
                 feedforward.add_module("Dropout", nn.Dropout(kwargs.get("fnn_dropout_p")))
-            
+
             layer["Feedforward"] = feedforward
-            
+
             # Initialize batchnorm part in FFN of transformer block
             batchnorm = nn.BatchNorm1d(max_num_position)
             layer["FNNBatchNorm"] = batchnorm
 
             self.layers["EncodingLayer"]["Transformer_%d" % i] = layer
-        
+
         # Initialize output layer, i.e. linear layer + softmax layer
         self.layers["OutputLayer"] = nn.ModuleDict()
         self.layers["OutputLayer"]["FeedForward"] = nn.Linear(encoding_size, 1)
@@ -125,7 +128,7 @@ class PersonalizedRerankingModel(_RerankingModel):
             output = self.layers["InputLayer"]["PositionEmbedding"](feat_inputs)
         else:
             output = feat_inputs
-        
+
         # Calculate forwardly with feed-forward layer of input layer
         # inputs: output, shape = (B, L, E)
         # output: output, shape = (B, L, E')
@@ -145,9 +148,9 @@ class PersonalizedRerankingModel(_RerankingModel):
             output.names = ("B", "L", "E")
             output = output.align_to("L", "B", "E")
             output.names = None
-            
+
             output, _ = layer["MultiheadAttention"](output, output, output)
-            
+
             output.names = ("L", "B", "E")
             output = output.align_to("B", "L", "E")
             output.names = None
@@ -158,37 +161,37 @@ class PersonalizedRerankingModel(_RerankingModel):
             # output: output, shape = (B, L, E)
             output = output + residual_a
             output = layer["AttentionBatchNorm"](output.rename(None))
-            
+
             # Copy output as residual
             residual_f = output
-            
+
             # Calculate forwardly with feed-forward
             # inputs: output, shape = (B, L, E)
             # output: output, shape = (B, L, E)
             output = layer["Feedforward"](output)
-            
+
             # Add residual and apply batchnorm
             # inputs: output, shape = (B, L, E)
             # inputs: input_i, shape = (B, L, E)
             # output: output, shape = (B, L, E)
             output = output + residual_f
             output = layer["FNNBatchNorm"](output.rename(None))
-        
+
         # 3) Output Layer Part
         # Calculate forwardly with feed-forward
         # inputs: output, shape = (B, L, E)
         # output: output, shape = (B, L, O = 1)
         output = self.layers["OutputLayer"]["FeedForward"](output)
         output.names = ("B", "L", "O")
-        
+
         # Flatten output
         # inputs: output, shape = (B, L, O)
         # output: output, shape = (B, O = L)
         output = output.flatten(["L", "O"], "O")
-        
+
         # Apply softmax
         # output: output, shape = (B, O)
         # output: output, shape = (B, O)
         output = self.layers["OutputLayer"]["Softmax"](output)
-            
+
         return output

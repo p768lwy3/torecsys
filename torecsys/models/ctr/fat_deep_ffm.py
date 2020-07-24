@@ -1,10 +1,13 @@
-from . import _CtrModel
+from typing import Callable, List
+
 import torch
 import torch.nn as nn
+
 from torecsys.layers import CENLayer, FFMLayer, DNNLayer
 from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
 from torecsys.utils.operations import combination
-from typing import Callable, List
+from . import _CtrModel
+
 
 class FieldAttentiveDeepFieldAwareFactorizationMachineModel(_CtrModel):
     r"""Model class of Field Attentive Deep Field Aware Factorization Machine (Fat DeepFFM).
@@ -26,16 +29,17 @@ class FieldAttentiveDeepFieldAwareFactorizationMachineModel(_CtrModel):
     #. `Junlin Zhang et al, 2019. FAT-DeepFFM: Field Attentive Deep Field-aware Factorization Machine <https://arxiv.org/abs/1905.06336>`_.
     
     """
+
     @no_jit_experimental_by_namedtensor
     def __init__(self,
-                 embed_size       : int,
-                 num_fields       : int,
-                 deep_output_size : int,
-                 deep_layer_sizes : List[int],
-                 reduction        : int, 
-                 ffm_dropout_p    : float = 0.0,
-                 deep_dropout_p   : List[float] = None,
-                 deep_activation  : Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
+                 embed_size: int,
+                 num_fields: int,
+                 deep_output_size: int,
+                 deep_layer_sizes: List[int],
+                 reduction: int,
+                 ffm_dropout_p: float = 0.0,
+                 deep_dropout_p: List[float] = None,
+                 deep_activation: Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
         """Initialize FieldAttentiveDeepFieldAwareFactorizationMachineModel
         
         Args:
@@ -64,20 +68,20 @@ class FieldAttentiveDeepFieldAwareFactorizationMachineModel(_CtrModel):
 
         # initialize ffm layer
         self.ffm = FFMLayer(num_fields=num_fields, dropout_p=ffm_dropout_p)
-        
+
         # calculate the output's size of ffm, i.e. inputs' size of DNNLayer
         inputs_size = combination(num_fields, 2)
         inputs_size *= embed_size
-        
+
         # initialize dense layer
         self.deep = DNNLayer(
-            inputs_size = inputs_size,
-            output_size = deep_output_size,
-            layer_sizes = deep_layer_sizes,
-            dropout_p   = deep_dropout_p,
-            activation  = deep_activation
+            inputs_size=inputs_size,
+            output_size=deep_output_size,
+            layer_sizes=deep_layer_sizes,
+            dropout_p=deep_dropout_p,
+            activation=deep_activation
         )
-        
+
     def forward(self, field_emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""Forward calculation of FieldAttentiveDeepFieldAwareFactorizationMachineModel
         

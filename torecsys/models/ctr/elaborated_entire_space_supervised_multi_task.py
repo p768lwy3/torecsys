@@ -1,9 +1,12 @@
-from . import _CtrModel
+from typing import Callable, List, Tuple
+
 import torch
 import torch.nn as nn
+
 from torecsys.layers import DNNLayer
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
-from typing import Callable, List, Tuple
+from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+from . import _CtrModel
+
 
 class ElaboratedEntireSpaceSupervisedMultiTaskModel(_CtrModel):
     r"""Model class of Elaborated Entire Space Supervised Multi Task Model (ESM2).
@@ -15,15 +18,17 @@ class ElaboratedEntireSpaceSupervisedMultiTaskModel(_CtrModel):
 
     :Reference:
 
-    #. `Hong Wen et al, 2019. Conversion Rate Prediction via Post-Click Behaviour Modeling <https://arxiv.org/abs/1910.07099>`_.
+    #. `Hong Wen et al, 2019. Conversion Rate Prediction via Post-Click Behaviour Modeling
+    <https://arxiv.org/abs/1910.07099>`_.
 
     """
+
     @no_jit_experimental_by_namedtensor
-    def __init__(self, 
-                 num_fields  : int, 
-                 layer_sizes : List[int], 
-                 dropout_p   : List[float] = None, 
-                 activation  : Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
+    def __init__(self,
+                 num_fields: int,
+                 layer_sizes: List[int],
+                 dropout_p: List[float] = None,
+                 activation: Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
         r"""Initialize ElaboratedEntireSpaceSupervisedMultiTaskModel
         
         Args:
@@ -67,7 +72,7 @@ class ElaboratedEntireSpaceSupervisedMultiTaskModel(_CtrModel):
         
         Returns:
             Tuple[T], shape = (B, O), dtype = torch.float: Tuple of output of ElaboratedEntireSpaceSupervisedMultiTaskModel,
-                including probability of impression to click, probability of impression to DAction and probability of 
+                including probability of impression to click, probability of impression to DAction and probability of
                 impression to buy.
         """
         # Pool inputs for impress_to_click and flatten it

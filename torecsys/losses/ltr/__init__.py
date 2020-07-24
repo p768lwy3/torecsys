@@ -3,9 +3,11 @@ r"""torecsys.losses.ltr is a sub module of implementation of losses in learning-
 
 from .. import _Loss
 
+
 class _RankingLoss(_Loss):
     def __init__(self):
         super(_RankingLoss, self).__init__()
+
 
 from .functional import *
 from .groupwise_ranking_loss import *

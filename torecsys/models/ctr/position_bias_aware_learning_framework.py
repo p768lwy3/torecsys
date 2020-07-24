@@ -1,9 +1,12 @@
-from . import _CtrModel
+from typing import Dict
+
 import torch
 import torch.nn as nn
+
 from torecsys.layers import DNNLayer, PALLayer
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
-from typing import Dict
+from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+from . import _CtrModel
+
 
 class PositionBiasAwareLearningFrameworkModel(_CtrModel):
     r""""Model class of Positon-bias aware learning framework (PAL).
@@ -13,12 +16,13 @@ class PositionBiasAwareLearningFrameworkModel(_CtrModel):
     #. `Huifeng Guo et al, 2019. PAL: a position-bias aware learning framework for CTR prediction in live recommender systems <https://dl.acm.org/citation.cfm?id=3347033&dl=ACM&coll=DL>`_.
     
     """
+
     @no_jit_experimental_by_namedtensor
     def __init__(self,
-                 pctr_model       : nn.Module,
-                 pos_model        : nn.Module = None,
-                 output_size      : int = None,
-                 max_num_position : int = None,
+                 pctr_model: nn.Module,
+                 pos_model: nn.Module = None,
+                 output_size: int = None,
+                 max_num_position: int = None,
                  **kwargs):
         r"""Initialize PositionBiasAwareLearningFrameworkModel
         
@@ -57,22 +61,22 @@ class PositionBiasAwareLearningFrameworkModel(_CtrModel):
 
             # Initialize positional embedding layer
             self.pos_model.add_module("PosEmbedding", PALLayer(
-                input_size       = output_size,
-                max_num_position = max_num_position
+                input_size=output_size,
+                max_num_position=max_num_position
             ))
 
             # Initialize dense layer after apply positional embedding bias
             self.pos_model.add_module("Dense", DNNLayer(
-                inputs_size = output_size, 
-                output_size = 1, 
-                layer_sizes = kwargs.get("layer_sizes"), 
-                dropout_p   = kwargs.get("dropout_p"), 
-                activation  = kwargs.get("activation")
+                inputs_size=output_size,
+                output_size=1,
+                layer_sizes=kwargs.get("layer_sizes"),
+                dropout_p=kwargs.get("dropout_p"),
+                activation=kwargs.get("activation")
             ))
 
             # Initialize sigmoid layer to transform outputs
             self.pos_model.add_module("Sigmoid", nn.Sigmoid())
-        
+
     def forward(self, inputs: Dict[str, torch.Tensor], pos_inputs: torch.Tensor) -> torch.Tensor:
         r"""Forward calculation of PositionBiasAwareLearningFrameworkModel
         
@@ -91,14 +95,14 @@ class PositionBiasAwareLearningFrameworkModel(_CtrModel):
         # Calculate with pos model forwardly
         # inputs: pos_inputs, shape = (B, N = 1)
         # output: pos_output, shape = (B, O = 1)
-        output  = self.pos_model((pctr_out, pos_inputs))
+        output = self.pos_model((pctr_out, pos_inputs))
         output.names = ("B", "O")
 
         # Drop names of outputs, since autograd doesn't support NamedTensor yet.
         output = output.rename(None)
 
         return output
-        
+
     def predict(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
         """Prediction of PositionBiasAwareLearningFrameworkModel
         

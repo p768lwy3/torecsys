@@ -1,10 +1,11 @@
-from . import _CtrModel
-from torecsys.layers import BilinearInteractionLayer, DNNLayer, SENETLayer
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
-from torecsys.utils.utils import combination
+from typing import Callable, List
+
 import torch
 import torch.nn as nn
-from typing import Callable, List
+from torecsys.utils.utils import combination
+
+from torecsys.layers import BilinearInteractionLayer, DNNLayer, SENETLayer
+from . import _CtrModel
 
 
 class FeatureImportanceAndBilinearFeatureInteractionNetwork(_CtrModel):
@@ -23,16 +24,17 @@ class FeatureImportanceAndBilinearFeatureInteractionNetwork(_CtrModel):
     #. `Tongwen Huang et al, 2019. FibiNET: Combining Feature Importance and Bilinear feature Interaction for Click-Through Rate Prediction <https://arxiv.org/abs/1905.09433>`_.
     
     """
-    def __init__(self, 
-                 embed_size       : int,
-                 num_fields       : int,
-                 senet_reduction  : int,
-                 deep_output_size : int,
-                 deep_layer_sizes : List[int],
-                 bilinear_type    : str = "all",
-                 bilinear_bias    : bool = True,
-                 deep_dropout_p   : List[float] = None,
-                 deep_activation  : Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
+
+    def __init__(self,
+                 embed_size: int,
+                 num_fields: int,
+                 senet_reduction: int,
+                 deep_output_size: int,
+                 deep_layer_sizes: List[int],
+                 bilinear_type: str = "all",
+                 bilinear_bias: bool = True,
+                 deep_dropout_p: List[float] = None,
+                 deep_activation: Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
         r"""Initialize FeatureImportanceAndBilinearFeatureInteractionNetwork
         
         Args:
@@ -71,13 +73,13 @@ class FeatureImportanceAndBilinearFeatureInteractionNetwork(_CtrModel):
 
         # Initialize dense layer
         self.deep = DNNLayer(
-            inputs_size = inputs_size,
-            output_size = deep_output_size,
-            layer_sizes = deep_layer_sizes,
-            dropout_p   = deep_dropout_p,
-            activation  = deep_activation
+            inputs_size=inputs_size,
+            output_size=deep_output_size,
+            layer_sizes=deep_layer_sizes,
+            dropout_p=deep_dropout_p,
+            activation=deep_activation
         )
-    
+
     def forward(self, emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""Forward calculation of FeatureImportanceAndBilinearFeatureInteractionNetwork
         

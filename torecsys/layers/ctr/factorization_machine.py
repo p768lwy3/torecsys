@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
+
 from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+
 
 class FactorizationMachineLayer(nn.Module):
     r"""Layer class of Factorization Machine (FM). 
@@ -13,8 +15,9 @@ class FactorizationMachineLayer(nn.Module):
     #. `Steffen Rendle, 2010. Factorization Machine <https://www.csie.ntu.edu.tw/~b97053/paper/Rendle2010FM.pdf>`_.
     
     """
+
     @no_jit_experimental_by_namedtensor
-    def __init__(self, 
+    def __init__(self,
                  dropout_p: float = 0.0):
         r"""Initialize FactorizationMachineLayer
         
@@ -25,12 +28,12 @@ class FactorizationMachineLayer(nn.Module):
         Attributes:
             dropout (torch.nn.Module): Dropout layer.
         """
-        # Refer to parent class
+        # refer to parent class
         super(FactorizationMachineLayer, self).__init__()
 
-        # Initialize dropout layer
+        # initialize dropout layer
         self.dropout = nn.Dropout(dropout_p)
-        
+
     def forward(self, emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""Forward calculation of FactorizationMachineLayer
         
@@ -42,25 +45,24 @@ class FactorizationMachineLayer(nn.Module):
         """
         # Square summed embedding
         # inputs: emb_inputs, shape = (B, N, E)
-        # output: squared_sum_embs, shape = (B, E)
-        squared_sum_embs = (emb_inputs.sum(dim="N")) ** 2
-        
+        # output: squared_sum_emb, shape = (B, E)
+        squared_sum_emb = (emb_inputs.sum(dim="N")) ** 2
+
         # Sum squared embedding
         # inputs: emb_inputs, shape = (B, N, E)
-        # output: sum_squared_embs, shape = (B, E)
-        sum_squared_embs = (emb_inputs ** 2).sum(dim="N")
-        
+        # output: sum_squared_emb, shape = (B, E)
+        sum_squared_emb = (emb_inputs ** 2).sum(dim="N")
+
         # Calculate outputs of fm
-        # inputs: squared_sum_embs, shape = (B, E)
-        # inputs: sum_squared_embs, shape = (B, E)
+        # inputs: squared_sum_emb, shape = (B, E)
+        # inputs: sum_squared_emb, shape = (B, E)
         # output: outputs, shape = (B, E)
-        outputs = 0.5 * (squared_sum_embs - sum_squared_embs)
+        outputs = 0.5 * (squared_sum_emb - sum_squared_emb)
 
         # Apply dropout
         # inputs: outputs, shape = (B, E)
         # output: outputs, shape = (B, E)
-        outputs = self.dropout(outputs)        
+        outputs = self.dropout(outputs)
         outputs.names = ("B", "O")
-        
+
         return outputs
-        

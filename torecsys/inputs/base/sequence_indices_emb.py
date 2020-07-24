@@ -1,23 +1,26 @@
-from . import _Inputs
 from collections import namedtuple
 from functools import partial
+
 import torch
 import torch.nn as nn
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
+
+from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+from . import Inputs
 
 
-class SequenceIndicesEmbedding(_Inputs):
+class SequenceIndicesEmbedding(Inputs):
     r"""Base Inputs class for embedding of sequence of indices with order, which embed the 
     sequence by Recurrent Neural Network (RNN) and aggregate before return.
     """
+
     @no_jit_experimental_by_namedtensor
     def __init__(self,
-                 embed_size   : int,
-                 field_size   : int,
-                 padding_idx  : int = 0,
-                 rnn_method   : str = "lstm",
+                 embed_size: int,
+                 field_size: int,
+                 padding_idx: int = 0,
+                 rnn_method: str = "lstm",
                  output_method: str = "avg_pooling",
-                 nn_embedding : nn.Parameter = None,
+                 nn_embedding: nn.Parameter = None,
                  **kwargs):
         r"""Initialize SequenceIndicesEmbedding.
         
@@ -58,7 +61,7 @@ class SequenceIndicesEmbedding(_Inputs):
         """
         # refer to parent class
         super(SequenceIndicesEmbedding, self).__init__()
-        
+
         # bind embedding to pre-trained embedding module if nn_embedding is not None
         if nn_embedding is not None:
             self.length = nn_embedding.size("E")
@@ -68,7 +71,7 @@ class SequenceIndicesEmbedding(_Inputs):
             self.length = embed_size
             self.embedding = nn.Embedding(field_size, embed_size, padding_idx=padding_idx, **kwargs)
 
-        # parse bidirectinal from kwargs
+        # parse bidirectional from kwargs
         bidirectional = kwargs.get("bidirectional", False)
         if bidirectional:
             # set hidden_size to embed_size // 2 if bidirectional is True
@@ -76,16 +79,16 @@ class SequenceIndicesEmbedding(_Inputs):
         else:
             # else, set hidden_size to embed_size
             hidden_size = embed_size
-        
+
         # parse arguments of RNN layers
         rnn_args = dict(
-            input_size    = embed_size,
-            hidden_size   = hidden_size,
-            num_layers    = kwargs.get("num_layers", 1),
-            bias          = kwargs.get("bias", True),
-            batch_first   = True,
-            dropout       = kwargs.get("dropout", 0.0),
-            bidirectional = bidirectional
+            input_size=embed_size,
+            hidden_size=hidden_size,
+            num_layers=kwargs.get("num_layers", 1),
+            bias=kwargs.get("bias", True),
+            batch_first=True,
+            dropout=kwargs.get("dropout", 0.0),
+            bidirectional=bidirectional
         )
 
         # initialize RNN layers
@@ -97,7 +100,7 @@ class SequenceIndicesEmbedding(_Inputs):
             self.rnn_layers = nn.GRU(**rnn_args)
         else:
             raise ValueError('rnn_method only allows ["rnn", "lstm", "gru"].')
-        
+
         # initialize aggregation layer for outputs and bind output_method to output_method
         if output_method == "avg_pooling":
             self.aggregation = nn.AdaptiveAvgPool1d(1)
@@ -138,7 +141,7 @@ class SequenceIndicesEmbedding(_Inputs):
         lengths, perm_idx = lengths.rename(None).sort(0, descending=True)
         ## inputs = inputs[perm_idx]
         inputs = inputs.rename(None)[perm_idx]
-        
+
         # sort for the desort index
         _, desort_idx = perm_idx.sort()
 
@@ -147,13 +150,13 @@ class SequenceIndicesEmbedding(_Inputs):
 
         # pack_padded, where packed_outputs' shape = (B + L, E)
         packed = torch.nn.utils.rnn.pack_padded_sequence(embedded, lengths.cpu().numpy(), batch_first=True)
-        
+
         # forward calculate of LSTM
         rnn_outputs, state = self.rnn_layers(packed)
-        
+
         # unpack output with shape = (B, L, E)
         unpacked, _ = torch.nn.utils.rnn.pad_packed_sequence(rnn_outputs, batch_first=True)
-        
+
         # desort the order of samples
         outputs = unpacked[desort_idx]
 
@@ -177,5 +180,5 @@ class SequenceIndicesEmbedding(_Inputs):
             # else outputs' shape = (B, L, E) if output_method == "none"
             outputs = self.aggregation(outputs.rename(None))
             outputs.names = ("B", "N", "E")
-        
+
         return outputs

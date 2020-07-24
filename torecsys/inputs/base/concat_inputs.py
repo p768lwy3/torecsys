@@ -1,16 +1,20 @@
-from . import _Inputs
-import torch
-import torch.nn as nn
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 from typing import Dict, List, Union
 
-class ConcatInputs(_Inputs):
+import torch
+import torch.nn as nn
+
+from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+from . import Inputs
+
+
+class ConcatInputs(Inputs):
     r"""Base Inputs class for concatenation of list of Base Inputs class in rowwise. 
     The shape of output is :math:`(B, 1, E_{1} + ... + E_{k})`, where :math:`E_{i}` 
     is embedding size of :math:`i-th` field. 
     """
+
     @no_jit_experimental_by_namedtensor
-    def __init__(self, inputs: List[_Inputs]):
+    def __init__(self, inputs: List[Inputs]):
         r"""Initialize ConcatInputs.
         
         Args:
@@ -57,13 +61,13 @@ class ConcatInputs(_Inputs):
                     inputs.extend(arguments)
                 elif isinstance(arguments, str):
                     inputs.append(arguments)
-        
+
         self.set_schema(inputs=list(set(inputs)))
 
         # bind length to sum of lengths of inputs,
         # i.e. number of fields of inputs, or embedding size of embedding.
         self.length = sum([len(inp) for inp in self.inputs])
-    
+
     def __getitem__(self, idx: Union[int, slice, str]) -> Union[nn.Module, List[nn.Module]]:
         """Get Embedding Layer by index from inputs.
         
@@ -78,7 +82,7 @@ class ConcatInputs(_Inputs):
 
         elif isinstance(idx, slice):
             emb_layers = []
-            
+
             # parse the slice object into integers used in range()
             start = idx.start if idx.start is not None else 0
             stop = idx.stop if idx.stop is not None else len(self.inputs)
@@ -92,14 +96,14 @@ class ConcatInputs(_Inputs):
             for inp in self.inputs:
                 if idx in inp.schema.inputs:
                     emb_layers.append(inp)
-        
+
         else:
             raise ValueError("getitem only accept int, slice, and str.")
-        
+
         return emb_layers
-    
+
     def forward(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
-        r"""Foward calculation of ConcatInputs.
+        r"""Forward calculation of ConcatInputs.
         
         Args:
             inputs (Dict[str, T]): Dictionary of inputs, where key is name of input fields, 
@@ -118,11 +122,11 @@ class ConcatInputs(_Inputs):
             inp_val = [inputs[i] for i in inp.schema.inputs]
             inp_val = torch.cat(inp_val, dim=1)
             inp_args = [inp_val]
-            
+
             # set args for specific input
             if inp.__class__.__name__ == "SequenceIndexEmbedding":
                 inp_args.append(inputs[inp.schema.lengths])
-            
+
             # calculate embedding values
             output = inp(*inp_args)
 
@@ -135,6 +139,5 @@ class ConcatInputs(_Inputs):
 
         # concat in the third dimension, and the shape of output = (B, 1, sum(E))
         outputs = torch.cat(outputs, dim="E")
-        
+
         return outputs
-        

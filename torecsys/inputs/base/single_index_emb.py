@@ -1,19 +1,20 @@
-from . import _Inputs
-from collections import namedtuple
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 import torch
 import torch.nn as nn
-from typing import List
 
-class SingleIndexEmbedding(_Inputs):
+from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+from . import Inputs
+
+
+class SingleIndexEmbedding(Inputs):
     r"""Base Inputs class for embedding a single index of a input field.
     """
+
     @no_jit_experimental_by_namedtensor
     def __init__(self,
-                 embed_size   : int,
-                 field_size   : int,
-                 padding_idx  : int = None,
-                 nn_embedding : nn.Parameter = None,
+                 embed_size: int,
+                 field_size: int,
+                 padding_idx: int = None,
+                 nn_embedding: nn.Parameter = None,
                  **kwargs):
         r"""Initialize SingleIndexEmbedding
         
@@ -41,7 +42,7 @@ class SingleIndexEmbedding(_Inputs):
         else:
             embed_size = embed_size
             self.embedding = nn.Embedding(field_size, embed_size, padding_idx=padding_idx, **kwargs)
-        
+
         # bind length to embed_size
         self.length = embed_size
 

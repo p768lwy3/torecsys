@@ -1,7 +1,8 @@
-from . import _EmbModel
-from torecsys.layers import GeneralizedMatrixFactorizationLayer
-from torecsys.utils.decorator import jit_experimental
 import torch
+
+from torecsys.layers import GeneralizedMatrixFactorizationLayer
+from . import _EmbModel
+
 
 class MatrixFactorizationModel(_EmbModel):
     r"""Model class of Matrix Factorization (MF).
@@ -9,6 +10,7 @@ class MatrixFactorizationModel(_EmbModel):
     Matrix Factorization is to embed relations between paris of data, like user and item.
 
     """
+
     def __init__(self):
         r"""Initialize MatrixFactorizationModel
 
@@ -20,7 +22,7 @@ class MatrixFactorizationModel(_EmbModel):
 
         # Initialize mf layer
         self.mf = GeneralizedMatrixFactorizationLayer()
-    
+
     def forward(self, emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""Forward calculation of MatrixFactorizationModel
         

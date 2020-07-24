@@ -1,11 +1,13 @@
 import torch
 import torch.nn as nn
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
+
+from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+
 
 class GeneralizedMatrixFactorizationLayer(nn.Module):
     r"""Layer class of Matrix Factorization (MF).
     
-    Matrix Factorization is to calculate matrix factorzation in a general linear format, 
+    Matrix Factorization is to calculate matrix factorization in a general linear format,
     which is used in Neural Collaborative Filtering to calculate dot product between user 
     tensors and items tensors.
     
@@ -14,6 +16,7 @@ class GeneralizedMatrixFactorizationLayer(nn.Module):
     #. `Xiangnan He et al, 2017. Neural Collaborative Filtering <https://arxiv.org/abs/1708.05031>`_.
     
     """
+
     @no_jit_experimental_by_namedtensor
     def __init__(self):
         r"""Initialize GeneralizedMatrixFactorizationLayer
@@ -38,5 +41,5 @@ class GeneralizedMatrixFactorizationLayer(nn.Module):
 
         # Rename tensor names
         outputs.names = ("B", "O")
-        
+
         return outputs

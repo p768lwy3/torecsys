@@ -1,8 +1,9 @@
-from . import _CtrModel
-from torecsys.layers import WideLayer
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 import torch
 import torch.nn as nn
+
+from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+from . import _CtrModel
+
 
 class LogisticRegressionModel(_CtrModel):
     r"""Model class of Logistic Regression (LR).
@@ -12,8 +13,9 @@ class LogisticRegressionModel(_CtrModel):
     0 and 1, which is to represent the probability of the input is true.
 
     """
+
     @no_jit_experimental_by_namedtensor
-    def __init__(self, 
+    def __init__(self,
                  inputs_size: int,
                  output_size: int = 1):
         r"""Initialize LogisticRegressionModel

@@ -1,16 +1,19 @@
-from . import _Inputs
-import torch
-import torch.nn as nn
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 from typing import Dict, List, Union
 
+import torch
+import torch.nn as nn
 
-class StackedInputs(_Inputs):
+from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+from . import Inputs
+
+
+class StackedInputs(Inputs):
     r"""Base Inputs class for stacking of list of Base Inputs class in columnwise. The shape of output 
     is :math:`(B, N_{1} + ... + N_{k}, E)` where :math:`N_{i}` is number of fields of inputs class i.
     """
+
     @no_jit_experimental_by_namedtensor
-    def __init__(self, inputs: List[_Inputs]):
+    def __init__(self, inputs: List[Inputs]):
         r"""Initialize StackedInputs
         
         Args:
@@ -42,15 +45,14 @@ class StackedInputs(_Inputs):
         """
         # refer to parent class
         super(StackedInputs, self).__init__()
-        
+
         # bind length to length of the first input's class in inputs,
         # i.e. number of fields of inputs, or embedding size of embedding.
         self.length = len(inputs[0])
 
         # check whether lengths of inputs are equal
         if not all(len(inp) == self.length for inp in inputs):
-            raise ValueError("Lengths of inputs, " + 
-                "i.e. number of fields or embeding size, must be equal.")
+            raise ValueError("Lengths of inputs, i.e. number of fields or embedding size, must be equal.")
 
         # bind inputs to inputs
         self.inputs = inputs
@@ -70,7 +72,7 @@ class StackedInputs(_Inputs):
                     inputs.append(arguments)
 
         self.set_schema(inputs=list(set(inputs)))
-    
+
     def __getitem__(self, idx: Union[int, slice, str]) -> Union[nn.Module, List[nn.Module]]:
         """Get Embedding Layer by index of the schema.
         
@@ -85,7 +87,7 @@ class StackedInputs(_Inputs):
 
         elif isinstance(idx, slice):
             emb_layers = []
-            
+
             # parse the slice object into integers used in range()
             start = idx.start if idx.start is not None else 0
             stop = idx.stop if idx.stop is not None else len(self.schema)
@@ -99,14 +101,14 @@ class StackedInputs(_Inputs):
             for inp in self.inputs:
                 if idx in inp.schema.inputs:
                     emb_layers.append(inp)
-        
+
         else:
             raise ValueError("getitem only accept int, slice, and str.")
-        
+
         return emb_layers
 
     def forward(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
-        r"""Foward calculation of StackedInputs
+        r"""Forward calculation of StackedInputs
         
         Args:
             inputs (Dict[str, T]): Dictionary of inputs, where key is name of input fields, and value is \
@@ -124,7 +126,7 @@ class StackedInputs(_Inputs):
             # create inputs in different format if the inputs class is ConcatInputs
             if inp.__class__.__name__ == "ConcatInputs":
                 # create dictionary of concat inputs
-                inp_dict = { i : inputs[i] for i in inp.schema.inputs }
+                inp_dict = {i: inputs[i] for i in inp.schema.inputs}
 
                 # create list variable to be passed 
                 inp_args = [inp_dict]
@@ -137,14 +139,14 @@ class StackedInputs(_Inputs):
                 # set args for specific input
                 if inp.__class__.__name__ == "SequenceIndexEmbedding":
                     inp_args.append(inputs[inp.schema.lengths])
-            
+
             # calculate embedding values
             output = inp(*inp_args)
 
             # check if output dimension is less than 3, then .unsqueeze(1)
             if output.dim() < 3:
                 output = output.unflatten("E", [("N", 1), ("E", output.size("E"))])
-            
+
             # append tensor to outputs
             outputs.append(output)
 

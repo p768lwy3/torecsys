@@ -1,8 +1,9 @@
-from . import _CtrModel
-from torecsys.layers import FMLayer
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 import torch
 import torch.nn as nn
+
+from torecsys.layers import FMLayer
+from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+from . import _CtrModel
 
 
 class FactorizationMachineModel(_CtrModel):
@@ -16,11 +17,12 @@ class FactorizationMachineModel(_CtrModel):
     #. `Steffen Rendle, 2010. Factorization Machine <https://www.csie.ntu.edu.tw/~b97053/paper/Rendle2010FM.pdf>`_.
 
     """
+
     @no_jit_experimental_by_namedtensor
-    def __init__(self, 
-                 embed_size    : int,
-                 num_fields    : int,
-                 dropout_p     : float = 0.0):
+    def __init__(self,
+                 embed_size: int,
+                 num_fields: int,
+                 dropout_p: float = 0.0):
         r"""Initialize FactorizationMachineModel
         
         Args:
@@ -38,12 +40,12 @@ class FactorizationMachineModel(_CtrModel):
 
         # initialize fm layer
         self.fm = FMLayer(dropout_p)
-        
+
         # initialize bias parameter
         # self.bias = nn.Parameter(torch.zeros((1, 1), names=("B", "O")))
         self.bias = nn.Parameter(torch.zeros((1, 1)))
         nn.init.uniform_(self.bias.data)
-    
+
     def forward(self, feat_inputs: torch.Tensor, emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""Forward calculation of FactorizationMachineModel
         
@@ -61,7 +63,7 @@ class FactorizationMachineModel(_CtrModel):
 
         # pass to fm layer where its returns' shape = (B, E)
         fm_second = self.fm(emb_inputs).sum(dim="O", keepdim=True)
-            
+
         # sum bias, fm_first, fm_second and get fm outputs with shape = (B, 1)
         outputs = fm_second + fm_first + self.bias
 

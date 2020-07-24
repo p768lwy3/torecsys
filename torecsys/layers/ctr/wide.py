@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
+
+from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+
 
 class WideLayer(nn.Module):
     r"""Layer class of wide. 
@@ -8,11 +10,12 @@ class WideLayer(nn.Module):
     Wide is a stack of linear and dropout, used in calculation of linear relation frequently.
 
     """
+
     @no_jit_experimental_by_namedtensor
     def __init__(self,
-                 inputs_size : int,
-                 output_size : int,
-                 dropout_p   : float = 0.0):
+                 inputs_size: int,
+                 output_size: int,
+                 dropout_p: float = 0.0):
         r"""Initialize WideLayer
         
         Args:
@@ -25,19 +28,19 @@ class WideLayer(nn.Module):
             inputs_size (int): Size of inputs, or Product of embed_size and num_fields.
             model (torch.nn.Sequential): Sequential of wide layer.
         """
-        # Refer to parent class
+        # refer to parent class
         super(WideLayer, self).__init__()
 
-        # Bind inputs_size to inputs_size
+        # bind inputs_size to inputs_size
         self.inputs_size = inputs_size
 
-        # Initialize module of sequential
+        # initialize module of sequential
         self.model = nn.Sequential()
 
-        # Initialize linear and dropout and add them to module
+        # initialize linear and dropout and add them to module
         self.model.add_module("Linear", nn.Linear(inputs_size, output_size))
         self.model.add_module("Dropout", nn.Dropout(dropout_p))
-    
+
     def forward(self, emb_inputs: torch.Tensor) -> torch.Tensor:
         r"""Forward calculation of WideLayer
         
@@ -47,16 +50,15 @@ class WideLayer(nn.Module):
         Returns:
             T, shape = (B, N, E), dtype = torch.float: Output of wide layer.
         """
-        # Calculate with linear forwardly
+        # calculate with linear forwardly
         # inputs: emb_inputs, shape = (B, N, E)
         # output: outputs, shape = (B, N, E = O)
         outputs = self.model(emb_inputs.rename(None))
 
-        # Rename tensor names
+        # rename tensor names
         if outputs.dim() == 2:
             outputs.names = ("B", "O")
         elif outputs.dim() == 3:
             outputs.names = ("B", "N", "O")
 
         return outputs
-    

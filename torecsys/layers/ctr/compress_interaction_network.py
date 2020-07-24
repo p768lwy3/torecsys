@@ -1,31 +1,36 @@
-import torch
-import torch.nn as nn
-from torecsys.utils.decorator import jit_experimental, no_jit_experimental_by_namedtensor
 from typing import Callable, List
 
+import torch
+import torch.nn as nn
+
+from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+
+
 class CompressInteractionNetworkLayer(nn.Module):
-    r"""Layer class of Compress Interation Network (CIN).
+    r"""Layer class of Compress Interaction Network (CIN).
     
-    Compress Interation Network was used in xDeepFM by Jianxun Lian et al, 2018. 
+    Compress Interaction Network was used in xDeepFM by Jianxun Lian et al, 2018.
     
     It compress cross-features tensors calculated by element-wise cross features interactions 
-    with outer product by 1D convalution with a :math:`1 * 1` kernel.
+    with outer product by 1D convolution with a :math:`1 * 1` kernel.
 
     :Reference:
 
-    #. `Jianxun Lian et al, 2018. xDeepFM: Combining Explicit and Implicit Feature Interactions for Recommender Systems <https://arxiv.org/abs/1803.05170.pdf>`_.
+    #. `Jianxun Lian et al, 2018. xDeepFM: Combining Explicit and Implicit Feature Interactions for Recommendation
+    Systems <https://arxiv.org/abs/1803.05170.pdf>`_.
 
     """
+
     @no_jit_experimental_by_namedtensor
-    def __init__(self, 
-                 embed_size    : int,
-                 num_fields    : int,
-                 output_size   : int,
-                 layer_sizes   : List[int],
-                 is_direct     : bool = False,
-                 use_bias      : bool = True,
-                 use_batchnorm : bool = True,
-                 activation    : Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
+    def __init__(self,
+                 embed_size: int,
+                 num_fields: int,
+                 output_size: int,
+                 layer_sizes: List[int],
+                 is_direct: bool = False,
+                 use_bias: bool = True,
+                 use_batchnorm: bool = True,
+                 activation: Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
         r"""Initialize CompressInteractionNetworkLayer
         
         Args:
@@ -44,47 +49,47 @@ class CompressInteractionNetworkLayer(nn.Module):
         
         Attributes:
             embed_size (int): Size of embedding tensor.
-            layers_sizes (List[int]): List of integer concatenated by num_fields and layer_sizes.
+            layer_sizes (List[int]): List of integer concatenated by num_fields and layer_sizes.
             is_direct (bool): Flag to show outputs is passed to next step directly or not.
             model (torch.nn.ModuleList): Module List of compress interaction network.
             fc (torch.nn.Module): Fully-connect layer (i.e. Linear layer) of outputs.
         """
-        # Refer to parent class
+        # refer to parent class
         super(CompressInteractionNetworkLayer, self).__init__()
 
-        # Bind embed_size, is_direct to embed_size, is_direct
+        # bind embed_size, is_direct to embed_size, is_direct
         self.embed_size = embed_size
         self.is_direct = is_direct
-        
-        # Generate a list of num_fields and layer_sizes
+
+        # generate a list of num_fields and layer_sizes
         self.layer_sizes = [num_fields] + layer_sizes
 
-        # Initialize module list of model
+        # initialize module list of model
         self.model = nn.ModuleList()
 
-        # Initialize cin sequential modules, and add them to module
+        # initialize cin sequential modules, and add them to module
         for i, (s_i, s_j) in enumerate(zip(self.layer_sizes[:-1], self.layer_sizes[1:])):
-            # Create a module of sequential
+            # create a module of sequential
             cin = nn.Sequential()
 
-            # Calculate channel size of Conv1d
+            # calculate channel size of Conv1d
             in_c = self.layer_sizes[0] * s_i
             out_c = s_j if is_direct or i == (len(self.layer_sizes) - 1) else s_j * 2
-            
-            # Initialize Conv1d and add it to sequential module
-            cin.add_module("conv1d", nn.Conv1d(in_c, out_c, kernel_size=1, bias=use_bias))
+
+            # Initialize conv1d and add it to sequential module
+            cin.add_module("Conv1d", nn.Conv1d(in_c, out_c, kernel_size=1, bias=use_bias))
 
             # Initialize batchnorm and add it to sequential module
             if use_batchnorm:
-                cin.add_module("batchnorm", nn.BatchNorm1d(out_c))
-            
+                cin.add_module("Batchnorm", nn.BatchNorm1d(out_c))
+
             # Initialize activation and add it to sequential module
             if activation is not None:
-                cin.add_module("activation", activation)
-            
+                cin.add_module("Activation", activation)
+
             # Add cin sequential to the module list
             self.model.append(cin)
-        
+
         # Calculate output size of model
         model_output_size = int(sum(layer_sizes))
 
@@ -109,7 +114,7 @@ class CompressInteractionNetworkLayer(nn.Module):
         # output: x0, shape = (B, E, N)
         x0 = emb_inputs.align_to("B", "E", "N")
         hidden_list.append(x0)
-        
+
         # Expand dimension N of x0 to Nx (= N) and H (= 1)
         # inputs: x0, shape = (B, E, N)
         # output: x0, shape = (B, E, Nx = N, H = 1)
@@ -130,19 +135,19 @@ class CompressInteractionNetworkLayer(nn.Module):
             ## out_prod = torch.matmul(x0, xi)
             out_prod = torch.einsum("ijkn,ijnh->ijkh", [x0.rename(None), xi.rename(None)])
             out_prod.names = ("B", "E", "Nx", "Ny")
-            
+
             # Reshape out_prod
             # inputs: out_prod, shape = (B, E, Nx = N, Ny = N)
             # output: out_prod, shape = (B, N = Nx * Ny, E)
             out_prod = out_prod.flatten(["Nx", "Ny"], "N")
             out_prod = out_prod.align_to("B", "N", "E")
 
-            # Apply convalution, batchnorm and activation
+            # Apply convolution, batchnorm and activation
             # inputs: out_prod, shape = (B, N = Nx * Ny, E)
             # output: outputs, shape = (B, N = (Hi * 2 or Hi), E)
             outputs = self.model[i](out_prod.rename(None))
             outputs.names = ("B", "N", "E")
-            
+
             if self.is_direct:
                 # Pass to output directly
                 # inputs: outputs, shape = (B, N = Hi, E)
@@ -160,7 +165,7 @@ class CompressInteractionNetworkLayer(nn.Module):
                     # output: direct, shape = (B, N = Hi, E)
                     # output: hidden, shape = (B, N = Hi, E)
                     direct, hidden = torch.chunk(outputs, 2, dim=1)
-                    
+
                     # Reshape and pass to next step
                     # inputs: hidden, shape = (B, N = Hi, E)
                     # output: hidden, shape = (B, E, N = Hi)
@@ -175,7 +180,7 @@ class CompressInteractionNetworkLayer(nn.Module):
             # Store tensors to lists temporarily
             direct_list.append(direct)
             hidden_list.append(hidden)
-        
+
         # Concatenate direct_list into a tensor
         # inputs: direct_list, shape = (B, Hi, E)
         # output: outputs, shape = (B, sum(Hi), E)
@@ -186,5 +191,5 @@ class CompressInteractionNetworkLayer(nn.Module):
         # output: outputs, shape = (B, O)
         outputs = self.fc(outputs.sum("E"))
         outputs.names = ("B", "O")
-        
+
         return outputs

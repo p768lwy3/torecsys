@@ -1,19 +1,24 @@
 r"""torecsys.models.ltr.losses.pairwise_ranking_loss is a sub module of algorithms of pairwise ranking loss
 """
 
+from typing import Callable, Union
+
+import torch
+import torch.nn as nn
+
+from torecsys.utils import get_reduction
 from . import _RankingLoss
 from .functional import apply_mask, margin_ranking_loss_parser, soft_margin_loss_parser
 from .functional import bayesian_personalized_ranking_loss, hinge_loss, adaptive_hinge_loss
-import torch
-import torch.nn as nn
-from torecsys.utils import get_reduction
-from typing import Callable, Union
+
 
 class _PairwiseRankingLoss(_RankingLoss):
     r"""Base Class of pairwise ranking loss
     """
+
     def __init__(self):
         super(_PairwiseRankingLoss, self).__init__()
+
 
 class BayesianPersonalizedRankingLoss(_PairwiseRankingLoss):
     r"""pairwise loss calculated bayesian personalized ranking, by the following equation: 
@@ -21,10 +26,12 @@ class BayesianPersonalizedRankingLoss(_PairwiseRankingLoss):
     
     :Reference:
 
-    #. `Steffen Rendle et al, 2009. BPR: Bayesian Personalized Ranking from Implicit Feedback <https://arxiv.org/abs/1205.2618>`_.
+    #. `Steffen Rendle et al, 2009. BPR: Bayesian Personalized Ranking from Implicit Feedback
+    <https://arxiv.org/abs/1205.2618>`_.
 
     """
-    def __init__(self, 
+
+    def __init__(self,
                  reduction: Union[Callable[[torch.Tensor], torch.Tensor], str] = "sum"):
         r"""Initialize BayesianPersonalizedRankingLoss
         
@@ -40,7 +47,7 @@ class BayesianPersonalizedRankingLoss(_PairwiseRankingLoss):
 
         # Bind reduction to reduction
         self.reduction = get_reduction(reduction)
-    
+
     def forward(self,
                 pos_outputs: torch.Tensor,
                 neg_outputs: torch.Tensor,
@@ -63,11 +70,13 @@ class BayesianPersonalizedRankingLoss(_PairwiseRankingLoss):
         return self.reduction(apply_mask(loss, mask)) if mask is not None \
             else self.reduction(loss)
 
+
 class HingeLoss(_PairwiseRankingLoss):
     r"""HingeLoss is a pairwise ranking loss function which calculated loss with the following equation: 
     :math:`loss = max ( 0.0, 1.0 + y_{pos} - y_{neg} )` .
     """
-    def __init__(self, 
+
+    def __init__(self,
                  margin: float = 1.0,
                  reduction: Callable[[torch.Tensor], torch.Tensor] = torch.sum):
         r"""Initialize HingeLoss
@@ -96,7 +105,7 @@ class HingeLoss(_PairwiseRankingLoss):
         
         Args:
             pos_outputs (T), shape = (B, 1): Predicted values of positive samples.
-            neg_outputs (T), shape = (B, num_neg): Predicted values of negative smaples.
+            neg_outputs (T), shape = (B, num_neg): Predicted values of negative samples.
             mask (T, optional), shape = (batch size, ), dtype = torch.bool: Boolean tensor to mask loss. 
                 Defaults to None.
         
@@ -105,10 +114,11 @@ class HingeLoss(_PairwiseRankingLoss):
         """
         # Calculate loss by functional method
         loss = hinge_loss(pos_outputs, neg_outputs, self.margin)
-        
+
         # Apply masking and take reduction on loss
         return self.reduction(apply_mask(loss, mask)) if mask is not None \
             else self.reduction(loss)
+
 
 class AdaptiveHingeLoss(_PairwiseRankingLoss):
     r"""AdaptiveHingeLoss is a pairwise ranking loss function which is a variant of hinge loss and
@@ -117,10 +127,12 @@ class AdaptiveHingeLoss(_PairwiseRankingLoss):
 
     :Reference:
 
-    #. `Jason Weston el at, 2011. WSABIE: Scaling Up To Large Vocabulary Image Annotation <http://www.thespermwhale.com/jaseweston/papers/wsabie-ijcai.pdf>`_.
+    #. `Jason Weston el at, 2011. WSABIE: Scaling Up To Large Vocabulary Image Annotation
+    <http://www.thespermwhale.com/jaseweston/papers/wsabie-ijcai.pdf>`_.
 
     """
-    def __init__(self, 
+
+    def __init__(self,
                  margin: float = 1.0,
                  reduction: Callable[[torch.Tensor], torch.Tensor] = torch.sum):
         r"""Initialize HingeLoss
@@ -140,7 +152,7 @@ class AdaptiveHingeLoss(_PairwiseRankingLoss):
         # Bind margin and reduction to margin and reduction
         self.margin = margin
         self.reduction = get_reduction(reduction)
-    
+
     def forward(self,
                 pos_outputs: torch.Tensor,
                 neg_outputs: torch.Tensor,
@@ -163,21 +175,24 @@ class AdaptiveHingeLoss(_PairwiseRankingLoss):
         return self.reduction(apply_mask(loss, mask)) if mask is not None \
             else self.reduction(loss)
 
+
 class TripletLoss(_PairwiseRankingLoss):
-    r"""TripletLoss is a pairwise ranking loss which is used in FaceNet at first, 
-    and implemented by PyTorch in module\: torch.nn.MarginRankingLoss and torch.nn.SoftMarginLoss. 
-    This module is an integration of those losses as a standardize calling method with other losses 
-    implemented in this package. For the calculation, the loss is calculated by 
-    :math:`\Big[\left\| x_{anchor} - x_{pos} \right\|_{2}^{2} - \left\| x_{anchor} - x_{neg} \right\|_{2}^{2} \Big]_{\text{+}}` .
+    r"""TripletLoss is a pairwise ranking loss which is used in FaceNet at first, and implemented by PyTorch in
+    module\: torch.nn.MarginRankingLoss and torch.nn.SoftMarginLoss. This module is an integration of those losses as
+    a standardize calling method with other losses implemented in this package. For the calculation, the loss is
+    calculated by :math:`\Big[\left\| x_{anchor} - x_{pos} \right\|_{2}^{2} - \left\| x_{anchor} - x_{neg} \right\|_{
+    2}^{2} \Big]_{\text{+}}` .
     
     :Reference:
 
-    #. `Florian Schroff et at, 2015. FaceNet: A Unified Embedding for Face Recognition and Clustering <https://arxiv.org/abs/1503.03832>`_.
+    #. `Florian Schroff et at, 2015. FaceNet: A Unified Embedding for Face Recognition and Clustering
+    <https://arxiv.org/abs/1503.03832>`_.
 
     """
-    def __init__(self, 
-                 margin    : float = 1.0, 
-                 reduction : str = None):
+
+    def __init__(self,
+                 margin: float = 1.0,
+                 reduction: str = None):
         r"""Initialize TripletLoss
         
         Args:
@@ -194,7 +209,7 @@ class TripletLoss(_PairwiseRankingLoss):
         else:
             self.parser = soft_margin_loss_parser
             self.loss = nn.SoftMarginLoss(reduction=reduction)
-    
+
     def forward(self,
                 pos_outputs: torch.Tensor,
                 neg_outputs: torch.Tensor,
@@ -203,7 +218,7 @@ class TripletLoss(_PairwiseRankingLoss):
         
         Args:
             pos_outputs (T), shape = (B, 1): Predicted values of positive samples.
-            neg_outputs (T), shape = (B, num_neg): Predicted values of negative smaples.
+            neg_outputs (T), shape = (B, num_neg): Predicted values of negative samples.
             mask (T, optional), shape = (batch size, ), dtype = torch.bool: Boolean tensor to mask loss. 
                 Defaults to None.
         
@@ -214,10 +229,10 @@ class TripletLoss(_PairwiseRankingLoss):
         if mask is not None:
             pos_outputs = apply_mask(pos_outputs, mask)
             neg_outputs = apply_mask(neg_outputs, mask)
-        
+
         # create the target ones_liken tensor - y
         y = torch.ones_like(neg_outputs)
-        
+
         # create inputs by parsing with self.parser
         inputs = self.parser(pos_outputs, neg_outputs, y)
 

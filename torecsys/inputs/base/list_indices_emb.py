@@ -1,24 +1,28 @@
-from . import _Inputs
 from functools import partial
+from typing import Tuple
+
 import numpy as np
 import torch
 import torch.nn as nn
+
 from torecsys.utils.decorator import no_jit_experimental, no_jit_experimental_by_namedtensor
 from torecsys.utils.operations import dummy_attention, show_attention
-from typing import Tuple
+from . import Inputs
 
-class ListIndicesEmbedding(_Inputs):
+
+class ListIndicesEmbedding(Inputs):
     r"""Base Inputs class for embedding of list of indices without order, which embed the 
-    list by multihead attention and aggregate before return.
+    list by Multi-head Attention and aggregate before return.
     """
+
     @no_jit_experimental_by_namedtensor
     def __init__(self,
-                 embed_size    : int,
-                 field_size    : int,
-                 padding_idx   : int  = 0,
-                 use_attn      : bool = False,
-                 output_method : str  = "avg_pooling",
-                 nn_embedding  : nn.Parameter = None,
+                 embed_size: int,
+                 field_size: int,
+                 padding_idx: int = 0,
+                 use_attn: bool = False,
+                 output_method: str = "avg_pooling",
+                 nn_embedding: nn.Parameter = None,
                  **kwargs):
         r"""Initialize ListIndicesEmbedding.
         
@@ -27,26 +31,26 @@ class ListIndicesEmbedding(_Inputs):
             field_size (int): Size of inputs field
             padding_idx (int, optional): Padding index. 
                 Defaults to 0.
-            use_attn (bool, optional): Whether multihead attention is used or not.  
+            use_attn (bool, optional): Whether Multi-head Attention is used or not.
                 Defaults to False.
             output_method (str, optional): Method of aggregation. 
                 Allow: ["avg_pooling", "max_pooling", "mean", "none", "sum"]. 
                 Defaults to "avg_pooling".
-            nn_embedding (nn.Parameter, optional): Pretrained embedding values. 
+            nn_embedding (nn.Parameter, optional): Pre-trained embedding values.
                 Defaults to None.
         
         Kwargs:
-            num_heads (int): Number of heads for MultiheadAttention.
+            num_heads (int): Number of heads for Multi-head Attention.
                 Required when use_attn is True. Default to 1.
-            dropout (float, optional): Probability of Dropout in MultiheadAttention. 
+            dropout (float, optional): Probability of Dropout in Multi-head Attention.
                 Default to 0.0.
-            bias (bool, optional): Whether bias is added to multihead attention or not. 
+            bias (bool, optional): Whether bias is added to Multi-head Attention or not.
                 Default to True.
             add_bias_kv (bool, optional): Whether bias is added to the key and value 
-                sequences at dim = 1 in multihead attention or not. 
+                sequences at dim = 1 in Multi-head Attention or not.
                 Default to False.
             add_zero_attn (bool, optional): Whether a new batch of zeros is added to 
-                the key and value sequences at dim = 1 in multihead attention  or not. 
+                the key and value sequences at dim = 1 in Multi-head Attention or not.
                 Default to False.
         
         Attributes:
@@ -55,8 +59,8 @@ class ListIndicesEmbedding(_Inputs):
             field_size (int): Size of inputs' field.
             embedding (torch.nn.Module): Embedding layer.
             use_attn (bool): Flag to show attention is used or not.
-            attn_args (dict): Dictonary of arguments used in MultiheadAttention.
-            attention (Union[torch.nn.Module, callable]): MultiheadAttention layer or dummy_attention.
+            attn_args (dict): Dictionary of arguments used in Multi-head Attention.
+            attention (Union[torch.nn.Module, callable]): Multi-head Attention layer or dummy_attention.
             aggregation (Union[torch.nn.Module, callable]): Pooling layer or aggregation function.
             output_method (string): Type of output_method.
             
@@ -74,7 +78,7 @@ class ListIndicesEmbedding(_Inputs):
         else:
             self.embed_size = embed_size
             self.embedding = nn.Embedding(field_size, embed_size, padding_idx=padding_idx)
-        
+
         # bind field_size and length to field_size and embed_size
         self.field_size = field_size
         self.length = self.embed_size
@@ -83,22 +87,22 @@ class ListIndicesEmbedding(_Inputs):
         self.use_attn = use_attn
 
         if self.use_attn:
-            # parse arguments of multihead attention layer
+            # parse arguments of Multi-head Attention layer
             self.attn_args = dict(
-                embed_dim     = embed_size,
-                num_heads     = kwargs.get("num_heads", 1),
-                dropout       = kwargs.get("dropout", 0.0),
-                bias          = kwargs.get("bias", True),
-                add_bias_kv   = kwargs.get("add_bias_kv", False),
-                add_zero_attn = kwargs.get("add_zero_attn", False)
+                embed_dim=embed_size,
+                num_heads=kwargs.get("num_heads", 1),
+                dropout=kwargs.get("dropout", 0.0),
+                bias=kwargs.get("bias", True),
+                add_bias_kv=kwargs.get("add_bias_kv", False),
+                add_zero_attn=kwargs.get("add_zero_attn", False)
             )
-            # initialize multihead attention layer
+            # initialize Multi-head Attention layer
             self.attention = nn.MultiheadAttention(**self.attn_args)
         else:
             # bind attention to a dummy function called dummy_attention 
             # which will return input key directly
             self.attention = dummy_attention
-        
+
         # initialize aggregation layer for outputs and bind output_method to output_method
         if output_method == "avg_pooling":
             self.aggregation = nn.AdaptiveAvgPool1d(1)
@@ -141,7 +145,7 @@ class ListIndicesEmbedding(_Inputs):
         outputs, _ = self.attention(outputs, outputs, outputs)
         outputs.names = ("L", "B", "E")
         outputs = outputs.align_to("B", "L", "E")
-        
+
         # Calculate aggregation of outputs
         if self.output_method == "avg_pooling" or self.output_method == "max_pooling":
             # transpose outputs
@@ -170,15 +174,15 @@ class ListIndicesEmbedding(_Inputs):
         return outputs
 
     @no_jit_experimental
-    def show_attention(self, 
-                       inputs  : torch.Tensor, 
-                       savedir : str = None):
-        r"""Show heatmap of self-attention in multihead attention.
+    def show_attention(self,
+                       inputs: torch.Tensor,
+                       save_dir: str = None):
+        r"""Show heat map of self-attention in Multi-head Attention.
         
         Args:
             inputs (T), shape = (1, L), dtype = torch.long: A single sample of list of tensor of 
                 indices in inputs fields.
-            savedir (str, optional): Directory to save heatmap. Defaults to None.
+            save_dir (str, optional): Directory to save heat map. Defaults to None.
         
         Raises:
             ValueError: when batch size is not equal to 1.
@@ -189,7 +193,7 @@ class ListIndicesEmbedding(_Inputs):
             # check whether batch size is equal to 1 or not.
             if inputs.size("B") != 1:
                 raise ValueError("batch size must be equal to 1.")
-            
+
             # set torch to no_grad for inference
             with torch.no_grad():
                 # Get and reshape embedding tensors
@@ -198,13 +202,13 @@ class ListIndicesEmbedding(_Inputs):
                 outputs = self.embedding(inputs.rename(None))
                 outputs.names = ("B", "L", "E")
                 outputs = outputs.align_to("L", "B", "E")
-                
+
                 # Compute self-attention and reshape output of attention
                 # inputs: outputs, shape = (L, B, E)
                 # output: attn_weights, shape = (1, L, L)
                 outputs = outputs.rename(None)
                 _, attn_weights = self.attention(outputs, outputs, outputs)
-            
+
             # Remove dim 1 to flatten attn_weights and convert to np.array
             # inputs: attn_weights, shape = (1, L, L)
             # output: attn_weights, shape = (L, L)
@@ -213,8 +217,7 @@ class ListIndicesEmbedding(_Inputs):
             # Create a list of string of index from inputs to be the axis of plot
             axis = [str(x) for x in inputs.rename(None).squeeze().tolist()]
 
-            # Show attentions with a heatmap plot
-            show_attention(attn_weights, xaxis=axis, yaxis=axis, savedir=savedir)
+            # Show attentions with a heat map plot
+            show_attention(attn_weights, xaxis=axis, yaxis=axis, savedir=save_dir)
         else:
             raise ValueError("show_attention cannot be called if use_attn is False.")
-        

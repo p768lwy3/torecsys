@@ -1,10 +1,14 @@
-from . import _NegativeSampler
-import torch
 from typing import Dict
 
+import torch
+
+from . import _NegativeSampler
+
+
 class UniformSampler(_NegativeSampler):
-    r"""UniformSampler is to generate negative samplers by uniform distribution, i.e. draw samples uniformlly
+    r"""UniformSampler is to generate negative samplers by uniform distribution, i.e. draw samples uniformly
     """
+
     def __init__(self,
                  with_replacement: bool,
                  **kwargs_dict):
@@ -18,18 +22,18 @@ class UniformSampler(_NegativeSampler):
         """
         # Refer to parent class
         super(UniformSampler, self).__init__(**kwargs_dict)
-        
+
         # Bind with_replacement to with_replacement
         if not isinstance(with_replacement, bool):
             raise TypeError(f"{type(with_replacement)}.__name__ is not allowed.")
-        
+
         # Bind method to _generate
         self.with_replacement = with_replacement
         if self.with_replacement is True:
             self._generate = self._generate_with_replacement
         else:
             self._generate = self._generate_without_replacement
-    
+
     def size(self) -> Dict[str, int]:
         r"""Get length of field.
         
@@ -37,7 +41,7 @@ class UniformSampler(_NegativeSampler):
             int: Length of field.
         """
         return {k: v["high"] - v["low"] for k, v in self.kwargs.items()}
-    
+
     @staticmethod
     def _generate_with_replacement(**kwargs: Dict[str, int]) -> torch.Tensor:
         r"""A function to generate negative samples with uniform distribution with replacement.

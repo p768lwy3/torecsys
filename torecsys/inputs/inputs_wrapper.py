@@ -1,15 +1,19 @@
-from .base import _Inputs
+from typing import Dict, TypeVar, Union
+
 import torch
 import torch.nn as nn
-from typing import Dict, List, TypeVar, Union
 
-class InputsWrapper(_Inputs):
+from .base import Inputs
+
+
+class InputsWrapper(Inputs):
     r"""Inputs class for wrapping a number of Base Inputs class into a dictionary. The output 
     is a dictionary, which its keys are names of model's inputs and values are tensor of model's 
     inputs.
     """
-    def __init__(self, 
-                 schema: Union[Dict[str, _Inputs], None]):
+
+    def __init__(self,
+                 schema: Union[Dict[str, Inputs], None]):
         r"""Initialize InputsWrapper.
         
         Args:
@@ -41,7 +45,7 @@ class InputsWrapper(_Inputs):
         """
         # refer to parent class
         super(InputsWrapper, self).__init__()
-        
+
         # bind schema to schema
         if schema is None:
             self.schema = dict()
@@ -54,7 +58,7 @@ class InputsWrapper(_Inputs):
 
         # set length to None
         self.length = None
-    
+
     def forward(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         r"""Forward calculation of InputsWrapper.
         
@@ -66,38 +70,38 @@ class InputsWrapper(_Inputs):
             Dict[str, T], dtype = torch.float: Output of InputsWrapper, which is a dictionary 
                 where keys are names of model's inputs and values are tensor of model's inputs.
         """
-        # Initialize dictionary to store tensors
+        # initialize dictionary to store tensors
         outputs = dict()
 
-        # Loop through schema
+        # loop through schema
         for out_name, out_inp in self.schema.items():
-            # Create inputs in different format if it is ConcatInputs or StackedInputs
+            # create inputs in different format if it is ConcatInputs or StackedInputs
             if out_inp.__class__.__name__ in ["ConcatInputs", "StackedInputs"]:
-                # Create dictionary of concat inputs
-                inp_dict = { i : inputs[i] for i in out_inp.schema.inputs }
+                # create dictionary of concat inputs
+                inp_dict = {i: inputs[i] for i in out_inp.schema.inputs}
 
-                # Create list variable to be passed 
+                # create list variable to be passed
                 inp_args = [inp_dict]
             else:
-                # Convert list of inputs to tensor, with shape = (B, N, ...)
+                # convert list of inputs to tensor, with shape = (B, N, ...)
                 inp_val = [inputs[i] for i in out_inp.schema.inputs]
                 inp_val = torch.cat(inp_val, dim=1)
                 inp_args = [inp_val]
-            
-                # Set args for specific input
+
+                # set args for specific input
                 if out_inp.__class__.__name__ == "SequenceIndexEmbedding":
                     inp_args.append(inputs[out_inp.schema.lengths])
-            
-            # Calculate forwardly with module
+
+            # calculate forwardly with module
             output = out_inp(*inp_args)
 
             # set out_name in outputs to transformed tensors or embedded tensors
             outputs[out_name] = output
 
         return outputs
-    
+
     def add_inputs(self,
-                   name: str = None, 
+                   name: str = None,
                    module: nn.Module = None,
                    schema: Dict[str, nn.Module] = None) -> TypeVar("InputsWrapper"):
         r"""[summary]
@@ -119,21 +123,21 @@ class InputsWrapper(_Inputs):
         if schema is not None:
             if not isinstance(schema, dict):
                 raise TypeError(f"{type(schema).__name__} not allowed for schema.")
-            
+
             for name, module in schema.items():
                 self.add_inputs(name=name, module=module)
-        
+
         else:
             if not isinstance(name, str):
                 raise TypeError(f"{type(name).__name__} not allowed for name.")
-        
+
             if not isinstance(module, nn.Module):
                 raise TypeError(f"{type(module).__name__} not allowed for module.")
 
             if name in self.schema:
                 raise AssertionError(f"{name} is defined in the schema.")
-        
-            self.schema.update({ name : module })
+
+            self.schema.update({name: module})
             self.add_module(name, module)
 
         return self
