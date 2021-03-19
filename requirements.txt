@@ -18,4 +18,4 @@ six==1.15.0
 parameterized==0.7.4
 setuptools==49.2.0
 requests==2.24.0
-Pillow==7.2.0
+Pillow==8.1.1
