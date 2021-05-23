@@ -1,5 +1,5 @@
-r"""torecsys.metrics is a sub module to implement functions to calculate metrics of
-evaluation in recommendation system.
+"""
+torecsys.metrics is a sub model to implement functions to calculate metrics of evaluation in recommendation system.
 """
 
-from .metrics import *
+from torecsys.metrics import *

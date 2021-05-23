@@ -1,5 +1,21 @@
-r"""torecsys.inputs is a sub-module to transform or embed inputs to Tensor.
+"""
+torecsys.embedder is a sub-model to transform or embed embedder to Tensor.
 """
 
-from .base import *
-from .inputs_wrapper import InputsWrapper
+__all__ = [
+    'Inputs',
+    'ConcatInput',
+    'ImageInput',
+    'BaseInput',
+    'ListIndicesEmbedding',
+    'MultiIndicesEmbedding',
+    'MultiIndicesFieldAwareEmbedding',
+    'PretrainedImageInput',
+    'SequenceIndicesEmbedding',
+    'SingleIndexEmbedding',
+    'StackedInput',
+    'ValueInput'
+]
+
+from torecsys.inputs.base import *
+from torecsys.inputs.inputs import Inputs

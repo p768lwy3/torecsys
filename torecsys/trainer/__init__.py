@@ -1,5 +1,5 @@
-r"""torecsys.utils.training is a sub module of training tools, 
+r"""torecsys.utils.training is a sub model of training tools,
 including Traniner and RankingTrainer.
 """
 
-from .trainer import Trainer
+from .torecsys_module import TorecsysModule

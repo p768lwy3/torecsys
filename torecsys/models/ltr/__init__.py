@@ -1,17 +1,18 @@
-r"""torecsys.models.ltr is a sub module of the implementations of the whole models of Learning-to-Rank algorithm
+"""
+torecsys.models.ltr is a sub model of the implementations of the whole models of Learning-to-Rank algorithm
 """
 
-from .. import _Model
+from torecsys.models import BaseModel
 
 
-class _LtrModel(_Model):
+class _LtrBaseModel(BaseModel):
     def __init__(self):
-        super(_LtrModel, self).__init__()
+        super().__init__()
 
 
-class _RerankingModel(_LtrModel):
+class _ReRankingModel(_LtrBaseModel):
     def __init__(self):
-        super(_RerankingModel, self).__init__()
+        super().__init__()
 
 
-from .personalized_reranking import PersonalizedRerankingModel
+from torecsys.models.ltr.personalized_reranking import PersonalizedReRankingModel

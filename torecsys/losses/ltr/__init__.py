@@ -1,15 +1,25 @@
-r"""torecsys.losses.ltr is a sub module of implementation of losses in learning-to-rank.
+"""
+torecsys.losses.ltr is a sub model of implementation of losses in learning-to-rank.
 """
 
-from .. import _Loss
+from torecsys.losses import Loss
 
 
-class _RankingLoss(_Loss):
+class RankingLoss(Loss):
     def __init__(self):
-        super(_RankingLoss, self).__init__()
+        super().__init__()
 
 
-from .functional import *
-from .groupwise_ranking_loss import *
-from .pointwise_ranking_loss import *
-from .pairwise_ranking_loss import *
+__all__ = [
+    'AdaptiveHingeLoss',
+    'BayesianPersonalizedRankingLoss',
+    'HingeLoss',
+    'ListnetLoss',
+    'PointwiseLogisticLoss',
+    'RankingLoss',
+    'TripletLoss'
+]
+
+from torecsys.losses.ltr.groupwise_ranking_loss import *
+from torecsys.losses.ltr.pointwise_ranking_loss import *
+from torecsys.losses.ltr.pairwise_ranking_loss import *

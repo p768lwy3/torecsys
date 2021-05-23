@@ -1,20 +1,19 @@
-from typing import Callable, List
+from typing import List, Optional
 
 import torch
 import torch.nn as nn
 
 from torecsys.layers import DNNLayer, MOELayer
-from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
-from . import _CtrModel
+from torecsys.models.ctr import CtrBaseModel
 
 
-class DeepMixtureOfExpertsModel(_CtrModel):
-    r"""Model class of Deep Mixture-of-Experts (MoE) model.
+class DeepMixtureOfExpertsModel(CtrBaseModel):
+    """
+    Model class of Deep Mixture-of-Experts (MoE) model.
 
-    Deep Mixture-of-Experts is purposed by David Eigen et at at 2013, which is to combine 
-    outputs of several `expert` models, each of which specializes in a different part of input 
-    space. To combine them, a gate, which is a stack of linear and softmax, will be trained 
-    for weighing outputs of expert before return.
+    Deep Mixture-of-Experts is purposed by David Eigen et at at 2013, which is to combine outputs of several `expert`
+    models, each of which specializes in a different part of input space. To combine them, a gate, which is a stack of
+    linear and softmax, will be trained for weighing outputs of expert before return.
 
     :Reference:
 
@@ -23,40 +22,35 @@ class DeepMixtureOfExpertsModel(_CtrModel):
 
     """
 
-    @no_jit_experimental_by_namedtensor
     def __init__(self,
                  embed_size: int,
                  num_fields: int,
                  num_experts: int,
                  moe_layer_sizes: List[int],
                  deep_layer_sizes: List[int],
-                 deep_dropout_p: List[float] = None,
-                 deep_activation: Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
-        r"""Initialize DeepMixtureOfExpertsModel
+                 deep_dropout_p: Optional[List[float]] = None,
+                 deep_activation: Optional[nn.Module] = nn.ReLU()):
+        """
+        Initialize DeepMixtureOfExpertsModel
         
         Args:
-            embed_size (int): Size of embedding tensor
-            num_fields (int): Number of inputs' fields
-            num_experts (int): Number of experts' model
-            moe_layer_sizes (List[int]): Size of mixture-of-experts models' outputs
-            deep_layer_sizes (List[int]): Layer sizes of dense network in expert's model
-            deep_dropout_p (List[float], optional): Probability of Dropout in dense network in expert's model. 
-                Defaults to None.
-            deep_activation (Callable[[T], T], optional): Activation function of dense network in expert's model. 
-                Defaults to nn.ReLU().
+            embed_size (int): size of embedding tensor
+            num_fields (int): number of inputs' fields
+            num_experts (int): number of experts' model
+            moe_layer_sizes (List[int]): size of mixture-of-experts models' outputs
+            deep_layer_sizes (List[int]): layer sizes of dense network in expert's model
+            deep_dropout_p (List[float], optional): probability of Dropout in dense network in expert's model.
+                Defaults to None
+            deep_activation (torch.nn.Module, optional): activation function of dense network in expert's model.
+                Defaults to nn.ReLU()
         """
-        # Refer to parent class
-        super(DeepMixtureOfExpertsModel, self).__init__()
+        super().__init__()
 
-        # Calculate first input size and concatenate it with layer_sizes
         inputs_size = embed_size * num_fields
         layer_sizes = [inputs_size] + moe_layer_sizes
 
-        # Initialize a list of mixture-of-experts layers
-        self.moes = nn.ModuleList()
-
+        self.module = nn.ModuleList()
         for i, (inp, out) in enumerate(zip(layer_sizes[:-1], layer_sizes[1:])):
-            # Calculate input's size from last moe layer
             inp = num_experts * inp if i != 0 else inp
             moe = MOELayer(
                 inputs_size=inp,
@@ -69,28 +63,28 @@ class DeepMixtureOfExpertsModel(_CtrModel):
                 expert_dropout_p=deep_dropout_p,
                 expert_activation=deep_activation
             )
-            self.moes.append(moe)
+            self.module.append(moe)
 
     def forward(self, emb_inputs: torch.Tensor) -> torch.Tensor:
-        r"""Forward calculation of DeepMixtureOfExpertsModel
+        """
+        Forward calculation of DeepMixtureOfExpertsModel
         
         Args:
-            emb_inputs (T), shape = (B, N, E), dtype = torch.float: Embedded features tensors.
+            emb_inputs (T), shape = (B, N, E), data_type = torch.float: embedded features tensors
         
         Returns:
-            T, shape = (B, O), dtype = torch.float: Output of DeepMixtureOfExpertsModel
+            T, shape = (B, O), data_type = torch.float: output of DeepMixtureOfExpertsModel
         """
-        # loop through mixture-of-experts layers
-        for moe in self.moes:
-            # calculate with mixture-of-experts layer forwardly
+        for moe in self.module:
+            # Calculate with mixture-of-experts layer forwardly
             # inputs: emb_inputs, shape = (B, N, E)
             # output: emb_inputs, shape = (B, N = 1, E = O)
-            emb_inputs = moe(emb_inputs).rename(O="E")
+            emb_inputs = moe(emb_inputs).rename(O='E')
 
         # Aggregate emb_inputs on dimension E = O
         # inputs: emb_inputs, shape = (B, N, E)
         # output: output, shape = (B, O = 1)
-        output = emb_inputs.sum(dim="E").rename(N="O")
+        output = emb_inputs.sum(dim='E').rename(N='O')
 
         # Drop names of outputs, since auto grad doesn't support NamedTensor yet.
         output = output.rename(None)

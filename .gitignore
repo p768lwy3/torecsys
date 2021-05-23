@@ -35,7 +35,7 @@ MANIFEST
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Unit test / coverage reports
+# Unit tests / coverage reports
 htmlcov/
 .tox/
 .coverage
@@ -82,6 +82,7 @@ celerybeat-schedule
 *.sage.py
 
 # Environments
+.idea/
 .env
 .venv
 env/
@@ -105,10 +106,12 @@ venv.bak/
 
 # directory
 logdir/
+lightning_logs/
 
 # developing resource
 Untitled.ipynb
 develop.ipynb
 .csv
+.json
 .xls
 .xlsx

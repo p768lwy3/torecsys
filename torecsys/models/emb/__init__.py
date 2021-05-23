@@ -1,13 +1,21 @@
-r"""torecsys.models.ctr is a sub module of the implementation of the whole models of Embedding model
 """
+torecsys.models.ctr is a sub model of the implementation of the whole models of Embedding model
+"""
+from abc import ABC, abstractmethod
 
-from .. import _Model
+import torch
+
+from torecsys.models import BaseModel
 
 
-class _EmbModel(_Model):
+class EmbBaseModel(BaseModel, ABC):
     def __init__(self):
-        super(_EmbModel, self).__init__()
+        super().__init__()
+
+    @abstractmethod
+    def predict(self, *args, **kwargs) -> torch.Tensor:
+        raise NotImplemented
 
 
-from .matrix_factorization import MatrixFactorizationModel
-from .starspace import StarSpaceModel
+from torecsys.models.emb.matrix_factorization import MatrixFactorizationModel
+from torecsys.models.emb.starspace import StarSpaceModel

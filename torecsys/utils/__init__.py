@@ -1,4 +1,5 @@
-r"""torecsys.utils is a sub module of utils
+"""
+torecsys.utils is a sub model of utils
 """
 from typing import Callable, Union
 
@@ -7,7 +8,8 @@ import torch
 
 def get_reduction(method: Union[Callable[[torch.Tensor], torch.Tensor], str]) \
         -> Callable[[torch.Tensor], torch.Tensor]:
-    r"""[summary]
+    """Get reduction method with the given method
+
     Args:
         method Union[Callable[[torch.Tensor], torch.Tensor], str]: method of reduction.
     

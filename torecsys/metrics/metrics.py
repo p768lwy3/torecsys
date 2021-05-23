@@ -1,14 +1,16 @@
-class Metrics(object):
+import abc
+
+
+class Metrics(abc.ABC):
     def __init__(self):
         raise NotImplementedError
 
-    @property
-    def value(self):
-        return self.calculate()
+    @abc.abstractmethod
+    def calculate(self) -> float:
+        raise NotImplementedError
 
 
 class Accuracy(Metrics):
-
     def __init__(self):
         super().__init__()
         self._num_correct = 0
@@ -25,23 +27,23 @@ class Accuracy(Metrics):
     @num_correct.setter
     def num_correct(self, num_correct: int):
         if not isinstance(num_correct, int):
-            raise TypeError(f"{type(num_correct).__name__} not allowed.")
+            raise TypeError(f'{type(num_correct).__name__} not allowed')
         self._num_correct = num_correct
 
     @num_samples.setter
     def num_samples(self, num_samples: int):
         if not isinstance(num_samples, int):
-            raise TypeError(f"{type(num_samples).__name__} not allowed.")
+            raise TypeError(f'{type(num_samples).__name__} not allowed')
         self._num_samples = num_samples
 
     def add_num_correct(self, add_num_correct: int):
         if not isinstance(add_num_correct, int):
-            raise TypeError(f"{type(add_num_correct).__name__} not allowed.")
+            raise TypeError(f'{type(add_num_correct).__name__} not allowed')
         self._num_correct += add_num_correct
 
     def add_num_samples(self, add_num_samples: int):
         if not isinstance(add_num_samples, int):
-            raise TypeError(f"{type(add_num_samples).__name__} not allowed.")
+            raise TypeError(f'{type(add_num_samples).__name__} not allowed')
         self._num_samples += add_num_samples
 
     def calculate(self) -> float:

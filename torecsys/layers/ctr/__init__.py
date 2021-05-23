@@ -1,26 +1,24 @@
-r"""torecsys.layers.ctr is a sub module of implementation of layers in click through rate prediction.
+"""
+torecsys.layers.ctr is a sub model of implementation of layers in click through rate prediction.
 """
 
-from .attentional_factorization_machine import AttentionalFactorizationMachineLayer
-from .bias_encoding import BiasEncodingLayer
-from .bilinear import BilinearNetworkLayer
-from .bilinear_interaction import BilinearInteractionLayer
-from .compose_excitation_network import ComposeExcitationNetworkLayer
-from .compress_interaction_network import CompressInteractionNetworkLayer
-from .cross_network import CrossNetworkLayer
-from .dynamic_routing import DynamicRoutingLayer
-from .factorization_machine import FactorizationMachineLayer
-from .field_aware_factorization_machine import FieldAwareFactorizationMachineLayer
-from .inner_product_network import InnerProductNetworkLayer
-from .mixture_of_experts import MixtureOfExpertsLayer
-from .multilayer_perceptron import MultilayerPerceptionLayer
-from .outer_product_network import OuterProductNetworkLayer
-from .position_embedding import PositionEmbeddingLayer
-from .positon_bias_aware_learning_framework import PositionBiasAwareLearningFrameworkLayer
-from .wide import WideLayer
-
-# create shorten name of layers
-SqueezeAndExcitationNetworkLayer = ComposeExcitationNetworkLayer
+from torecsys.layers.ctr.attentional_factorization_machine import AttentionalFactorizationMachineLayer
+from torecsys.layers.ctr.bias_encoding import BiasEncodingLayer
+from torecsys.layers.ctr.bilinear import BilinearNetworkLayer
+from torecsys.layers.ctr.bilinear_interaction import BilinearInteractionLayer
+from torecsys.layers.ctr.compose_excitation_network import ComposeExcitationNetworkLayer
+from torecsys.layers.ctr.compress_interaction_network import CompressInteractionNetworkLayer
+from torecsys.layers.ctr.cross_network import CrossNetworkLayer
+from torecsys.layers.ctr.dynamic_routing import DynamicRoutingLayer
+from torecsys.layers.ctr.factorization_machine import FactorizationMachineLayer
+from torecsys.layers.ctr.field_aware_factorization_machine import FieldAwareFactorizationMachineLayer
+from torecsys.layers.ctr.inner_product_network import InnerProductNetworkLayer
+from torecsys.layers.ctr.mixture_of_experts import MixtureOfExpertsLayer
+from torecsys.layers.ctr.multilayer_perceptron import MultilayerPerceptionLayer
+from torecsys.layers.ctr.outer_product_network import OuterProductNetworkLayer
+from torecsys.layers.ctr.position_embedding import PositionEmbeddingLayer
+from torecsys.layers.ctr.positon_bias_aware_learning_framework import PositionBiasAwareLearningFrameworkLayer
+from torecsys.layers.ctr.wide import WideLayer
 
 AFMLayer = AttentionalFactorizationMachineLayer
 CENLayer = ComposeExcitationNetworkLayer
@@ -33,4 +31,5 @@ FullyConnectLayer = MultilayerPerceptionLayer
 FeedForwardLayer = MultilayerPerceptionLayer
 MOELayer = MixtureOfExpertsLayer
 PALLayer = PositionBiasAwareLearningFrameworkLayer
+SqueezeAndExcitationNetworkLayer = ComposeExcitationNetworkLayer
 SENETLayer = SqueezeAndExcitationNetworkLayer

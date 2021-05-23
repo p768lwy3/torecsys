@@ -1,78 +1,74 @@
-from typing import Callable, List
+from typing import List, Optional, Dict, Tuple
 
 import torch
 import torch.nn as nn
 
-from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+from torecsys.layers import BaseLayer
 
 
-class MultilayerPerceptionLayer(nn.Module):
-    r"""Layer class of Multilayer Perception (MLP), which is also called fully connected
-    layer, dense layer, deep neural network, etc, to calculate high order non linear 
-    relations of features with a stack of linear, dropout and activation.
+class MultilayerPerceptionLayer(BaseLayer):
+    """
+    Layer class of Multilayer Perception (MLP), which is also called fully connected layer, dense layer,
+    deep neural network, etc, to calculate high order non linear relations of features with a stack of linear,
+    dropout and activation.
     """
 
-    @no_jit_experimental_by_namedtensor
+    @property
+    def inputs_size(self) -> Dict[str, Tuple[str, ...]]:
+        return {
+            'inputs': ('B', 'N', 'E',)
+        }
+
+    @property
+    def outputs_size(self) -> Dict[str, Tuple[str, ...]]:
+        return {
+            'outputs': ('B', 'N', 'O',)
+        }
+
     def __init__(self,
                  inputs_size: int,
                  output_size: int,
                  layer_sizes: List[int],
-                 dropout_p: List[float] = None,
-                 activation: Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
-        """Initialize MultilayerPerceptionLayer
+                 dropout_p: Optional[List[float]] = None,
+                 activation: Optional[nn.Module] = nn.ReLU()):
+        """
+        Initialize MultilayerPerceptionLayer
         
         Args:
-            inputs_size (int): Input size of MLP, i.e. size of embedding tensor. 
-            output_size (int): Output size of MLP
-            layer_sizes (List[int]): Layer sizes of MLP
-            dropout_p (List[float], optional): Probability of Dropout in MLP. 
-                Defaults to None.
-            activation (Callable[[T], T], optional): Activation function in MLP. 
-                Defaults to nn.ReLU().
-        
-        Attributes:
-            inputs_size (int): Input size of MLP. 
-            model (torch.nn.Sequential): Sequential of MLP.
-        
-        Raises: ValueError: when embed_size or num_fields is missing if using embed_size and num_field pairs,
-        or when inputs_size is missing if using inputs_size ValueError: when dropout_p is not None and length of
-        dropout_p is not equal to that of layer_sizes
+            inputs_size (int): input size of MLP, i.e. size of embedding tensor
+            output_size (int): output size of MLP
+            layer_sizes (List[int]): layer sizes of MLP
+            dropout_p (List[float], optional): probability of Dropout in MLP. Defaults to None
+            activation (torch.nn.Module, optional): activation function in MLP. Defaults to nn.ReLU()
         """
-        # refer to parent class
-        super(MultilayerPerceptionLayer, self).__init__()
+        super().__init__()
 
-        # check if length of dropout_p is not equal to length of layer_sizes
         if dropout_p is not None and len(dropout_p) != len(layer_sizes):
-            raise ValueError("length of dropout_p must be equal to length of layer_sizes.")
+            raise ValueError('length of dropout_p must be equal to length of layer_sizes.')
 
-        # bind inputs_size to inputs_size
-        self.inputs_size = inputs_size
+        self.embed_size = inputs_size
 
-        # create a list of inputs_size and layer_sizes
         layer_sizes = [inputs_size] + layer_sizes
 
-        # initialize sequential of model
         self.model = nn.Sequential()
-
-        # initialize module of linear, activation and dropout, and add them to sequential module
         for i, (in_f, out_f) in enumerate(zip(layer_sizes[:-1], layer_sizes[1:])):
-            self.model.add_module("Linear_%s" % i, nn.Linear(in_f, out_f))
+            self.model.add_module(f'Linear_{i}', nn.Linear(in_f, out_f))
             if activation is not None:
-                self.model.add_module("Activation_%s" % i, activation)
+                self.model.add_module(f'Activation_{i}', activation)
             if dropout_p is not None:
-                self.model.add_module("Dropout_%s" % i, nn.Dropout(dropout_p[i]))
+                self.model.add_module(f'Dropout_{i}', nn.Dropout(dropout_p[i]))
 
-        # initialize module of linear and add it to sequential module
-        self.model.add_module("LinearOutput", nn.Linear(layer_sizes[-1], output_size))
+        self.model.add_module('LinearOutput', nn.Linear(layer_sizes[-1], output_size))
 
     def forward(self, emb_inputs: torch.Tensor) -> torch.Tensor:
-        r"""Forward calculation of MultilayerPerceptionLayer
+        """
+        Forward calculation of MultilayerPerceptionLayer
         
         Args:
-            emb_inputs (T), shape = (B, N, E), dtype = torch.float: Embedded features tensors.
+            emb_inputs (T), shape = (B, N, E), data_type = torch.float: embedded features tensors
         
         Returns:
-            T, shape = (B, N, O), dtype = torch.float: Output of MLP.
+            T, shape = (B, N, O), data_type = torch.float: output of MLP
         """
         # Calculate with model forwardly
         # inputs: emb_inputs, shape = (B, N, E)
@@ -81,8 +77,8 @@ class MultilayerPerceptionLayer(nn.Module):
 
         # Rename tensor names
         if outputs.dim() == 2:
-            outputs.names = ("B", "O")
+            outputs.names = ('B', 'O',)
         elif outputs.dim() == 3:
-            outputs.names = ("B", "N", "O")
+            outputs.names = ('B', 'N', 'O',)
 
         return outputs

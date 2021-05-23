@@ -1,13 +1,14 @@
-from typing import Callable
+from typing import Optional, Dict, Tuple
 
 import torch
 import torch.nn as nn
 
-from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+from torecsys.layers import BaseLayer
 
 
-class ComposeExcitationNetworkLayer(nn.Module):
-    r"""Layer class of Compose Excitation Network (CEN) / Squeeze-and-Excitation Network (SENET).
+class ComposeExcitationNetworkLayer(BaseLayer):
+    """
+    Layer class of Compose Excitation Network (CEN) / Squeeze-and-Excitation Network (SENET).
     
     Compose Excitation Network was used in FAT-Deep :title:`Junlin Zhang et al, 2019`[1] and 
     Squeeze-and-Excitation Network was used in FibiNET :title:`Tongwen Huang et al, 2019`[2]
@@ -18,7 +19,7 @@ class ComposeExcitationNetworkLayer(nn.Module):
     #. concatenate the tensors and feed them to dense network to calculate attention 
     weights.
     
-    #. inputs' tensor are multiplied by attention weights, and return outputs tensor with 
+    #. inputs' tensor are multiplied by attention weights, and return outputs tensor with
     shape = (B, N * N, E).
 
     :Reference:
@@ -31,77 +32,78 @@ class ComposeExcitationNetworkLayer(nn.Module):
 
     """
 
-    @no_jit_experimental_by_namedtensor
+    @property
+    def inputs_size(self) -> Dict[str, Tuple[str, ...]]:
+        return {
+            'inputs': ('B', 'N^2', 'E',)
+        }
+
+    @property
+    def outputs_size(self) -> Dict[str, Tuple[str, ...]]:
+        return {
+            'outputs': ('B', 'N^2', 'E',)
+        }
+
     def __init__(self,
                  num_fields: int,
-                 reduction: int = 1,
-                 activation: Callable[[torch.Tensor], torch.Tensor] = nn.ReLU()):
-        r"""Initialize ComposeExcitationNetworkLayer
+                 reduction: int,
+                 squared: Optional[bool] = True,
+                 activation: Optional[nn.Module] = nn.ReLU()):
+        """
+        Initialize ComposeExcitationNetworkLayer
         
         Args:
-            num_fields (int): Number of inputs' fields. 
-            reduction (int, optional): Size of reduction in dense layer. 
-                Defaults to 1.
-            activation (Callable[[T], T], optional): Activation function in dense layers.
-                Defaults to nn.ReLU().
-        
-        Attributes:
-            pooling (torch.nn.Module): Adaptive average pooling layer to compose tensors.
-            fc (torch.nn.Sequential): Sequential of linear and activation to calculate weights of 
-                attention, which the linear layers are: 
-                :math:`[Linear(N^2, \frac{N^2}{reduction}), Linear(\frac{N^2}{reduction}, N^2)]`.
+            num_fields (int): number of inputs' fields
+            reduction (int): size of reduction in dense layer
+            activation (torch.nn.Module, optional): activation function in dense layers. Defaults to nn.ReLU()
         """
-        # refer to parent class
-        super(ComposeExcitationNetworkLayer, self).__init__()
+        super().__init__()
 
-        # initialize 1d pooling layer
+        inputs_num_fields = num_fields ** 2 if squared else num_fields
+        reduced_num_fields = inputs_num_fields // reduction
+
         self.pooling = nn.AdaptiveAvgPool1d(1)
-
-        # initialize dense layers
-        squared_num_fields = num_fields ** 2
-        reduced_num_fields = squared_num_fields // reduction
-
         self.fc = nn.Sequential()
-        self.fc.add_module("ReductionLinear", nn.Linear(squared_num_fields, reduced_num_fields))
-        self.fc.add_module("ReductionActivation", activation)
-        self.fc.add_module("AdditionLinear", nn.Linear(reduced_num_fields, squared_num_fields))
-        self.fc.add_module("AdditionActivation", activation)
+        self.fc.add_module('ReductionLinear', nn.Linear(inputs_num_fields, reduced_num_fields))
+        self.fc.add_module('ReductionActivation', activation)
+        self.fc.add_module('AdditionLinear', nn.Linear(reduced_num_fields, inputs_num_fields))
+        self.fc.add_module('AdditionActivation', activation)
 
     def forward(self, emb_inputs: torch.Tensor) -> torch.Tensor:
-        r"""Forward calculation of ComposeExcitationNetworkLayer
+        """
+        Forward calculation of ComposeExcitationNetworkLayer
         
         Args:
-            emb_inputs (T), shape = (B, N, E), dtype = torch.float: Field aware embedded features tensors.
+            emb_inputs (T), shape = (B, N^2, E), data_type = torch.float: field aware embedded features tensors
         
         Returns:
-            T, shape = (B, N, E), dtype = torch.float: Output of ComposeExcitationNetworkLayer.
+            T, shape = (B, N^2, E), data_type = torch.float: output of ComposeExcitationNetworkLayer
         """
         # Pool emb_inputs
-        # inputs: emb_inputs, shape = (B, N, E)
-        # output: pooled_inputs, shape = (B, N, 1)
+        # inputs: emb_inputs, shape = (B, N^2, E)
+        # output: pooled_inputs, shape = (B, N^2, 1)
         pooled_inputs = self.pooling(emb_inputs.rename(None))
-        pooled_inputs.names = ("B", "N", "E")
+        pooled_inputs.names = ('B', 'N', 'E',)
 
         # Flatten pooled_inputs
-        # inputs: pooled_inputs, shape = (B, N, 1)
-        # output: pooled_inputs, shape = (B, N)
-        pooled_inputs = pooled_inputs.flatten(["N", "E"], "N")
+        # inputs: pooled_inputs, shape = (B, N^2, 1)
+        # output: pooled_inputs, shape = (B, N^2)
+        pooled_inputs = pooled_inputs.flatten(('N', 'E',), 'N')
 
         # Calculate attention weight with dense layer forwardly
-        # inputs: pooled_inputs, shape = (B, N)
-        # output: attn_w, shape = (B, N)
+        # inputs: pooled_inputs, shape = (B, N^2)
+        # output: attn_w, shape = (B, N^2)
         attn_w = self.fc(pooled_inputs.rename(None))
-        attn_w.names = ("B", "N")
+        attn_w.names = ('B', 'N',)
 
-        # Un-flatten attention weights and apply it to emb_inputs
-        # inputs: attn_w, shape = (B, N)
-        # inputs: emb_inputs, shape = (B, N, E)
-        # output: outputs, shape = (B, N, E)
-        attn_w = attn_w.unflatten("N", (("N", attn_w.size("N")), ("E", 1)))
+        # Unflatten attention weights and apply it to emb_inputs
+        # inputs: attn_w, shape = (B, N^2)
+        # inputs: emb_inputs, shape = (B, N^2, E)
+        # output: outputs, shape = (B, N^2, E)
+        attn_w = attn_w.unflatten('N', (('N', attn_w.size('N'),), ('E', 1,),))
 
         # Multiply attentional weights on field embedding tensors
-        ## outputs = emb_inputs * attn_w
-        outputs = torch.einsum("ijk,ijh->ijk", [emb_inputs.rename(None), attn_w.rename(None)])
-        outputs.names = ("B", "N", "E")
+        outputs = torch.einsum('ijk,ijh->ijk', emb_inputs.rename(None), attn_w.rename(None))
+        outputs.names = ('B', 'N', 'E',)
 
         return outputs

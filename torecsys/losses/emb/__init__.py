@@ -1,17 +1,22 @@
-r"""torecsys.losses.emb is a sub module of implementation of losses in embedding.
+"""
+torecsys.losses.emb is a sub model of implementation of losses in embedding.
 """
 
-from .. import _Loss
+from torecsys.losses import Loss
 
 
-class _EmbLoss(_Loss):
-    r"""General Embedding Loss class.
+class EmbLoss(Loss):
+    """
+    General Embedding Loss class.
     """
 
     def __init__(self):
-        # refer to parent class
-        super(_EmbLoss, self).__init__()
+        super().__init__()
 
 
-from .functional import skip_gram_loss
-from .skipgram import SkipGramLoss
+__all__ = [
+    'EmbLoss',
+    'SkipGramLoss'
+]
+
+from torecsys.losses.emb.skipgram import SkipGramLoss

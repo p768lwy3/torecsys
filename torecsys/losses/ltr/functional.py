@@ -1,5 +1,5 @@
-r"""torecsys.losses.ltr.functional is a sub module of functions for the implementation of losses in 
-learning-to-ranking.
+"""
+torecsys.losses.ltr.functional is a sub model of functions for the implementation of losses in learning-to-ranking.
 """
 
 from typing import Dict
@@ -7,46 +7,46 @@ from typing import Dict
 import torch
 
 
-# loss masking
 def apply_mask(loss: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
-    r"""Masking training loss by a boolean tensor to drop parts of training loss.
+    """
+    Masking training loss by a boolean tensor to drop parts of training loss.
     
     Args:
-        loss (T), shape = (B, None), dtype = torch.float: Training loss.
-        mask (T), shape = (B, ), dtype = torch.bool: Boolean tensor for masking.
+        loss (T), shape = (B, None), data_type = torch.float: training loss
+        mask (T), shape = (B, ), data_type = torch.bool: boolean tensor for masking
     
     Returns:
-        T, shape = (1, ), dtype = torch.float: Aggregated masked loss.
+        T, shape = (1, ), data_type = torch.float: aggregated masked loss.
     """
     loss = loss[mask]
     return loss.sum() / mask.sum()
 
 
-# pointwise ranking loss
 def pointwise_logistic_ranking_loss(p_out: torch.Tensor, n_out: torch.Tensor) -> torch.Tensor:
-    r"""Calculation of Pairwise Logistic Ranking Loss.
+    """
+    Calculation of Pairwise Logistic Ranking Loss.
     
     Args:
-        p_out (T), shape = (B, 1), dtype = torch.float: Predicted scores of positive samples.
-        n_out (T), shape = (B, NNeg), dtype = torch.float: Predicted scores of negative samples.
+        p_out (T), shape = (B, 1), data_type = torch.float: predicted scores of positive samples
+        n_out (T), shape = (B, NNeg), data_type = torch.float: predicted scores of negative samples
     
     Returns:
-        T, shape = (B, NNeg), dtype = torch.float: Output of pointwise_logistic_ranking_loss.
+        T, shape = (B, NNeg), data_type = torch.float: output of pointwise_logistic_ranking_loss.
     """
     loss = (1.0 - torch.sigmoid(p_out)) + torch.sigmoid(n_out)
     return loss
 
 
-# pairwise ranking loss
 def bayesian_personalized_ranking_loss(p_out: torch.Tensor, n_out: torch.Tensor) -> torch.Tensor:
-    r"""Calculation of Bayesian Personalized Ranking Loss.
+    """
+    Calculation of Bayesian Personalized Ranking Loss.
     
     Args:
-        p_out (T), shape = (B, 1), dtype = torch.float: Predicted scores of positive samples.
-        n_out (T), shape = (B, NNeg), dtype = torch.float: Predicted scores of negative samples.
+        p_out (T), shape = (B, 1), data_type = torch.float: predicted scores of positive samples
+        n_out (T), shape = (B, NNeg), data_type = torch.float: predicted scores of negative samples
     
     Returns:
-        T, shape = (B, NNeg), dtype = torch.float: Output of bayesian_personalized_ranking_loss.
+        T, shape = (B, NNeg), data_type = torch.float: output of bayesian_personalized_ranking_loss
     
     :Reference:
 
@@ -59,92 +59,97 @@ def bayesian_personalized_ranking_loss(p_out: torch.Tensor, n_out: torch.Tensor)
 
 
 def hinge_loss(p_out: torch.Tensor, n_out: torch.Tensor, margin: float = 1.0) -> torch.Tensor:
-    r"""Calculation of Hinge Loss.
+    """
+    Calculation of Hinge Loss.
     
     Args:
-        p_out (T), shape = (B, 1): Predicted scores of positive samples.
-        n_out (T), shape = (B, NNeg): Predicted scores of negative samples.
-        margin (float): margin parameter in hinge loss.
+        p_out (T), shape = (B, 1): predicted scores of positive samples
+        n_out (T), shape = (B, N Neg): predicted scores of negative samples
+        margin (float): margin parameter in hinge loss
     
     Returns:
-        T, shape = (B, NNeg), dtype = torch.float: Output of hinge_loss.
+        T, shape = (B, NNeg), data_type = torch.float: output of hinge_loss
     """
-    loss = torch.clamp(margin - p_out + n_out, min=0.0)
+    n_out_size = list(n_out.size())
+    p_out_t = p_out.repeat(1, n_out_size[1])
+    margin_t = torch.Tensor([margin]).repeat(n_out_size[0], n_out_size[1])
+    loss = torch.clamp(margin_t - p_out_t + n_out, min=0.0)
     return loss
 
 
 def adaptive_hinge_loss(p_out: torch.Tensor, n_out: torch.Tensor, margin: float = 1.0) -> torch.Tensor:
-    r"""Calculation of Adaptive Hinge Loss.
+    """
+    Calculation of Adaptive Hinge Loss.
     
     Args:
-        p_out (T), shape = (B, 1): Predicted scores of positive samples.
-        n_out (T), shape = (B, NNeg): Predicted scores of negative samples.
-        margin (float): margin parameter in hinge loss.
+        p_out (T), shape = (B, 1): predicted scores of positive samples
+        n_out (T), shape = (B, N Neg): predicted scores of negative samples
+        margin (float): margin parameter in hinge loss
     
     Returns:
-        T, shape = (B, 1), dtype = torch.float: Output of adaptive_hinge_loss.
+        T, shape = (B, 1), data_type = torch.float: output of adaptive_hinge_loss.
     
     :Reference:
 
     #. `Jason Weston el at, 2011. WSABIE: Scaling Up To Large Vocabulary Image Annotation
-    <http://www.thespermwhale.com/jaseweston/papers/wsabie-ijcai.pdf>`_.
+    <https://www.thespermwhale.com/jaseweston/papers/wsabie-ijcai.pdf>`_.
 
     """
-    highest_n_out, _ = torch.max(n_out, 0)
+    highest_n_out, _ = torch.max(n_out, dim=1, keepdim=True)
     return hinge_loss(p_out, highest_n_out.unsqueeze(-1), margin)
 
 
-# parser of ranking loss
-def margin_ranking_loss_parser(p_out: torch.Tensor,
-                               n_out: torch.Tensor,
-                               target: torch.Tensor) -> Dict[str, torch.Tensor]:
-    r"""Parse positive outputs, negative outputs and target to a dictionary as a kwargs inputs
-    for nn.MarginRankingLoss
+def parse_margin_ranking_loss(p_out: torch.Tensor,
+                              n_out: torch.Tensor,
+                              target: torch.Tensor) -> Dict[str, torch.Tensor]:
+    """
+    Parse positive outputs, negative outputs and target to a dictionary as a kwargs embedder for nn.MarginRankingLoss
     
     Args:
-        p_out (T), shape = (B, 1): Predicted scores of positive samples.
-        n_out (T)), shape = (B, NNeg): Predicted scores of negative samples.
-        target (T), shape = (B, NNeg): Tensors of ones created by torch.ones_like(n_out).
+        p_out (T), shape = (B, 1): predicted scores of positive samples
+        n_out (T)), shape = (B, N Neg): predicted scores of negative samples
+        target (T), shape = (B, N Neg): tensors of ones created by torch.ones_like(n_out)
     
     Returns:
-        Dict[str, T]: Dictionary to be passed to nn.MarginRankingLoss.
+        Dict[str, T]: dictionary to be passed to nn.MarginRankingLoss
     
     Key-Values:
         input1: p_out, shape = (B, 1)
-        input2: n_out, shape = (B, NNeg)
-        target: target, shape = (B, NNeg)
+        input2: n_out, shape = (B, N Neg)
+        target: target, shape = (B, N Neg)
     """
-    return {"input1": p_out, "input2": n_out, "target": target}
+    return {'input1': p_out, 'input2': n_out, 'target': target}
 
 
-def soft_margin_loss_parser(p_out: torch.Tensor,
-                            n_out: torch.Tensor,
-                            target: torch.Tensor) -> Dict[str, torch.Tensor]:
-    r"""Parse positive outputs, negative outputs and target to a dictionary as a kwargs inputs
-    for nn.SoftMarginLoss
+def parse_soft_margin_loss(p_out: torch.Tensor,
+                           n_out: torch.Tensor,
+                           target: torch.Tensor) -> Dict[str, torch.Tensor]:
+    """
+    Parse positive outputs, negative outputs and target to a dictionary as a kwargs embedder for nn.SoftMarginLoss
     
     Args:
-        p_out (T), shape = (B, 1): Predicted scores of positive samples.
-        n_out (T)), shape = (B, NNeg): Predicted scores of negative samples.
-        target (T), shape = (B, NNeg): Tensors of ones created by torch.ones_like(n_out).
+        p_out (T), shape = (B, 1): predicted scores of positive samples
+        n_out (T)), shape = (B, N Neg): predicted scores of negative samples
+        target (T), shape = (B, N Neg): tensors of ones created by torch.ones_like(n_out)
     
     Returns:
-        Dict[str, T]: Dictionary to be passed to nn.SoftMarginLoss.
+        Dict[str, T]: dictionary to be passed to nn.SoftMarginLoss
     
     Key-Values:
-        input: (p_out - n_out), shape = (B, NNeg)
-        target: target, shape = (B, NNeg)
+        input: (p_out - n_out), shape = (B, N Neg)
+        target: target, shape = (B, N Neg)
     """
-    return {"input": p_out - n_out, "target": target}
+    return {'input': p_out - n_out, 'target': target}
 
 
-# groupwise ranking loss
 def listnet_loss(y_hat: torch.Tensor, y_true: torch.Tensor) -> torch.Tensor:
     r"""Cross-Entropy implementation in ListNet by the following formula:
-    :math:`loss = \sum \text{Softmax} (y_{true}) * \text{log} (\text{Softmax} (\^{y}))` .
+    :math:`loss = \sum \text{Softmax} (y_{true}) * \text{log} (\text{Softmax} (\^{y}))`
     
-    Args: y_hat (T), shape = (B, sequence len), dtype = torch.float: Predicted Ranking scores y_true (T), shape = (B,
-    sequence len ), dtype = torch.float: True Ranking scores, e.g. [Excellent(4), Perfect(3), Good(2), Fair(1), Bad(0)]
+    Args:
+        y_hat (T), shape = (B, sequence len), data_type = torch.float: predicted Ranking scores
+        y_true (T), shape = (B, sequence len ), data_type = torch.float: true Ranking scores,
+            e.g. [Excellent(4), Perfect(3), Good(2), Fair(1), Bad(0)]
     
     Returns:
         T: cross-entropy loss 

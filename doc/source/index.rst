@@ -62,7 +62,7 @@ Notations in documentation
     * - **I**
       - input sizes of any layers required *inputs_size*
     * - **O**
-      - output size of any layers requried *output_size*
+      - output size of any layers requried *outputs_size*
     * - **V**
       - total number of words in a vocabulary set
     * - **S**

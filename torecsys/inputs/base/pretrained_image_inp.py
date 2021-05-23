@@ -1,76 +1,79 @@
+from typing import Optional
+
 import torch
 import torch.nn as nn
 import torchvision
 
-from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
-from . import Inputs
+from torecsys.inputs.base import BaseInput
 
 
-class PretrainedImageInputs(Inputs):
-    r"""Base Inputs class for image, which embed by famous pretrained model in Computer 
-    Vision.
+class PretrainedImageInput(BaseInput):
+    """
+    Base Input class for image, which embed by famous pretrained model in Computer Vision.
     """
 
-    @no_jit_experimental_by_namedtensor
     def __init__(self,
                  embed_size: int,
                  model_name: str,
-                 pretrained: bool = True,
-                 progress: bool = False,
-                 no_grad: bool = False):
-        r"""Initialize PretrainedImageInputs.
+                 pretrained: Optional[bool] = True,
+                 no_grad: Optional[bool] = False,
+                 verbose: Optional[bool] = False,
+                 device: str = 'cpu'):
+        """
+        Initialize PretrainedImageInput
         
         Args:
-            embed_size (int): Size of embedding tensor
-            model_name (str): Model name. Refer to: `torchvision.models <https://pytorch.org/docs/stable/torchvision/models.html>`_.
-            pretrained (bool, optional): Whether use pre-trained model or not.
-                Defaults to True.
-            progress (bool, optional): Whether display progress bar of the download or not. 
-                Defaults to False.
-            no_grad (bool, optional): Whether parameters in pre-trained model (excluding fc,
-                i.e. output nn.Linear layer) is set to no gradients or not. 
-                Defaults to False.
-        
-        Attributes:
-            length (int): Size of embedding tensor.
-            model (torchvision.models): Pre-trained model in torchvision, which its fc layer
-                is change to a nn.Linear with output size = embedding size.
-        
+            embed_size (int): size of embedding tensor
+            model_name (str): model name. Refer to: `torchvision.models
+                <https://pytorch.org/vision/stable/models.html>`_
+            pretrained (bool, optional): whether use pre-trained model or not
+                Defaults to True
+            verbose (bool, optional): whether display progress bar of the download or not
+                Defaults to False
+            no_grad (bool, optional): whether parameters in pre-trained model
+                (excluding fc, i.e. output nn.Linear layer) is set to no gradients or not
+                Defaults to False
+            device (str): device of torch. Default to cpu.
+
         :Reference:
 
-        #. `Docs of torchvision.models <https://pytorch.org/docs/stable/torchvision/models.html>`_.
+        #. `Docs of torchvision.models <https://pytorch.org/docs/stable/torchvision/models.html>`_
 
         """
-        # refer to parent class
-        super(PretrainedImageInputs, self).__init__()
+        super().__init__()
 
-        # bind length to embed_size
         self.length = embed_size
+        self.model = getattr(torchvision.models, model_name)(pretrained=pretrained, progress=verbose)
 
-        # bind model to the pre-trained model in torchvision
-        self.model = getattr(torchvision.models, model_name)(pretrained=pretrained, progress=progress)
+        if model_name in ['vgg16', 'vgg19']:
+            classifier = self.model.classifier
+            last_in_size = classifier[-1].in_features
+            classifier[-1] = nn.Linear(last_in_size, embed_size)
+        else:
+            last_in_size = self.model.fc.in_features
+            self.model.fc = nn.Linear(last_in_size, embed_size)
 
-        # change fc output layer to be a nn.Linear with output size = embedding size
-        in_size = self.model.fc.in_features
-        self.model.fc = nn.Linear(in_size, embed_size)
-
-        # set requires_grad be False if no_grad is True
         if no_grad:
             for name, param in self.model.named_parameters():
-                if not name.startswith("fc"):
+                if not name.startswith('fc'):
                     param.requires_grad = False
 
+        self.model = self.model.to(device)
+
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
-        r"""Forward calculation of PretrainedImageInputs
+        """
+        Forward calculation of PretrainedImageInput
         
         Args:
-            inputs (T), shape = (B, C, H_{i}, W_{i}), dtype = torch.float: Tensor of images.
+            inputs (T), shape = (B, C, H_{i}, W_{i}), data_type = torch.float: tensor of images.
         
         Returns:
-            T, shape = (B, 1, E): Output of PretrainedImageInputs.
+            T, shape = (B, 1, E): output of PretrainedImageInput.
         """
-        # feed forward to pre-trained module
         outputs = self.model(inputs.rename(None))
-        outputs.names = ("B", "N", "E")
 
+        if outputs.dim() == 2:
+            outputs = outputs.unsqueeze(dim=1)
+
+        outputs.names = ('B', 'N', 'E',)
         return outputs

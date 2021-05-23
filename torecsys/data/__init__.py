@@ -1,4 +1,5 @@
-r"""torecsys.data is a module to handling data preprocessing before embedding layers, including:
+"""
+torecsys.data is a model to handling data preprocessing before embedding layers, including:
 
 #. download samples data
 
@@ -6,13 +7,20 @@ r"""torecsys.data is a module to handling data preprocessing before embedding la
 
 #. convert data from source to torch.utils.data.Dataset
 
-#. create DataLoader to batch Dataset for inputs and embeddings
+#. create DataLoader to batch Dataset for embedder and embeddings
 
 #. create sampler to clip data before training
 
 """
 
-from .dataloader import *
-from .dataset import *
-from .sampledata import *
-from .subsampling import *
+__all__ = [
+    'dataloader',
+    'dataset',
+    'sampledata',
+    'sub_sampling'
+]
+
+import torecsys.data.dataloader
+import torecsys.data.dataset
+import torecsys.data.sample_data
+import torecsys.data.sub_sampling

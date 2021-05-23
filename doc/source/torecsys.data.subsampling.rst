@@ -1,13 +1,13 @@
-torecsys.data.subsampling package
+torecsys.data.sub_sampling package
 =================================
 
 Submodules
 ----------
 
-torecsys.data.subsampling.subsampler module
+torecsys.data.sub_sampling.subsampler module
 -------------------------------------------
 
-.. automodule:: torecsys.data.subsampling.subsampler
+.. automodule:: torecsys.data.sub_sampling.subsampler
    :members:
    :undoc-members:
    :show-inheritance:
@@ -16,7 +16,7 @@ torecsys.data.subsampling.subsampler module
 Module contents
 ---------------
 
-.. automodule:: torecsys.data.subsampling
+.. automodule:: torecsys.data.sub_sampling
    :members:
    :undoc-members:
    :show-inheritance:

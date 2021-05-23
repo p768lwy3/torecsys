@@ -1,16 +1,20 @@
+"""
+
+"""
+
 import os
 from typing import Tuple
 
 import pandas as pd
 
-from . import __ml_size__, check_downloaded
-from .download_data import download_data
+from torecsys.data.sample_data import __ml_size__, check_downloaded
+from torecsys.data.sample_data.download_data import download_data
 
 
 def load_ml_data(size: str,
                  directory: str = None,
                  force: bool = False) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    r"""Load movielens dataset from directory/ml-[size] to pd.DataFrame.
+    """Load movielens dataset from directory/ml-[size] to pd.DataFrame.
     Args:
         size (str): Movielens dataset size, allows: 20m, latest-small, latest, 100k, 1m, 10m
         directory (str, optional): Directory to save downloaded data. 
@@ -77,7 +81,7 @@ def load_criteo_data(directory: str = None) -> Tuple[pd.DataFrame, pd.DataFrame]
 
     # set file path to dac
     train_path = os.path.join(samples_dir, "dac/train.txt")
-    test_path = os.path.join(samples_dir, "dac/test.txt")
+    test_path = os.path.join(samples_dir, "dac/tests.txt")
 
     columns = ["col_%s" % str(i) for i in range(0, 40)]
 
@@ -92,7 +96,7 @@ def load_criteo_data(directory: str = None) -> Tuple[pd.DataFrame, pd.DataFrame]
 
 def load_bx_data(directory: str = None,
                  force: bool = False) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    r"""Load Book-Crossing dataset from ./sample_data/bx to pd.DataFrame.
+    """Load Book-Crossing dataset from ./sample_data/bx to pd.DataFrame.
     
     Args:
         directory (str, optional): Directory to save downloaded data.

@@ -1,37 +1,61 @@
-from typing import Tuple
+from typing import Tuple, Dict
 
 import torch
 import torch.nn as nn
 
+from torecsys.layers import BaseLayer
 
-class PositionBiasAwareLearningFrameworkLayer(nn.Module):
+
+class PositionBiasAwareLearningFrameworkLayer(BaseLayer):
+    """
+    TODO: missing documentation of this layer.
+    """
+
+    @property
+    def inputs_size(self) -> Dict[str, Tuple[str, ...]]:
+        return {
+            'feature_tensors': ('B', 'E',),
+            'session_position': ('B',)
+        }
+
+    @property
+    def outputs_size(self) -> Dict[str, Tuple[str, ...]]:
+        return {
+            'outputs': ('B', 'E',)
+        }
+
     def __init__(self,
                  input_size: int,
                  max_num_position: int):
-        # refer to parent class
-        super(PositionBiasAwareLearningFrameworkLayer, self).__init__()
+        """
+        TODO: missing documentation of this layer.
 
-        # initialize Embedding layer
+        Args:
+            input_size (int):
+            max_num_position (int):
+        """
+        super().__init__()
+
         self.position_bias = nn.Embedding(max_num_position, input_size)
 
     def forward(self, position_embed_tensor: Tuple[torch.Tensor, torch.Tensor]) -> torch.Tensor:
-        r"""Forward calculation of PositionBiasAwareLearningFrameworkLayer
+        """
+        Forward calculation of PositionBiasAwareLearningFrameworkLayer
         
-        Args: position_embed_tensor ((T, T)), shape = ((B, E), (B, )), dtype = (torch.float, torch.long): Embedded
-        feature tensors of session and Position of session in sequence.
+        Args: position_embed_tensor ((T, T)), shape = ((B, E), (B, )), data_type = (torch.float, torch.long):
+            embedded feature tensors of session and position of session in sequence.
         
         Returns:
-            T, shape = (B, E), dtype = torch.float: Output of PositionBiasAwareLearningFrameworkLayer
+            T, shape = (B, E), data_type = torch.float: output of PositionBiasAwareLearningFrameworkLayer
         """
-        # get position bias from embedding layer
-        # inputs: position_embed_tensor[1], shape = (B, )
+        # Get position bias from embedding layer
+        # embedder: position_embed_tensor[1], shape = (B, )
         # output: position_embed, shape = (B, E)
-        position_embed_bias = self.position_bias(position_embed_tensor[1])
+        pos = position_embed_tensor[1].rename(None)
+        position_embed_bias = self.position_bias(pos)
 
-        # add position bias to input
-        # inputs: position_embed_tensor[0], shape = (B, E)
-        # inputs: position_embed_bias, shape = (B, E)
+        # Add position bias to input
+        # embedder: position_embed_tensor[0], shape = (B, E)
+        # embedder: position_embed_bias, shape = (B, E)
         # output: output, shape = (B, E)
-        output = position_embed_tensor[0] + position_embed_bias
-
-        return output
+        return position_embed_tensor[0] + position_embed_bias

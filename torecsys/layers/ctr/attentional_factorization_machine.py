@@ -1,13 +1,14 @@
-from typing import Tuple
+from typing import Tuple, Dict
 
 import torch
 import torch.nn as nn
 
-from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+from torecsys.layers import BaseLayer
 
 
-class AttentionalFactorizationMachineLayer(nn.Module):
-    r"""Layer class of Attentional Factorization Machine (AFM). 
+class AttentionalFactorizationMachineLayer(BaseLayer):
+    """
+    Layer class of Attentional Factorization Machine (AFM).
     
     Attentional Factorization Machine is to calculate interaction between each pair of features 
     by using element-wise product (i.e. Pairwise Interaction Layer), compressing interaction 
@@ -20,84 +21,82 @@ class AttentionalFactorizationMachineLayer(nn.Module):
 
     """
 
-    @no_jit_experimental_by_namedtensor
+    @property
+    def inputs_size(self) -> Dict[str, Tuple[str, ...]]:
+        return {
+            'inputs': ('B', 'N', 'E',)
+        }
+
+    @property
+    def outputs_size(self) -> Dict[str, Tuple[str, ...]]:
+        return {
+            'outputs': ('B', 'E',),
+            'attn_scores': ('B', 'NC2', '1',)
+        }
+
     def __init__(self,
                  embed_size: int,
                  num_fields: int,
                  attn_size: int,
                  dropout_p: float = 0.1):
-        r"""Initialize AttentionalFactorizationMachineLayer
+        """
+        Initialize AttentionalFactorizationMachineLayer
         
         Args:
-            embed_size (int): Size of embedding tensor
-            num_fields (int): Number of inputs' fields
-            attn_size (int): Size of attention layer
-            dropout_p (float, optional): Probability of Dropout in AFM. 
+            embed_size (int): size of embedding tensor
+            num_fields (int): number of inputs' fields
+            attn_size (int): size of attention layer
+            dropout_p (float, optional): probability of Dropout in AFM
                 Defaults to 0.1.
-        
-        Attributes:
-            attention (torch.nn.Sequential): Sequential of Attention-layers.
-            row_idx (T), dtype = torch.long: 1st indices to index inputs in 2nd dimension for inner product.
-            col_idx (T), dtype = torch.long: 2nd indices to index inputs in 2nd dimension for inner product.
-            dropout (torch.nn.Module): Dropout layer.
         """
-        # Refer to parent class
-        super(AttentionalFactorizationMachineLayer, self).__init__()
+        super().__init__()
 
-        # Initialize sequential for attention
-        self.attention = nn.Sequential()
-
-        # Initialize module and add them to attention
-        self.attention.add_module("Linear", nn.Linear(embed_size, attn_size))
-        self.attention.add_module("Activation", nn.ReLU())
-        self.attention.add_module("OutProj", nn.Linear(attn_size, 1))
-        self.attention.add_module("Softmax", nn.Softmax(dim=1))
-        self.attention.add_module("Dropout", nn.Dropout(dropout_p))
-
-        # Generate row_idx and col_idx to index inputs for inner product
-        self.rowidx = list()
-        self.colidx = list()
+        self.row_idx = []
+        self.col_idx = []
         for i in range(num_fields - 1):
             for j in range(i + 1, num_fields):
-                self.rowidx.append(i)
-                self.colidx.append(j)
-        self.rowidx = torch.LongTensor(self.rowidx)
-        self.colidx = torch.LongTensor(self.colidx)
+                self.row_idx.append(i)
+                self.col_idx.append(j)
+        self.row_idx = torch.LongTensor(self.row_idx)
+        self.col_idx = torch.LongTensor(self.col_idx)
 
-        # Initialize dropout layer
+        self.attention = nn.Sequential()
+        self.attention.add_module('Linear', nn.Linear(embed_size, attn_size))
+        self.attention.add_module('Activation', nn.ReLU())
+        self.attention.add_module('OutProj', nn.Linear(attn_size, 1))
+        self.attention.add_module('Softmax', nn.Softmax(dim=1))
+        self.attention.add_module('Dropout', nn.Dropout(dropout_p))
+
         self.dropout = nn.Dropout(dropout_p)
 
-    def forward(self, emb_inputs: torch.Tensor) -> Tuple[torch.Tensor]:
-        r"""Forward calculation of AttentionalFactorizationMachineLayer
+    def forward(self, emb_inputs: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Forward calculation of AttentionalFactorizationMachineLayer
 
         Args:
-            emb_inputs (T), shape = (B, N, E), dtype = torch.float: Embedded features tensors.
+            emb_inputs (T), shape = (B, N, E), data_type = torch.float: embedded features tensors
         
-        Returns: Tuple[T], shape = ((B, E) (B, NC2, 1)), dtype = torch.float: Output of
-        AttentionalFactorizationMachineLayer and Attention weights.
+        Returns: Tuple[T], shape = ((B, E) (B, NC2, 1)), data_type = torch.float: output of
+            AttentionalFactorizationMachineLayer and Attention weights
         """
         # Calculate hadamard product
         # inputs: emb_inputs, shape = (B, N, E)
         # output: products, shape = (B, NC2, E)
         emb_inputs = emb_inputs.rename(None)
-        ## products = emb_inputs[:, self.row_idx] * emb_inputs[:, self.col_idx]
-        products = torch.einsum("ijk,ijk->ijk", [emb_inputs[:, self.rowidx], emb_inputs[:, self.colidx]])
-        ## products.names = ("B", "N", "E")
+        products = torch.einsum('ijk,ijk->ijk', emb_inputs[:, self.row_idx], emb_inputs[:, self.col_idx])
 
         # Calculate attention scores
         # inputs: products, shape = (B, NC2, E)
         # output: attn_scores, shape = (B, NC2, 1)
         attn_scores = self.attention(products.rename(None))
-        ## attn_scores.names = ("B", "N", "E")
 
         # Apply attention on inner product
         # inputs: products, shape = (B, NC2, E)
         # inputs: attn_scores, shape = (B, NC2, 1)
         # output: outputs, shape = (B, E)
-        ## outputs = (products * attn_scores).sum(dim="N")
-        outputs = torch.einsum("ijk,ijh->ijk", [products, attn_scores])
-        outputs.names = ("B", "N", "E")
-        outputs = outputs.sum(dim="N")
+        outputs = torch.einsum('ijk,ijh->ijk', products, attn_scores)
+        outputs.names = ('B', 'N', 'E')
+        outputs = outputs.sum(dim='N')
 
         # Apply dropout on outputs
         # inputs: outputs, shape = (B, E)

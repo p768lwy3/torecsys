@@ -1,15 +1,16 @@
+from typing import Dict, Tuple
+
 import torch
-import torch.nn as nn
 
-from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+from torecsys.layers import BaseLayer
 
 
-class InnerProductNetworkLayer(nn.Module):
-    r"""Layer class of Inner Product Network.
+class InnerProductNetworkLayer(BaseLayer):
+    """
+    Layer class of Inner Product Network.
     
-    Inner Product Network is an option in Product based Neural Network by Yanru Qu et at, 2016, 
-    by calculating inner product between embedded tensors element-wisely to get cross features 
-    interactions
+    Inner Product Network is an option in Product based Neural Network by Yanru Qu et at, 2016, by calculating inner
+    product between embedded tensors element-wisely to get cross features interactions
     
     :Reference:
 
@@ -18,24 +19,31 @@ class InnerProductNetworkLayer(nn.Module):
     
     """
 
-    @no_jit_experimental_by_namedtensor
+    @property
+    def inputs_size(self) -> Dict[str, Tuple[str, ...]]:
+        return {
+            'inputs': ('B', 'N', 'E',)
+        }
+
+    @property
+    def outputs_size(self) -> Dict[str, Tuple[str, ...]]:
+        return {
+            'inputs': ('B', 'NC2',)
+        }
+
     def __init__(self,
                  num_fields: int):
-        r"""Initialize InnerProductNetworkLayer
+        """
+        Initialize InnerProductNetworkLayer
         
         Args:
-            num_fields (int): Number of inputs' fields
-        
-        Attributes:
-            row_idx (T), dtype = torch.long: 1st indices to index inputs in 2nd dimension for inner product.
-            col_idx (T), dtype = torch.long: 2nd indices to index inputs in 2nd dimension for inner product.
+            num_fields (int): number of inputs' fields
         """
-        # refer to parent class
-        super(InnerProductNetworkLayer, self).__init__()
+        super().__init__()
 
-        # create row_idx and col_idx to index inputs for inner product
-        row_idx = list()
-        col_idx = list()
+        # create row idx and col idx to index inputs for inner product
+        row_idx = []
+        col_idx = []
         for i in range(num_fields - 1):
             for j in range(i + 1, num_fields):
                 row_idx.append(i)
@@ -44,27 +52,28 @@ class InnerProductNetworkLayer(nn.Module):
         self.col_idx = torch.LongTensor(col_idx)
 
     def forward(self, emb_inputs: torch.Tensor) -> torch.Tensor:
-        r"""Forward calculation of InnerProductNetworkLayer
+        """
+        Forward calculation of InnerProductNetworkLayer
         
         Args:
-            emb_inputs (T), shape = (B, N, E), dtype = torch.float: Embedded features tensors.
+            emb_inputs (T), shape = (B, N, E), data_type = torch.float: embedded features tensors.
         
         Returns:
-            T, shape = (B, NC2), dtype = torch.float: Output of InnerProductNetworkLayer
+            T, shape = (B, NC2), data_type = torch.float: output of InnerProductNetworkLayer
         """
         # calculate inner product between each field
         # inputs: emb_inputs, shape = (B, N, E)
         # output: inner, shape = (B, NC2, E)
         emb_inputs = emb_inputs.rename(None)
         inner = emb_inputs[:, self.row_idx] * emb_inputs[:, self.col_idx]
-        inner.names = ("B", "N", "E")
+        inner.names = ('B', 'N', 'E',)
 
         # aggregate on dimension E
         # inputs: inner, shape = (B, NC2, E)
         # output: outputs, shape = (B, NC2)
-        outputs = torch.sum(inner, dim="E")
+        outputs = torch.sum(inner, dim='E')
 
         # rename tensor names
-        outputs.names = ("B", "O")
+        outputs.names = ('B', 'O')
 
         return outputs

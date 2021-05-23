@@ -1,15 +1,15 @@
-from typing import Callable
+from typing import Callable, Dict, Tuple
 
 import torch
-import torch.nn as nn
 
-from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
+from torecsys.layers import BaseLayer
 
 
-class StarSpaceLayer(nn.Module):
-    r"""Layer class of Starspace.
+class StarSpaceLayer(BaseLayer):
+    """
+    Layer class of Starspace.
     
-    Starpspace by Ledell Wu et al, 2017 is proposed by Facebook in 2017. 
+    StarSpace by Ledell Wu et al, 2017 is proposed by Facebook in 2017.
 
     It was implemented in C++ originally for a general purpose to embed different kinds of 
     relations between different pairs, like (word, tag), (user-group) etc. Starspace is 
@@ -26,48 +26,59 @@ class StarSpaceLayer(nn.Module):
 
     """
 
-    @no_jit_experimental_by_namedtensor
+    @property
+    def inputs_size(self) -> Dict[str, Tuple[str, ...]]:
+        return {
+            'inputs': ('B', '2', 'E',)
+        }
+
+    @property
+    def outputs_size(self) -> Dict[str, Tuple[str, ...]]:
+        return {
+            'outputs': ('B', 'E',)
+        }
+
     def __init__(self,
                  similarity: Callable[[torch.Tensor, torch.Tensor], torch.Tensor]):
-        r"""Initialize StarSpaceLayer
+        """
+        Initialize StarSpaceLayer
         
         Args:
-            similarity (Callable[[T, T], T]): Function of similarity between two tensors. 
-                e.g. torch.nn.functional.cosine_similarity.
-        
-        Attributes:
-            similarity (Callable[[T, T], T]): Function of similarity between two tensors. 
+            similarity (Callable[[T, T], T]): function of similarity between two tensors.
+                e.g. torch.nn.functional.cosine_similarity
         """
-        # refer to parent class
-        super(StarSpaceLayer, self).__init__()
+        super().__init__()
 
-        # bind similarity to similarity
         self.similarity = similarity
 
     def extra_repr(self) -> str:
-        """Return information in print-statement of layer.
+        """
+        Return information in print-statement of layer.
         
         Returns:
-            str: Information of print-statement of layer.
+            str: information of print-statement of layer.
         """
-        similarity_cls = self.similarity.func.__qualname__.split(".")[-1].lower()
-
-        return f'similarity={similarity_cls}'
+        return f'similarity={self.similarity.__qualname__.split(".")[-1].lower()}'
 
     def forward(self, samples_inputs: torch.Tensor) -> torch.Tensor:
-        r"""Forward calculation of StarSpaceLayer
+        """
+        Forward calculation of StarSpaceLayer
         
         Args:
-            samples_inputs (T), shape = (B, N = 2, E), dtype = torch.float: Embedded features tensors of context and target.
+            samples_inputs (T), shape = (B, N = 2, E), data_type = torch.float: embedded features tensors of context
+                and target
         
         Returns:
-            T, shape = (B, E), dtype = torch.float: Output of StarSpaceLayer.
+            T, shape = (B, E), data_type = torch.float: output of StarSpaceLayer
         """
+        # Name the inputs tensor for alignment
+        samples_inputs.names = ('B', 'N', 'E',)
+
         # Get and reshape feature tensors of context
         # inputs: samples_inputs, shape = (B, N = 2, E)
         # output: context, shape = (B, N = 1, E)
         context = samples_inputs[:, 0, :]
-        context = context.unflatten("E", [("N", 1), ("E", context.size("E"))])
+        context = context.unflatten('E', (('N', 1,), ('E', context.size('E'),),))
 
         # Get and reshape feature tensors of target
         # inputs: samples_inputs, shape = (B, N = 2, E)

@@ -1,4 +1,10 @@
-r"""torecsys.data.dataset is a sub module to convert several types of data source to torch.utils.data.Dataset for iteration
+"""
+torecsys.data.dataset is a sub model to convert several types of data source to torch.utils.data.Dataset for iteration
 """
 
-from .dataset import *
+__all__ = [
+    'DataFrameToDataset',
+    'NdarrayToDataset'
+]
+
+from torecsys.data.dataset.dataset import *

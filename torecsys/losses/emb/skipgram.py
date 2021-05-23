@@ -1,12 +1,12 @@
 import torch
 
-from . import _EmbLoss
-from .functional import skip_gram_loss
+from torecsys.losses.emb import EmbLoss
+from torecsys.losses.emb.functional import skip_gram_loss
 
 
-class SkipGramLoss(_EmbLoss):
-    r"""SkipGramLoss is a module to calculate the loss used in SkipGram algorithm 
-    :title:`Tomas Mikolov et al, 2013`[1] which isto calculate the loss by the following formula: 
+class SkipGramLoss(EmbLoss):
+    r"""SkipGramLoss is a model to calculate the loss used in SkipGram algorithm
+    :title:`Tomas Mikolov et al, 2013`[1] which is to calculate the loss by the following formula:
     :math:`loss = - \sum_{c=1}^{C} u_{j_{c}^{*}} + C log ( \sum_{j'=1}^{v} e^{u_{j'}} )` .
     
     :Reference:
@@ -17,25 +17,26 @@ class SkipGramLoss(_EmbLoss):
     """
 
     def __init__(self):
-        r"""Initialize SkipGramLoss
         """
-        # refer to parent class
-        super(SkipGramLoss, self).__init__()
+        Initialize SkipGramLoss
+        """
+        super().__init__()
 
-    def forward(self,
-                content_inputs: torch.Tensor,
+    @staticmethod
+    def forward(content_inputs: torch.Tensor,
                 pos_inputs: torch.Tensor,
                 neg_inputs: torch.Tensor) -> torch.Tensor:
-        r"""Forward calculation of SkipGramLoss
+        """
+        Forward calculation of SkipGramLoss
 
         Args:
-            content_inputs (T), shape = (B, 1, E), dtype = torch.float: Predicted scores of content or anchor.
-            pos_inputs (T), shape = (B, 1, E), dtype = torch.float: Predicted scores of positive samples.
-            neg_inputs (T, shape = (B, Nneg, E), dtype = torch.float: Predicted scores of negative samples.
+            content_inputs (T), shape = (B, 1, E), data_type = torch.float: Predicted scores of content or anchor.
+            pos_inputs (T), shape = (B, 1, E), data_type = torch.float: Predicted scores of positive samples.
+            neg_inputs (T, shape = (B, N Neg, E), data_type = torch.float: Predicted scores of negative samples.
 
         Returns:
-            T, shape = (1, ), dtype = torch.float: Output of SkipGramLoss.
+            T, shape = (1, ), data_type = torch.float: Output of SkipGramLoss.
         """
-        # calculate skip gram loss
-        loss = skip_gram_loss(content_inputs, pos_inputs)
+        # Calculate skip gram loss
+        loss = skip_gram_loss(content_inputs, pos_inputs, neg_inputs)
         return loss

@@ -10,7 +10,7 @@ Subpackages
    torecsys.data.dataset
    torecsys.data.negsampling
    torecsys.data.sampledata
-   torecsys.data.subsampling
+   torecsys.data.sub_sampling
 
 Module contents
 ---------------

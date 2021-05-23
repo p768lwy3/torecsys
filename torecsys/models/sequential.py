@@ -3,51 +3,42 @@ from typing import Dict
 import torch
 import torch.nn as nn
 
-from torecsys.inputs.inputs_wrapper import InputsWrapper
-from torecsys.models import _Model
+from torecsys.inputs import BaseInput
 
 
 class Sequential(nn.Module):
-    r"""Sequential container, where the module of embeddings and model will be added to it 
-    in the order they are passed in the constructor. 
+    """
+    Sequential container, where the model of embeddings and model will be stacked in the order they are passed to
+    the constructor
     """
 
     def __init__(self,
-                 inputs_wrapper: InputsWrapper,
-                 model: _Model):
-        r"""Initialize Sequential container.
+                 inputs: BaseInput,
+                 model: nn.Module):
+        """
+        Initialize Sequential container
         
         Args:
-            inputs_wrapper (InputsWrapper): Inputs wrapper where the return is a dictionary 
-                of inputs' tensors which are passed to the model directly.
-            model (_Model): Model class to be trained and used in prediction.
-
-        Attributes:
-            inputs_wrapper (InputsWrapper): Inputs wrapper where the return is a dictionary 
-                of inputs' tensors which are passed to the model directly.
-            model (_Model): Model class to be trained and used in prediction.
+            inputs (BaseInput): inputs where the return is a dictionary of inputs' tensors which are passed to
+                the model directly
+            model (nn.Module): model class to be trained and used in prediction
         """
-        # refer to parent class
-        super(Sequential, self).__init__()
+        super().__init__()
 
-        # bind inputs and model to inputs and model
-        self.inputs_wrapper = inputs_wrapper
-        self.model = model
+        self._inputs = inputs
+        self._model = model
 
     def forward(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
-        r"""Forward calculation of Sequential.
+        """
+        Forward calculation of Sequential
         
         Args:
-            inputs (Dict[str, T]): Dictionary of inputs, where key is name of input fields, 
-                and value is tensor pass to Input class.
+            inputs (Dict[str, T]): dictionary of inputs,
+                where key is string of input fields' name, and value is torch.tensor pass to Input class
         
         Returns:
-            T: Output of model.
+            torch.Tensor: output of model
         """
-        # transform and embed inputs
-        inputs = self.inputs_wrapper(inputs)
-
-        # calculate forward propagation of model
-        outputs = self.model(**inputs)
-
+        inputs = self._inputs(inputs)
+        outputs = self._model(**inputs)
         return outputs

@@ -1,4 +1,5 @@
-r"""ToR[e]cSys is a package implemented different kinds of recommendation system algorithm in PyTorch!
+"""
+ToR[e]cSys is a package implemented different kinds of recommendation system algorithm in PyTorch!
 """
 
 __version__ = "dev"
@@ -11,6 +12,5 @@ import torecsys.layers
 import torecsys.losses
 import torecsys.metrics
 import torecsys.models
-import torecsys.sampling
 import torecsys.trainer
 import torecsys.utils

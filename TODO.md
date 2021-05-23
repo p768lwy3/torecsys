@@ -74,7 +74,7 @@ but what should i build?
 2. .dataset
 3. .dataloader
 4. .negsampling
-5. .subsampling
+5. .sub_sampling
 
 ### torecsys.models
 

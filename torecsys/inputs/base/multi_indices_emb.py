@@ -1,123 +1,111 @@
-from typing import List, TypeVar
+from typing import List, Optional, TypeVar
 
 import numpy as np
 import torch
 import torch.nn as nn
 
-from torecsys.utils.decorator import no_jit_experimental_by_namedtensor
-from . import Inputs
+from torecsys.inputs.base import BaseInput
 
 
-class MultiIndicesEmbedding(Inputs):
-    r"""Base Inputs class for embedding indices in multi fields of inputs, which is more 
-    efficient than embedding with a number of SingleIndexEmbedding.
+class MultiIndicesEmbedding(BaseInput):
+    """
+    Base Input class for embedding indices in multi fields of inputs, which is more efficient than
+    embedding with a number of SingleIndexEmbedding.
     """
 
-    @no_jit_experimental_by_namedtensor
+    MultiIndicesEmbedding = TypeVar('MultiIndicesEmbedding')
+
     def __init__(self,
-                 embed_size: int,
-                 field_sizes: List[int],
-                 flatten: bool = False,
-                 nn_embedding: nn.Parameter = None,
-                 device: str = "cpu",
+                 embed_size: Optional[int] = None,
+                 field_sizes: Optional[List[int]] = None,
+                 nn_embedding: Optional[nn.Parameter] = None,
+                 device: str = 'cpu',
+                 flatten: Optional[bool] = False,
                  **kwargs):
-        r"""Initialize MultiIndicesEmbedding.
+        """
+        Initialize MultiIndicesEmbedding.
         
         Args:
-            embed_size (int): Size of embedding tensor
-            field_sizes (List[int]): List of inputs fields' sizes
-            flatten (bool, optional): Whether outputs is reshape to (B, 1, N * E) or not before return.
-                Defaults to False.
-            nn_embedding (nn.Parameter, optional): Pre-trained embedding values.
-                Defaults to None.
-            device (str): Device of torch.
-                Defaults to cpu.
+            embed_size (int): size of embedding tensor. Defaults to None
+            field_sizes (List[int]): list of inputs fields' sizes. Defaults to None
+            nn_embedding (nn.Parameter, optional): pretrained embedding values. Defaults to None
+            device (str): device of torch. Defaults to cpu
+            flatten (bool, optional): whether outputs is reshape to (B, 1, N * E) or not before return.
+                Defaults to False
         
-        Arguments:
-            length (int): Size of embedding tensor multiply by number of fields if flatten is 
-                True, else Size of embedding tensor.
-            embedding (torch.nn.Module): Embedding layer.
-            flatten (bool): Flag to show outputs will be flatten or not.
-            offsets (T): Tensor of offsets to adjust values of inputs to fit the indices of 
-                embedding tensors.
+        Attributes:
+            length (int): size of embedding tensor multiply by number of fields if flatten is True,
+                else Size of embedding tensor
+            embedding (torch.nn.Module): embedding layer
+            flatten (bool): flag to show outputs will be flatten or not
+            offsets (T): tensor of offsets to adjust values of inputs to fit the indices of embedding tensors
         """
-        # refer to parent class
-        super(MultiIndicesEmbedding, self).__init__()
+        super().__init__()
 
-        # bind embedding to pre-trained embedding module if nn_embedding is not None
         if nn_embedding is not None:
-            embed_size = nn_embedding.size(1)
             self.embedding = nn.Embedding.from_pretrained(nn_embedding)
-        # else, create a embedding module with the given arguments
-        else:
+        elif sum(field_sizes) is not None and embed_size is not None:
             self.embedding = nn.Embedding(sum(field_sizes), embed_size, **kwargs)
+        else:
+            raise ValueError('missing required arguments')
 
-        # create offsets to re-index inputs by adding them up
-        ## self.offsets = torch.Tensor((0, *np.cumsum(field_sizes)[:-1])).long().unsqueeze(0)
+        self.embedding = self.embedding.to(device)
+
         self.offsets = torch.Tensor((0, *np.cumsum(field_sizes)[:-1])).long()
-        self.offsets.names = ("N",)
-        self.offsets = self.offsets.unflatten("N", [("B", 1), ("N", self.offsets.size("N"))])
+        self.offsets.names = ('N',)
+        self.offsets = self.offsets.unflatten('N', (('B', 1,), ('N', self.offsets.size('N'),),))
         self.offsets = self.offsets.to(device)
 
-        # bind length to embed_size * length of field_sizes (i.e. num_fields) if flatten is True
-        if flatten:
-            self.length = embed_size * len(field_sizes)
-        # else bind length to embed_size
-        else:
-            self.length = embed_size
-
-        # bind flatten to flatten
         self.flatten = flatten
 
-    def cuda(self) -> TypeVar("MultiIndicesEmbedding"):
-        r"""Set MultiIndicesEmbedding to GPU.
+        self.field_size = self.embedding.num_embeddings
+        self.embed_size = self.embedding.embedding_dim
+        self.padding_idx = self.embedding.padding_idx
+        self.length = self.embed_size * len(field_sizes) if self.flatten else self.embed_size
+
+    def cuda(self, device=None) -> MultiIndicesEmbedding:
+        """
+        Set MultiIndicesEmbedding to GPU
         
         Returns:
             MultiIndicesEmbedding: self
         """
-        # refer to parent class to call .cuda()
-        super(MultiIndicesEmbedding, self).cuda()
+        super().cuda(device=device)
 
-        # set offsets to gpu
-        self.offsets = self.offsets.cuda()
+        self.offsets = self.offsets.cuda(device)
+
         return self
 
-    def cpu(self) -> TypeVar("MultiIndicesEmbedding"):
-        r"""Set MultiIndicesEmbedding to CPU.
+    def cpu(self) -> MultiIndicesEmbedding:
+        """
+        Set MultiIndicesEmbedding to CPU
         
         Returns:
             MultiIndicesEmbedding: self
         """
-        # refer to parent class to call .cpu()
-        super(MultiIndicesEmbedding, self).cpu()
+        super().cpu()
 
-        # set offsets to cpu
         self.offsets = self.offsets.cpu()
+
         return self
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
-        r"""Forward calculation of MultiIndicesEmbedding
+        """
+        Forward calculation of MultiIndicesEmbedding
         
         Args:
-            inputs (T), shape = (B, N), dtype = torch.long: Tensor of indices in inputs fields.
+            inputs (T), shape = (B, N), data_type = torch.long: tensor of indices in inputs fields
         
         Returns:
-            T, shape = (B, 1, N * E) or (B, N, E), dtype = torch.float: Outputs of MultiIndicesEmbedding.
+            T, shape = (B, 1, N * E) | (B, N, E), data_type = torch.float:
+                outputs of MultiIndicesEmbedding
         """
-        # add offset to adjust values of inputs to fit the indices of embedding tensors
         inputs = inputs + self.offsets
         outputs = self.embedding(inputs.rename(None))
+        outputs.names = ('B', 'N', 'E',)
 
-        # since the name will be removed after embedding
-        # set the name again to use .size() below.
-        outputs.names = ("B", "N", "E")
-
-        # flatten to (B, 1, N * E) if flatten is True
         if self.flatten:
-            outputs = outputs.flatten(["N", "E"], "E").rename(None).unsqueeze(1)
-            ## outputs = outputs.view(batch_size, 1, -1)
+            outputs = outputs.flatten(('N', 'E',), 'E').rename(None).unsqueeze(1)
 
-        # else outputs' shape = (B, N, E)
-        # set names to the tensor
-        outputs.names = ("B", "N", "E")
+        outputs.names = ('B', 'N', 'E',)
         return outputs

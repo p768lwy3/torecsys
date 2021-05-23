@@ -1,12 +1,13 @@
-r"""torecsys.utils.logging.decorator is a sub module of utils including decorator functions 
+"""
+torecsys.utils.logging.decorator is a sub model of utils including decorator functions
 to tag features of functions.
 """
 import warnings
 from functools import wraps
 
 
-def to_be_tested(func: callable):
-    r"""a decorator to write a message in a layer or a estimator where they have not been tested
+def in_development(func: callable):
+    """a decorator to write a message in a layer or a estimator where they have not been tested
     
     Args:
         func (callable): a callable function, and most likely they are torecsys.layers or torecsys.estimators
@@ -21,7 +22,7 @@ def to_be_tested(func: callable):
 
 
 def no_jit_experimental(func: callable):
-    r"""a decorator to write a message in a layer or a estimator where they have been checked 
+    """a decorator to write a message in a layer or a estimator where they have been checked
     to be non-compatible with torch.jit.trace
     
     Args:
@@ -36,12 +37,12 @@ def no_jit_experimental(func: callable):
     return wrapper
 
 
-def no_jit_experimental_by_namedtensor(func: callable):
+def no_jit_experimental_by_named_tensor(func: callable):
     @wraps(func)
     def wrapper(*args, **kwargs):
         warnings.warn(
-            "The module is checked that it is not compatible with torch.jit.trace " +
-            "due to the NamedTensor method. This will be updated to compatibilized " +
+            "The model is checked that it is not compatible with torch.jit.trace " +
+            "due to the NamedTensor method. This will be updated to compatibility " +
             "when PyTorch update.", UserWarning
         )
         return func(*args, **kwargs)
@@ -50,7 +51,7 @@ def no_jit_experimental_by_namedtensor(func: callable):
 
 
 def jit_experimental(func: callable):
-    r"""a decorator to write a message in a layer or a estimator where they have been checked 
+    """a decorator to write a message in a layer or a estimator where they have been checked
     to be compatible with torch.jit.trace
     
     Args:
