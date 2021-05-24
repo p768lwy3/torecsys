@@ -4,10 +4,10 @@ import torch
 import torch.nn as nn
 
 from torecsys.layers import PositionEmbeddingLayer
-from torecsys.models.ltr import _ReRankingModel
+from torecsys.models.ltr import ReRankingModel
 
 
-class PersonalizedReRankingModel(_ReRankingModel):
+class PersonalizedReRankingModel(ReRankingModel):
     """
     Model class of Personalized Re-ranking Model (PRM).
 
@@ -177,4 +177,5 @@ class PersonalizedReRankingModel(_ReRankingModel):
         # output: output, shape = (B, O = L)
         # output: output, shape = (B, O = L)
         output = self.layers['OutputLayer']['Softmax'](output)
+
         return output

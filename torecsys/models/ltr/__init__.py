@@ -5,12 +5,12 @@ torecsys.models.ltr is a sub model of the implementations of the whole models of
 from torecsys.models import BaseModel
 
 
-class _LtrBaseModel(BaseModel):
+class LtrBaseModel(BaseModel):
     def __init__(self):
         super().__init__()
 
 
-class _ReRankingModel(_LtrBaseModel):
+class ReRankingModel(LtrBaseModel):
     def __init__(self):
         super().__init__()
 
