@@ -15,4 +15,5 @@ class ReRankingModel(LtrBaseModel):
         super().__init__()
 
 
+from torecsys.models.ltr.learning_to_rank_wrapper import LearningToRankWrapper
 from torecsys.models.ltr.personalized_reranking import PersonalizedReRankingModel

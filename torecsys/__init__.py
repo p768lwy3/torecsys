@@ -6,7 +6,6 @@ __version__ = "dev"
 
 import torecsys.cli
 import torecsys.data
-import torecsys.estimators
 import torecsys.inputs
 import torecsys.layers
 import torecsys.losses

@@ -6,6 +6,7 @@ import torch.nn as nn
 from parameterized import parameterized
 from torchinfo import summary
 
+from torecsys.miners import UniformBatchMiner
 from torecsys.models import *
 from torecsys.utils.operations import inner_product_similarity
 
@@ -452,6 +453,44 @@ class FeatureImportanceAndBilinearFeatureInteractionNetworkTestCase(unittest.Tes
         outputs = model.forward(emb_inp)
         self.assertEqual(outputs.size(), (batch_size, output_size))
         print(f'Output Size: {outputs.size()}, Output Dimensions: {outputs.names}')
+
+
+class LearningToRankWrapperTestCase(unittest.TestCase):
+    @parameterized.expand([
+        (8, 128),
+        (16, 64),
+        (32, 8)
+    ])
+    def test_forward(self, batch_size: int, embed_size: int):
+        sample_size = 10
+        miner = UniformBatchMiner(sample_size=sample_size)
+
+        model = MatrixFactorizationModel()
+        wrapped = LearningToRankWrapper(model=model)
+        wrapped = wrapped.to(device)
+
+        # Generate inputs for the layer
+        emb_inp = torch.rand(batch_size, 2, embed_size)
+
+        # mine negative samples with miner
+        # outputs: p, shape = (B, N, E)
+        # outputs: n, shape = (B * N Neg, N, E)
+        p, n = miner(emb_inp[:, 0], emb_inp[:, 1])
+        p.names = ('B', 'N', 'E',)
+        n.names = ('B', 'N', 'E',)
+        # p_size = p.size()
+        # n_size = n.size()
+
+        # summary(wrapped, input_size=[p_size, n_size], device=device, dtypes=[torch.float, torch.float])
+
+        # Forward
+        outputs = wrapped.forward(pos_inputs={'emb_inputs': p}, neg_inputs={'emb_inputs': n})
+        self.assertEqual(outputs['pos_outputs'].size(), (batch_size, 1))
+        self.assertEqual(outputs['neg_outputs'].size(), (batch_size * sample_size, 1))
+        print(f'Pos Output Size: {outputs["pos_outputs"].size()},\n'
+              f'Pos Output Dimensions: {outputs["pos_outputs"].names},\n'
+              f'Neg Output Size: {outputs["neg_outputs"].size()},\n'
+              f'NegOutput Dimensions: {outputs["neg_outputs"].names}')
 
 
 class LogisticRegressionModelTestCase(unittest.TestCase):

@@ -44,8 +44,9 @@ class TorecsysModule(LightningModule):
         self._inputs: Optional[BaseInput] = None
         self._model: Optional[nn.Module] = None
         self._sequential: Optional[nn.Sequential] = None
-        self._targets_name: Optional[str] = None
+        self._target_fields: Optional[str] = None
         self._miner: Optional[BaseMiner] = None
+        self._miner_target_field: Optional[str] = None
         self._criterion: Optional[nn.Module] = None
         self._regularizer: Optional[nn.Module] = None
         self._optimizer: Optional[nn.Module] = None
@@ -67,7 +68,7 @@ class TorecsysModule(LightningModule):
         Set objective to the trainer
 
         Args:
-            objective (str): objective to be set to the trainer
+            objective: objective to be set to the trainer
         """
         _ = self.set_objective(objective)
 
@@ -76,7 +77,7 @@ class TorecsysModule(LightningModule):
         Set objective to the self.objective
 
         Args:
-            objective (str): objective to be set to self.objective
+            objective: objective to be set to self.objective
 
         Raises:
             TypeError: whether type of objective is not allowed to be set
@@ -123,7 +124,7 @@ class TorecsysModule(LightningModule):
         Set Input to the trainer
 
         Args:
-            inputs (torecsys.inputs.base._Inputs): Input to be set to the trainer
+            inputs: Input to be set to the trainer
         """
         _ = self.set_inputs(inputs)
 
@@ -132,7 +133,7 @@ class TorecsysModule(LightningModule):
         Set inputs to the self.inputs
 
         Args:
-            inputs (torecsys.inputs.BaseInput, optional): inputs to be set to self.inputs. Defaults to None
+            inputs: inputs to be set to self.inputs. Defaults to None
 
         Raises:
             TypeError: whether type of inputs is not allowed to be set
@@ -175,7 +176,7 @@ class TorecsysModule(LightningModule):
         Set model to the trainer
 
         Args:
-            method (Union[str, nn.Module]): model to be set to the trainer._model
+            method: model to be set to the trainer._model
 
         Raises:
             AssertionError: whether no model is found with the given string of method
@@ -207,7 +208,7 @@ class TorecsysModule(LightningModule):
         Set model to the trainer
 
         Args:
-            model (torch.nn.Module): model to be set to the trainer
+            model: model to be set to the trainer
         """
         self.set_model(model)
 
@@ -228,8 +229,8 @@ class TorecsysModule(LightningModule):
         Set sequential with inputs and model to the trainer
 
         Args:
-            inputs (BaseInput): inputs object. required: output fields' names = model inputs' names
-            model (BaseModel): model object.
+            inputs: inputs object. required: output fields' names = model inputs' names
+            model: model object
 
         Raises:
             AssertionError: whether inputs or model is not found
@@ -277,7 +278,7 @@ class TorecsysModule(LightningModule):
         Set regularizer to the trainer.
 
         Args:
-            regularizer (torecsys.layers.regularization.Regularizer): Regularizer to be set to the trainer.
+            regularizer: Regularizer to be set to the trainer.
         """
         self.set_regularizer(regularizer)
 
@@ -288,7 +289,7 @@ class TorecsysModule(LightningModule):
         Set regularizer of the trainer
 
         Args:
-            regularizer (torecsys.layers.regularization, optional): regularizer to be bind to the trainer._regularizer
+            regularizer: regularizer to be set to the trainer._regularizer
 
         Raises:
             TypeError: whether type of regularizer is not allowed to be set
@@ -329,22 +330,90 @@ class TorecsysModule(LightningModule):
         return self._miner is not None
 
     @miner.setter
-    def miner(self, value: Union[str, Callable[[torch.Tensor], torch.Tensor], dict]):
+    def miner(self, miner: nn.Module):
         """
-        Set negative sampler to the trainer
+        Set miner to the trainer
 
         Args:
-            value (Union[str, Callable[[T], T], dict]): value to build negative sampler
+            miner: value of miner
+        """
+        self.set_miner(miner)
+
+    def set_miner(self,
+                  miner: Optional[nn.Module] = None) -> TorecsysModule:
+        """
+        Set miner of the trainer
+
+        Args:
+            miner: miner to be set to the trainer._miner
 
         Raises:
-            TypeError: when type of value is not allowed.
+            TypeError: when type of value is not allowed
+
+        Returns:
+            torecsys.trainer.TorecsysModule: self
         """
-        if isinstance(value, str) or callable(value):
-            self.build_negative_sampler(value)
-        elif isinstance(value, dict):
-            self.build_negative_sampler(**value)
+        if miner is None:
+            raise NotImplemented
         else:
-            raise TypeError(f'{type(value).__name__} not allowed.')
+            if isinstance(miner, nn.Module):
+                pass
+            else:
+                raise TypeError('{type(miner).__name__} not allowed')
+
+        self._miner = miner
+
+        return self
+
+    @property
+    def miner_target_field(self) -> str:
+        """
+        Get target miner field from the trainer
+
+        Returns:
+            str: name of the target miner field
+        """
+        return self._miner_target_field
+
+    @property
+    def has_miner_target_field(self) -> bool:
+        """
+        Return whether the miner of the trainer is exists
+
+        Returns:
+            bool: True if self._miner is not None else False
+        """
+        return self._miner_target_field is not None
+
+    @miner_target_field.setter
+    def miner_target_field(self, miner_target_field: str):
+        """
+        Set miner target field to trainer
+
+        Args:
+            miner_target_field: value to miner target field
+        """
+        self.set_miner_target_field(miner_target_field)
+
+    def set_miner_target_field(self, miner_target_field: str) -> TorecsysModule:
+        """
+        Set miner_target_field of the trainer.
+
+        Args:
+            miner_target_field: target field of miner
+
+        Raises:
+            TypeError: when type of miner_target_field is not allowed
+
+        Returns:
+            torecsys.trainer.TorecsysModule: self
+        """
+        if not isinstance(miner_target_field, str):
+            raise TypeError(f'{type(miner_target_field).__name__} not allowed')
+
+        self._miner_target_field = miner_target_field
+
+        return self
 
     @property
     def criterion(self) -> Callable:
@@ -372,7 +441,7 @@ class TorecsysModule(LightningModule):
         Set loss to the trainer
 
         Args:
-            value (Union[str, nn.Module, dict]): value to build criterion.
+            value: value to build criterion.
 
         Raises:
             TypeError: when type of value is not allowed.
@@ -392,7 +461,7 @@ class TorecsysModule(LightningModule):
         Set criterion
 
         Args:
-            method (Union[str, nn.Module]): method of criterion
+            method: method of criterion
 
         Raises:
             AssertionError: when method is not found
@@ -437,7 +506,7 @@ class TorecsysModule(LightningModule):
         Set optimizer to the trainer
 
         Args:
-            value (Union[str, Callable[[T], T], dict]): value to build optimizer
+            value: value to build optimizer
 
         Raises:
             TypeError: when type of value is not allowed
@@ -457,8 +526,8 @@ class TorecsysModule(LightningModule):
         Set optimizer
 
         Args:
-            method (Union[str, nn.Module]): method of optimizer
-            parameters (torch.nn.parameter.Parameter, optional): parameters to be optimized. Defaults to None
+            method: method of optimizer
+            parameters: parameters to be optimized. Defaults to None
 
         Raises:
             AssertionError: when method is not found
@@ -507,42 +576,42 @@ class TorecsysModule(LightningModule):
         )
 
     @property
-    def targets_name(self) -> str:
+    def target_fields(self) -> str:
         """
         Get the target field name of the trainer
         
         Returns:
             str: name of target field of the trainer
         """
-        return self._targets_name
+        return self._target_fields
 
-    @targets_name.setter
-    def targets_name(self, targets_name: str):
+    @target_fields.setter
+    def target_fields(self, target_fields: str):
         """
-        Set targets_name of the trainer
+        Set target_fields of the trainer
 
         Args:
-            targets_name (str): targets name to be set for getting targets field in batch
+            target_fields: targets name to be set for getting targets field in batch
         """
-        self.set_targets_name(targets_name)
+        self.set_target_fields(target_fields)
 
-    def set_targets_name(self, targets_name: str) -> TorecsysModule:
+    def set_target_fields(self, target_fields: str) -> TorecsysModule:
         """
-        Set targets_name of the trainer.
+        Set target_fields of the trainer
 
         Args:
-            targets_name (str): targets name to be set for getting targets field in batch
+            target_fields: target fields to be set for getting target fields from batch
 
         Raises:
-            TypeError: when type of targets_name is not allowed
+            TypeError: when type of target_fields is not allowed
 
         Returns:
             torecsys.trainer.TorecsysModule: self
         """
-        if not isinstance(targets_name, str):
-            raise TypeError(f'{type(targets_name).__name__} not allowed')
+        if not isinstance(target_fields, str):
+            raise TypeError(f'{type(target_fields).__name__} not allowed')
 
-        self._targets_name = targets_name
+        self._target_fields = target_fields
 
         return self
 
@@ -551,8 +620,8 @@ class TorecsysModule(LightningModule):
         Training step of pytorch_lightning.LightningModule
 
         Args:
-            batch (Dict[str, torch.Tensor]): output of the dataloader
-            batch_idx (int): integer displaying index of this batch
+            batch: output of the dataloader
+            batch_idx: integer displaying index of this batch
 
         Returns:
             Union[T, Dict[str, Any]]: loss tensor
@@ -617,11 +686,11 @@ class TorecsysModule(LightningModule):
         Method to convert batch_values to batch_data to calculate forward and loss
 
         Args:
-            batch_values (Dict[str, T]): dictionary of inputs' tensor
-            objective (str): objective of trainer
+            batch_values: dictionary of inputs' tensor
+            objective: objective of trainer
 
         Raises:
-            AssertionError: when objective is not in ["clickthroughrate", "embedding", "learningtorank"]
+            AssertionError: raise when the objective is not set
 
         Returns:
             Dict[str, T]: Dictionary of batch data
@@ -635,43 +704,40 @@ class TorecsysModule(LightningModule):
             self._objective = objective
 
         if self._objective == self.MODULE_TYPE_CTR:
-            targets = batch_values.pop(self.targets_name)
+            target_fields = batch_values.pop(self.target_fields)
             batch_data['batch_inputs'] = batch_values
-            batch_data['batch_targets'] = targets
+            batch_data['batch_targets'] = target_fields
         elif self._objective == self.MODULE_TYPE_EMB:
             pass
         elif self._objective == self.MODULE_TYPE_LTR:
             batch_inputs = {}
 
+            target_fields = batch_values.pop(self.target_fields)
+            miner_target_field = batch_values.pop(self._miner_target_field)
+
+            # TODO: implement miner with
+            # inputs: batch_values: Dict[str, torch.Tensor]
+            # inputs: miner_target_field: torch.Tensor, shape = (B, ...)
+            # inputs: target_fields: torch.Tensor, shape = (B, ...)
+            # outputs: anchors = Dict[str, torch.Tensor]
+            # outputs: positives = (B, 1, ...)
+            # outputs: negatives = (B, N Neg, ...)
+            anchors, positives, negatives = self.miner(batch_values, miner_target_field, target_fields)
+
+            # Get batch_size of positive samples and number of negative samples
+            batch_size = positives.size(0)
+            _ = self.miner.sampling_number
+
             # Stack pos_inputs and neg_inputs into a batch of inputs, with shape = (B * (1 + num_neg), ...)
-            for inp_field in batch_values:
-                # Get tensors of positive samples and negative samples
-                pos_tensors = batch_values[inp_field]
+            # Stack tensors and store it to batch_inputs
+            # inputs: pos_tensors, shape = (B, 1, ...)
+            # inputs: neg_tensors, shape = (B, N Neg, ...)
+            # output: b_tensors, shape = (B, (1 + N Neg), ...)
+            _ = torch.cat([positives, negatives], dim=1)
 
-                # Get batch_size of positive samples and number of negative samples
-                batch_size = pos_tensors.size(0)
-                num_neg = int(neg_tensors.size(0) / batch_size)
-
-                # Reshape tensors for stacking
-                # inputs: pos_tensors, shape = (B, N)
-                # inputs: neg_tensors, shape = (B * num_neg, N)
-                # output: pos_tensors, shape = (B, 1, N)
-                # output: neg_tensors, shape = (B, num_neg, N)
-                field_size = pos_tensors.size(1)
-                pos_tensors = pos_tensors.view(batch_size, 1, field_size)
-                neg_tensors = neg_tensors.view(batch_size, num_neg, field_size)
-
-                # Stack tensors and store it to batch_inputs
-                # inputs: pos_tensors, shape = (B, 1, N)
-                # inputs: neg_tensors, shape = (B, num_neg, N)
-                # output: b_tensors, shape = (B * (1 + num_neg), N)
-                b_tensors = torch.cat([pos_tensors, neg_tensors], dim=1)
-                b_tensors = b_tensors.view(batch_size * (1 + num_neg), field_size)
-                batch_inputs[inp_field] = b_tensors
-
-                # Store batch_inputs to batch_data
-                batch_data['batch_inputs'] = batch_inputs
-                batch_data['batch_size'] = batch_size
+            # TODO: Store batch_inputs to batch_data
+            batch_data['batch_inputs'] = batch_inputs
+            batch_data['batch_size'] = batch_size
         else:
             raise AssertionError(f'{self._objective} not allowed')
 
@@ -682,7 +748,7 @@ class TorecsysModule(LightningModule):
         Apply model forward
 
         Args:
-            inputs (Dict[str, T]): dictionary to input to sequential
+            inputs: dictionary to input to sequential
         
         Returns:
             torch.Tensor: output of sequential
@@ -695,8 +761,8 @@ class TorecsysModule(LightningModule):
         Method to calculate loss of trainer
         
         Args:
-            prediction (T): predicted values of model in trainer
-            objective (str, optional): objective of trainer. Defaults to None
+            prediction: predicted values of model in trainer
+            objective: objective of trainer. Defaults to None
         
         Raises:
             AssertionError: when mode is not in ["train", "eval"]
@@ -772,13 +838,14 @@ class TorecsysModule(LightningModule):
 
         if self._objective == self.MODULE_TYPE_CTR:
             _vars.update({
-                'target field name': self._targets_name
+                'target fields': self._target_fields
             })
         elif self._objective == self.MODULE_TYPE_EMB:
             pass
         elif self._objective == self.MODULE_TYPE_LTR:
             _vars.update({
-                'miner': self._miner.__class__.__name__ if self.has_miner else None
+                'miner': self._miner.__class__.__name__ if self.has_miner else None,
+                'miner target field': self._miner_target_field
             })
 
         t = Texttable()
@@ -798,14 +865,14 @@ class TorecsysModule(LightningModule):
             **trainer_config: See below.
 
         Keyword Args:
-            load_from (str): load full config from a file path
-            objective (str): objective to be set on trainer
-            inputs_config (Dict[str, Any]): dictionary to build inputs
-            model_config (Dict[str, Any]): dictionary to build model
-            regularizer_config (Dict[str, Any]): dictionary to build regularizer
-            criterion_config (Dict[str, Any]): dictionary to build criterion
-            optimizer_config (Dict[str, Any]): dictionary to build optimizer
-            targets_name (str): targets field name to be set on trainer
+            load_from: load full config from a file path
+            objective: objective to be set on trainer
+            inputs_config: dictionary to build inputs
+            model_config: dictionary to build model
+            regularizer_config: dictionary to build regularizer
+            criterion_config: dictionary to build criterion
+            optimizer_config: dictionary to build optimizer
+            target_fields: targets field name to be set on trainer
         """
         trainer = cls()
 
@@ -830,7 +897,14 @@ class TorecsysModule(LightningModule):
             if trainer_config.get('optimizer_config'):
                 trainer.set_optimizer(**trainer_config.get('optimizer_config'))
 
-            if trainer_config.get('targets_name'):
-                trainer.set_targets_name(trainer_config.get('targets_name'))
+            if trainer_config.get('target_fields'):
+                trainer.set_target_fields(trainer_config.get('target_fields'))
+
+            # TODO: in development
+            if trainer_config.get('miner'):
+                trainer.set_miner(**trainer_config.get('miner_config'))
+
+            if trainer_config.get('miner_target_field'):
+                trainer.set_miner_target_field(trainer_config.get('miner_target_field'))
 
         return trainer

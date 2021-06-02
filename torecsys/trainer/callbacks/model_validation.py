@@ -42,7 +42,13 @@ class ModelValidationCallback(Callback):
         elif objective == TorecsysModule.MODULE_TYPE_EMB:
             pass
         elif objective == TorecsysModule.MODULE_TYPE_LTR:
-            pass
+            # TODO: in development
+            if not module.has_miner:
+                raise ValueError('missing miner in the module')
+
+            if not module.has_miner_target_field:
+                raise ValueError('missing miner_target_field in the module')
+
         else:
             raise ValueError('')
 

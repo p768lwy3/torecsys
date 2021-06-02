@@ -26,6 +26,7 @@ __all__ = [
     "FeatureImportanceAndBilinearFeatureInteractionNetwork",
     'FieldAttentiveDeepFieldAwareFactorizationMachineModel',
     'FieldAwareFactorizationMachineModel',
+    'LearningToRankWrapper',
     'LogisticRegressionModel',
     'MatrixFactorizationModel',
     'MultiGateMixtureOfExpertsModel',

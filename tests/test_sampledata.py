@@ -3,7 +3,7 @@ import unittest
 import pandas as pd
 from parameterized import parameterized
 
-import torecsys.data.sample_data as sampledata
+from torecsys.data import sample_data
 
 
 class SampleDataTestCase(unittest.TestCase):

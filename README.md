@@ -116,7 +116,7 @@ trainer = trs.trainer.Trainer() \
     .build_optimizer(method="SGD", lr="0.01") \
     .build_loader(name="train", ...) \
     .build_loader(name="eval", ...) \
-    .set_targets_name("labels") \
+    .set_target_fields("labels") \
     .set_max_num_epochs(10) \
     .use_cuda()
 

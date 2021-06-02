@@ -36,13 +36,11 @@ class LearningToRankWrapper(LtrBaseModel):
                 e.g. feat_inputs, emb_inputs, and the values are the tensors with the shape (B * N Neg, N, E)
 
         Returns:
-            Dict[str, Tensors]: dictionary of outputs where pos_outputs are the tensors with shape (B, 1, _)
-                and neg_outputs are the tensors with shape (B, N Neg, _)
+            Dict[str, Tensors]: dictionary of outputs where pos_outputs are the tensors with shape (B, _)
+                and neg_outputs are the tensors with shape (B * N Neg, _)
         """
         pos_outputs = self._model(**pos_inputs)
         neg_outputs = self._model(**neg_inputs)
-
-        # reshape neg_outputs to (B, N Neg, E)
 
         return {
             'pos_outputs': pos_outputs,

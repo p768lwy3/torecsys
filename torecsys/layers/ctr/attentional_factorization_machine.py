@@ -13,22 +13,34 @@ class AttentionalFactorizationMachineLayer(BaseLayer):
     Attentional Factorization Machine is to calculate interaction between each pair of features 
     by using element-wise product (i.e. Pairwise Interaction Layer), compressing interaction 
     tensors to a single representation. The output shape is (B, 1, E).
-    
-    :Reference:
 
-    #. `Jun Xiao et al, 2017. Attentional Factorization Machines: Learning the Weight of Feature Interactions via
+    Attributes:
+        row_idx: ...
+        col_idx: ...
+        attention: ...
+        dropout: ...
+
+    References:
+
+    - `Jun Xiao et al, 2017. Attentional Factorization Machines: Learning the Weight of Feature Interactions via
     Attention Networks∗ <https://arxiv.org/abs/1708.04617>`_.
 
     """
 
     @property
     def inputs_size(self) -> Dict[str, Tuple[str, ...]]:
+        """
+        Dict[str, Tuple[str, ...]]: inputs_size of the layer
+        """
         return {
             'inputs': ('B', 'N', 'E',)
         }
 
     @property
     def outputs_size(self) -> Dict[str, Tuple[str, ...]]:
+        """
+        Dict[str, Tuple[str, ...]]: outputs_size of the layer
+        """
         return {
             'outputs': ('B', 'E',),
             'attn_scores': ('B', 'NC2', '1',)
@@ -51,23 +63,25 @@ class AttentionalFactorizationMachineLayer(BaseLayer):
         """
         super().__init__()
 
-        self.row_idx = []
-        self.col_idx = []
+        self.row_idx: list = []
+        self.col_idx: list = []
+
         for i in range(num_fields - 1):
             for j in range(i + 1, num_fields):
                 self.row_idx.append(i)
                 self.col_idx.append(j)
+
         self.row_idx = torch.LongTensor(self.row_idx)
         self.col_idx = torch.LongTensor(self.col_idx)
 
-        self.attention = nn.Sequential()
+        self.attention: nn.Sequential = nn.Sequential()
         self.attention.add_module('Linear', nn.Linear(embed_size, attn_size))
         self.attention.add_module('Activation', nn.ReLU())
         self.attention.add_module('OutProj', nn.Linear(attn_size, 1))
         self.attention.add_module('Softmax', nn.Softmax(dim=1))
         self.attention.add_module('Dropout', nn.Dropout(dropout_p))
 
-        self.dropout = nn.Dropout(dropout_p)
+        self.dropout: nn.Module = nn.Dropout(dropout_p)
 
     def forward(self, emb_inputs: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """

@@ -43,7 +43,7 @@ def version():
               help="Json to configure optimizer. Example: '{\"method\":\"SGD\", \"lr\": 0.01, \"momentum\": 0.9}'.")
 @click.option("--training_set_config", type=str, help="File path of csv training dataset.")
 @click.option("--validation_set_config", type=str, help="File path of csv validation dataset.")
-@click.option("--targets_name", type=str, help="Targets field name of trainer.")
+@click.option("--target_fields", type=str, help="Targets field name of trainer.")
 @click.option("--data_type", type=click.Choice(['double', 'float', 'half'], case_sensitive=False),
               help="Data type of trainer.")
 @click.option("--max_num_epochs", type=int, help="Maximum number of training epochs.")

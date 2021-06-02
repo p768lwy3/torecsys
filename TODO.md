@@ -2,7 +2,7 @@
 
 ## -3. Build another new sample dataset for debugging and testing
 
-but what should i build?
+but what should I build?
 
 ## -2. Planning of `Estimator` and `Trainer`
 
@@ -51,13 +51,35 @@ but what should i build?
 
 ## -1. Update from PyTorch 1.2 to PyTorch 1.3
 
-1. `Named Tensor` is a extremely cool feature to make the code much more readable and debuggable. Planning to change the parts which can be written in `Named Tensor`. And Hope everything can be written in `Named Tensor` in the near future!
+1. `Named Tensor` is an extremely cool feature to make the code much more readable and debuggable. Planning to change
+   the parts which can be written in `Named Tensor` and Hope everything can be written in `Named Tensor` in the near
+   future!
 
 ## 0. Project
 
 1. Finish the module
+   
 2. Examples to use the module
-3. Setup of pypl
+   
+3. Setup of pip
+   # . Build the wheel:
+
+    ```bash 
+   python setup.py sdist
+   ```
+
+   # . Check the wheel:
+
+    ```bash
+   twine check dist/*
+   ```
+
+   # . Upload the wheel:
+
+   ```bash
+   twine upload dist/*
+   ```
+
 4. README, icon, documentations, ...
 
 ## 1. Module
