@@ -7,7 +7,7 @@ import json
 import click
 
 from torecsys import __version__
-from torecsys.trainer import TorecsysModule
+from torecsys.trainer import TorecsysPipeline
 
 
 def print_version(ctx, value):
@@ -72,7 +72,7 @@ def build(load_from: str,
           enable_jit: bool):
     if load_from is not None:
         load_from = json.loads(load_from)
-        trainer = TorecsysModule.build(load_from=load_from)
+        trainer = TorecsysPipeline.build(load_from=load_from)
     else:
         if inputs_config is not None:
             inputs_config = json.loads(inputs_config)
@@ -100,7 +100,7 @@ def build(load_from: str,
         else:
             use_cuda = enable_cuda
 
-        trainer = TorecsysModule.build(
+        trainer = TorecsysPipeline.build(
             inputs_config=inputs_config,
             model_config=model_config,
             regularizer_config=regularizer_config,

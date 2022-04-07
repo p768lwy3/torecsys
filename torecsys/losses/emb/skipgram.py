@@ -5,8 +5,9 @@ from torecsys.losses.emb.functional import skip_gram_loss
 
 
 class SkipGramLoss(EmbLoss):
-    r"""SkipGramLoss is a model to calculate the loss used in SkipGram algorithm
-    :title:`Tomas Mikolov et al, 2013`[1] which is to calculate the loss by the following formula:
+    r"""
+    SkipGramLoss is a model to calculate the loss used in SkipGram algorithm
+    :title:`Tomas Mikolov et al., 2013`[1] which is to calculate the loss by the following formula:
     :math:`loss = - \sum_{c=1}^{C} u_{j_{c}^{*}} + C log ( \sum_{j'=1}^{v} e^{u_{j'}} )` .
     
     :Reference:

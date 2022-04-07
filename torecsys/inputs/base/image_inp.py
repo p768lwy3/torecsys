@@ -11,7 +11,7 @@ class ImageInput(BaseInput):
     Base Input class for image, which embed image by a stack of convolution neural network (CNN)
     and fully-connect layer.
     """
-    ImageInputs = TypeVar('ImageInput')
+    ImageInput = TypeVar('ImageInput')
 
     def __init__(self,
                  embed_size: int,

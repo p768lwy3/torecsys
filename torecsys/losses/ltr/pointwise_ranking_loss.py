@@ -35,7 +35,7 @@ class PointwiseLogisticLoss(PointwiseRankingLoss):
             :math:`\text{loss} = (1.0 - \sigma (y_{pos})) + \sigma (y_{neg})`
         
         Args:
-            pos_out (T), shape = (B, 1,): scores of positive items
+            pos_out (T), shape = (B, 1,): scores of positive item
             neg_out (T), shape = (B, N Neg,): scores of sampled negative items
             mask (T, optional), shape = (B,), data_type = torch.bool: boolean tensor to mask training loss.
                 Defaults to None

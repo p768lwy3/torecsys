@@ -52,7 +52,7 @@ class CollateFunction(object):
 
     def _collate_values(self, inp_values: List[list]) -> torch.Tensor:
         """
-        Convert inp_values from list to torch.tensor
+        Convert inp_values from list to tensor
         
         Args:
             inp_values (List[list]): list of batch values
@@ -66,7 +66,7 @@ class CollateFunction(object):
                          inp_values: Union[List[int], List[List[int]]],
                          mapping: IndexField = None) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
         """
-        Convert inp_values from list to torch.tensor
+        Convert inp_values from list to tensor
         
         Args:
             inp_values (List[int]): list of batch values
@@ -165,7 +165,7 @@ class CollateFunction(object):
 
         for field_out_key, field in self.schema.items():
             if isinstance(field, str):
-                field_type = field
+                field_inp_key, field_type = field_out_key, field
             elif isinstance(field, collections.abc.Sequence):
                 field_inp_key, field_type = field
             else:

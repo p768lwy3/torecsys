@@ -11,7 +11,7 @@ class MultiGateMixtureOfExpertsModel(CtrBaseModel):
     """
     Model class of Multi-gate Mixture-of-Experts (MMoE) model.
 
-    Multi-gate Mixture-of-Experts is a variant of Deep MoE for multi-task learning to learn 
+    Multi-gate Mixture-of-Experts is a variant of Deep MoE for multitask learning to learn
     relationships between tasks explicitly by multiple gate functions instead of one gate.
     
     :Reference:

@@ -40,7 +40,7 @@ class BayesianPersonalizedRankingLoss(PairwiseRankingLoss):
         Initialize BayesianPersonalizedRankingLoss
         
         Args:
-            reduction Union[nn.Module, str], optional): reduction method to calculate loss. Defaults to torch.sum
+            reduction Union[nn.Module, str], optional): reduction method to calculate loss. Defaults to sum
         """
         super().__init__()
         self.reduction = get_reduction(reduction)
@@ -53,8 +53,8 @@ class BayesianPersonalizedRankingLoss(PairwiseRankingLoss):
         Forward calculation of BayesianPersonalizedRankingLoss
         
         Args:
-            pos_out (T), shape = (B, 1): predicted values of positive samples
-            neg_out (T), shape = (B, N Neg): predicted values of negative samples
+            pos_out (T), shape = (B, 1): predicted values of positive sample
+            neg_out (T), shape = (B, N Neg): predicted values of negative sample
             mask (T, optional), shape = (batch size, ), data_type = torch.bool: boolean tensor to mask loss.
                 Defaults to None
         
@@ -79,7 +79,7 @@ class HingeLoss(PairwiseRankingLoss):
         
         Args:
             margin (float, optional): Margin size of loss. Defaults to 1.0
-            reduction (nn.Module, optional): Reduction method to calculate loss. Defaults to torch.sum
+            reduction (nn.Module, optional): Reduction method to calculate loss. Defaults to sum
         """
         super().__init__()
         self.margin = margin
@@ -93,8 +93,8 @@ class HingeLoss(PairwiseRankingLoss):
         Forward calculation of HingeLoss
         
         Args:
-            pos_outputs (T), shape = (B, 1): predicted values of positive samples
-            neg_outputs (T), shape = (B, N Neg): predicted values of negative samples
+            pos_outputs (T), shape = (B, 1): predicted values of positive sample
+            neg_outputs (T), shape = (B, N Neg): predicted values of negative sample
             mask (T, optional), shape = (batch size, ), data_type = torch.bool: boolean tensor to mask loss.
                 Defaults to None.
         
@@ -126,7 +126,7 @@ class AdaptiveHingeLoss(PairwiseRankingLoss):
         
         Args:
             margin (float, optional): margin size of loss. Defaults to 1.0
-            reduction (nn.Module, optional): reduction method to calculate loss. Defaults to torch.sum
+            reduction (nn.Module, optional): reduction method to calculate loss. Defaults to sum
         """
         super().__init__()
 
@@ -141,8 +141,8 @@ class AdaptiveHingeLoss(PairwiseRankingLoss):
         Forward calculation of AdaptiveHingeLoss
         
         Args:
-            pos_outputs (T), shape = (B, 1): predicted values of positive samples
-            neg_outputs (T), shape = (B, N Neg): predicted values of negative samples
+            pos_outputs (T), shape = (B, 1): predicted values of positive sample
+            neg_outputs (T), shape = (B, N Neg): predicted values of negative sample
             mask (T, optional), shape = (batch size, ), data_type = torch.bool: boolean tensor to mask loss.
                 Defaults to None.
         
@@ -157,7 +157,7 @@ class TripletLoss(PairwiseRankingLoss):
     r"""
     TripletLoss is a pairwise ranking loss which is used in FaceNet at first, and implemented by PyTorch in model\:
     torch.nn.MarginRankingLoss and torch.nn.SoftMarginLoss. This model is an integration of those losses as a
-    standardize calling method with other losses implemented in this package. For the calculation, the loss is
+    standardized calling method with other losses implemented in this package. For the calculation, the loss is
     calculated by :math:`\Big[\left\| x_{anchor} - x_{pos} \right\|_{2}^{2} - \left\| x_{anchor} - x_{neg} \right\|_{
     2}^{2} \Big]_{\text{+}}` .
     
@@ -195,8 +195,8 @@ class TripletLoss(PairwiseRankingLoss):
         Forward calculation of TripletLoss
         
         Args:
-            pos_out (T), shape = (B, 1): predicted values of positive samples
-            neg_out (T), shape = (B, N Neg): predicted values of negative samples
+            pos_out (T), shape = (B, 1): predicted values of positive sample
+            neg_out (T), shape = (B, N Neg): predicted values of negative sample
             mask (T, optional), shape = (B,), data_type = torch.bool: boolean tensor to mask loss. Defaults to None
         
         Returns:

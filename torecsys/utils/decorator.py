@@ -7,10 +7,10 @@ from functools import wraps
 
 
 def in_development(func: callable):
-    """a decorator to write a message in a layer or a estimator where they have not been tested
+    """a decorator to write a message in a layer or an estimator where they have not been tested
     
     Args:
-        func (callable): a callable function, and most likely they are torecsys.layers or torecsys.estimators
+        func (callable): a callable function, and most likely they are layers or estimators
     """
 
     @wraps(func)
@@ -22,11 +22,11 @@ def in_development(func: callable):
 
 
 def no_jit_experimental(func: callable):
-    """a decorator to write a message in a layer or a estimator where they have been checked
+    """a decorator to write a message in a layer or an estimator where they have been checked
     to be non-compatible with torch.jit.trace
     
     Args:
-        func (callable): a callable function, and most likely they are torecsys.layers or torecsys.estimators
+        func (callable): a callable function, and most likely they are layers or estimators
     """
 
     @wraps(func)
@@ -51,11 +51,11 @@ def no_jit_experimental_by_named_tensor(func: callable):
 
 
 def jit_experimental(func: callable):
-    """a decorator to write a message in a layer or a estimator where they have been checked
+    """a decorator to write a message in a layer or an estimator where they have been checked
     to be compatible with torch.jit.trace
     
     Args:
-        func (callable): a callable function, and most likely they are torecsys.layers or torecsys.estimators
+        func (callable): a callable function, and most likely they are layers or estimators
     """
 
     @wraps(func)

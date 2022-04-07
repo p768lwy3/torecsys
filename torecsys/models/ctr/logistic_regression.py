@@ -10,7 +10,7 @@ class LogisticRegressionModel(CtrBaseModel):
     """
     Model class of Logistic Regression (LR).
     
-    Logistic Regression is a model to predict click through rate with a simple logistic regression,
+    Logistic Regression is a model to predict click-through-rate with a simple logistic regression,
     i.e. a linear layer plus a sigmoid transformation to make the outcome between 0 and 1,
     which is to represent the probability of the input is true.
 

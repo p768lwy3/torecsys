@@ -53,7 +53,7 @@ class FactorizationMachineLayer(BaseLayer):
         Returns:
             T, shape = (B, O), data_type = torch.float: output of FactorizationMachineLayer
         """
-        # Name the inputs tensor for alignment
+        # Name the inputs' tensor for alignment
         emb_inputs.names = ('B', 'N', 'E',)
 
         # Square summed embedding

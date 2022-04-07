@@ -11,9 +11,9 @@ class DeepMatchingCorrelationPredictionModel(CtrBaseModel):
     r"""
     Model class of Deep Matching, Correlation and Prediction (DeepMCP).
     
-    Deep Matching, Correlation and Prediction (DeepMCP) is a model proposed by Wentao Ouyang et al of Alibaba Group in
+    Deep Matching, Correlation and Prediction (DeepMCP) is a model proposed by Wentao Ouyang et al. of Alibaba Group in
     2019, which is a model including three parts: Matching, Correlation, and Predation, to adjust the distance between
-    user item and item item in the following way:
+    user item and product item in the following way:
 
     #. Prediction subnet: Feed-forward Dense Layers
 

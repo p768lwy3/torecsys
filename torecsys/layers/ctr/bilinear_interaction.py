@@ -156,7 +156,7 @@ class BilinearInteractionLayer(BaseLayer):
     """
     Layer class of Bilinear-Interaction.
 
-    Bilinear-Interaction layer is used in FiBiNet proposed by `Tongwen Huang et al`[1] to combine inner-product and
+    Bilinear-Interaction layer is used in FiBiNet proposed by `Tongwen Huang et al.`[1] to combine inner-product and
     Hadamard product to learn features' interactions with extra parameters W.
 
     :Reference:

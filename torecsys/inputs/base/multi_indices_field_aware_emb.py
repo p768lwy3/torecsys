@@ -33,14 +33,14 @@ class MultiIndicesFieldAwareEmbedding(BaseInput):
             embed_size (int): size of embedding tensor
             field_sizes (List[int]): list of inputs fields' sizes
             device (str): device of torch. Default to cpu.
-            flatten (bool, optional): whether outputs is reshape to (B, 1, N * N * E) or not before return.
+            flatten (bool, optional): whether outputs is reshaped to (B, 1, N * N * E) or not before return.
                 Defaults to False
 
         Attributes:
             length (int): size of embedding tensor multiply by number of fields if flatten is True,
                 else Size of embedding tensor
             embeddings (torch.nn.Module): embedding layers
-            flatten (bool): flag to show outputs will be flatten or not
+            flatten (bool): flag to show outputs will be flattened or not
             offsets (T): tensor of offsets to adjust values of inputs to fit the indices of embedding tensors
         """
         super().__init__()
@@ -99,6 +99,7 @@ class MultiIndicesFieldAwareEmbedding(BaseInput):
                 :math:`\bm{E} = \bm{\Big[} e_{\text{index}_{i}, \text{feat}_{j}} \footnotesize{\text{, for} \ i =
                 \text{i-th field} \ \text{and} \ j = \text{j-th field}} \bm{\Big]}`.
         """
+        self.offsets = self.offsets.cuda() if inputs.is_cuda else self.offsets.cpu()
         inputs = inputs + self.offsets
         inputs = inputs.rename(None)
         outputs = torch.cat([self.embeddings[i](inputs) for i in range(self.num_fields)], dim=1)

@@ -1,7 +1,7 @@
 from pytorch_lightning import LightningModule, Trainer
 from pytorch_lightning.callbacks import Callback
 
-from torecsys.trainer import TorecsysModule
+from torecsys.trainer import TorecsysPipeline
 
 
 class ModelValidationCallback(Callback):
@@ -22,11 +22,11 @@ class ModelValidationCallback(Callback):
         Returns:
 
         """
-        if not isinstance(module, TorecsysModule):
+        if not isinstance(module, TorecsysPipeline):
             raise TypeError('')
 
         objective = module.objective
-        if objective == TorecsysModule.MODULE_TYPE_CTR:
+        if objective == TorecsysPipeline.MODULE_TYPE_CTR:
             if module.inputs is None:
                 raise ValueError('missing inputs in the module')
 
@@ -39,9 +39,9 @@ class ModelValidationCallback(Callback):
             if module.optimizer is None:
                 raise ValueError('missing optimizer in the module')
 
-        elif objective == TorecsysModule.MODULE_TYPE_EMB:
+        elif objective == TorecsysPipeline.MODULE_TYPE_EMB:
             pass
-        elif objective == TorecsysModule.MODULE_TYPE_LTR:
+        elif objective == TorecsysPipeline.MODULE_TYPE_LTR:
             # TODO: in development
             if not module.has_miner:
                 raise ValueError('missing miner in the module')

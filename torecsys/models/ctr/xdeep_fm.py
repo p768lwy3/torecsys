@@ -42,7 +42,7 @@ class XDeepFactorizationMachineModel(CtrBaseModel):
             num_fields (int): number of inputs' fields
             cin_layer_sizes (List[int]): layer sizes of compress interaction network
             deep_layer_sizes (List[int]): layer sizes of DNN
-            cin_is_direct (bool, optional): whether outputs is passed to next step directly or not in compress
+            cin_is_direct (bool, optional): whether outputs are passed to next step directly or not in compress
                 interaction network. Defaults to False
             cin_use_bias (bool, optional): whether bias added to Conv1d or not in compress interaction network.
                 Defaults to True

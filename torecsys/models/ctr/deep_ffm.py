@@ -12,15 +12,15 @@ class DeepFieldAwareFactorizationMachineModel(CtrBaseModel):
     r"""
     Model class of Deep Field-aware Factorization Machine (Deep FFM).
     
-    Deep Field-aware Factorization Machine was proposed by Yang et al in Tencent Social Ads competition 2017
-    (this was called as Network on Field-aware Factorization Machine (NFFM), and was described and renamed to
-    Deep Field-aware Factorization Machine in the research (Zhang et al, 2019).
+    Deep Field-aware Factorization Machine was proposed by Yang et al. in Tencent Social Ads competition 2017.
+    This was called as Network on Field-aware Factorization Machine (NFFM), and was described and renamed to
+    Deep Field-aware Factorization Machine in the research (Zhang et al., 2019).
     
     The model is a stack of Field Aware Factorization Machine and Deep Neural Network,
 
     #. First, calculate the interactions of features of second-order features (i.e. embedding matrices in FFM) by
     inner-product or hadamard product, Hence, let :math:`A` be the feature interaction vectors, :math:`A` will be
-    calculate in the following formula: :math:`\text{Inner Product:} A = [v_{1, 2} \bigoplus v_{2, 1}, ..., v_{i,
+    calculated in the following formula: :math:`\text{Inner Product:} A = [v_{1, 2} \bigoplus v_{2, 1}, ..., v_{i,
     j} \bigoplus v_{j, i}, ..., v_{(n-1), n} \bigoplus v_{n, (n-1)}] :math:`\text{OR Hadamard Product:} A = [v_{1,
     2} \bigotimes v_{2, 1}, ..., v_{i, j} \bigotimes v_{j, i}, ..., v_{(n-1), n} \bigotimes v_{n, (n-1)}]
 

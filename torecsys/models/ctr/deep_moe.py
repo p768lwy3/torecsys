@@ -11,7 +11,7 @@ class DeepMixtureOfExpertsModel(CtrBaseModel):
     """
     Model class of Deep Mixture-of-Experts (MoE) model.
 
-    Deep Mixture-of-Experts is purposed by David Eigen et at at 2013, which is to combine outputs of several `expert`
+    Deep Mixture-of-Experts is purposed by David Eigen et at at. 2013, which is to combine outputs of several `expert`
     models, each of which specializes in a different part of input space. To combine them, a gate, which is a stack of
     linear and softmax, will be trained for weighing outputs of expert before return.
 

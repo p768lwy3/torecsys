@@ -95,7 +95,7 @@ class DeepSessionInterestNetworkModel(CtrBaseModel):
         Returns:
             T, shape = (), data_type = torch.float: output of DeepSessionInterestNetworkModel
         """
-        # Add bias to session_embed_inputs from bias_encoding if use_bias_encoding
+        # Add bias to session_embed_inputs from bias_encoding if using bias encoding
         # inputs: session_embed_inputs, shape = ((B, L, E), (B, ))
         # output: embed_inputs, shape = (B, L, E)
         if self.bias_encoding is not None:

@@ -9,7 +9,7 @@ class StarSpaceLayer(BaseLayer):
     """
     Layer class of Starspace.
     
-    StarSpace by Ledell Wu et al, 2017 is proposed by Facebook in 2017.
+    StarSpace by Ledell Wu et al., 2017 is proposed by Facebook in 2017.
 
     It was implemented in C++ originally for a general purpose to embed different kinds of 
     relations between different pairs, like (word, tag), (user-group) etc. Starspace is 
@@ -71,7 +71,7 @@ class StarSpaceLayer(BaseLayer):
         Returns:
             T, shape = (B, E), data_type = torch.float: output of StarSpaceLayer
         """
-        # Name the inputs tensor for alignment
+        # Name the inputs' tensor for alignment
         samples_inputs.names = ('B', 'N', 'E',)
 
         # Get and reshape feature tensors of context

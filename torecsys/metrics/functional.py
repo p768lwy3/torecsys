@@ -1,4 +1,9 @@
 import torch
+from sklearn.metrics import mean_squared_error
+
+
+def mse(y: list, yhat: list) -> float:
+    return mean_squared_error(y, yhat)
 
 
 def mean_average_precision_at_k(act: torch.Tensor,

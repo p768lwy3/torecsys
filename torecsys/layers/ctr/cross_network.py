@@ -59,7 +59,7 @@ class CrossNetworkLayer(BaseLayer):
         Returns:
             T, shape = (B, N, E), data_type = torch.float: output of CrossNetworkLayer
         """
-        # deep copy emb_inputs to outputs as residual
+        # deep copy emb_inputs to output as residual
         # inputs: emb_inputs, shape = (B, N, E)
         # output: outputs, shape = (B, N, E = O)
         outputs = emb_inputs.detach().requires_grad_()

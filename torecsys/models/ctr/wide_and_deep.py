@@ -11,7 +11,7 @@ class WideAndDeepModel(CtrBaseModel):
     """
     Model class of Wide and Deep Model
 
-    Wide and Deep Model is one of the most famous click through rate prediction model which is designed by Google in
+    Wide and Deep Model is one of the most famous click-through-rate prediction model which is designed by Google in
     2016.
 
     :Reference:

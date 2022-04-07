@@ -2,7 +2,7 @@ import unittest
 
 from parameterized import parameterized
 
-import torecsys.data.dataloader as trs
+import torecsys.data.dataloader as trs_data
 
 
 class DataloaderTestCase(unittest.TestCase):
@@ -10,7 +10,7 @@ class DataloaderTestCase(unittest.TestCase):
         (0, 0, 1, [[1, 2, 3, 4, 5], [0, 2, 5, 7], [1, 3, 5, 6, 8]])
     ])
     def test_index_field(self, unk_index, unk_token, new_unk_token, dataset):
-        index_field = trs.fields.IndexField(unk_index, unk_token)
+        index_field = trs_data.fields.IndexField(unk_index, unk_token)
 
         self.assertEqual(index_field.unk_index, unk_index)
         self.assertEqual(index_field.unk_token, unk_token)
@@ -31,13 +31,13 @@ class DataloaderTestCase(unittest.TestCase):
         (["Hello world", "Python zen", "python is beautiful"], 7, 6)
     ])
     def test_sentence_field(self, dataset, total_words, total_lower_words):
-        sentence_field_default = trs.fields.SentenceField()
+        sentence_field_default = trs_data.fields.SentenceField()
         self.assertEqual(len(sentence_field_default), 2)
 
         sentence_field_default.build_vocab(dataset=dataset)
         self.assertEqual(len(sentence_field_default), total_words + 2)
 
-        sentence_field_custom = trs.fields.SentenceField(
+        sentence_field_custom = trs_data.fields.SentenceField(
             tokenize=lambda sent: [w.lower() for w in sent.split()]
         )
 
@@ -50,7 +50,7 @@ class DataloaderTestCase(unittest.TestCase):
         ({}, [])
     ])
     def test_collate_fn(self, schema, batch_data):
-        dataloader = trs.CollateFunction(schema=schema)
+        dataloader = trs_data.CollateFunction(schema=schema)
         outputs = dataloader.to_tensor(batch_data=batch_data)
         self.assertIsInstance(outputs, dict)
 

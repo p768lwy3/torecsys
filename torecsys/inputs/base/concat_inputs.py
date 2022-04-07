@@ -30,7 +30,7 @@ class ConcatInput(BaseInput):
                     single_index_emb_0 = trs.inputs.base.SingleIndexEmbedding(2, 8)
                     single_index_emb_1 = trs.inputs.base.SingleIndexEmbedding(2, 8)
 
-                    # set schema, including field names etc
+                    # set schema, including field names etc.
                     single_index_emb_0.set_schema(['userId'])
                     single_index_emb_1.set_schema(['movieId'])
 
@@ -104,10 +104,12 @@ class ConcatInput(BaseInput):
 
         for inp in self.inputs:
             inp_val = []
+
             for k in inp.schema.inputs:
                 v = inputs[k]
                 v = v.unsqueeze(-1) if v.dim() == 1 else v
                 inp_val.append(v)
+
             inp_val = torch.cat(inp_val, dim=1)
             inp_args = [inp_val]
 

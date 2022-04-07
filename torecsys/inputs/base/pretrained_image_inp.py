@@ -26,11 +26,11 @@ class PretrainedImageInput(BaseInput):
             embed_size (int): size of embedding tensor
             model_name (str): model name. Refer to: `torchvision.models
                 <https://pytorch.org/vision/stable/models.html>`_
-            pretrained (bool, optional): whether use pre-trained model or not
+            pretrained (bool, optional): whether use pretrained model or not
                 Defaults to True
             verbose (bool, optional): whether display progress bar of the download or not
                 Defaults to False
-            no_grad (bool, optional): whether parameters in pre-trained model
+            no_grad (bool, optional): whether parameters in pretrained model
                 (excluding fc, i.e. output nn.Linear layer) is set to no gradients or not
                 Defaults to False
             device (str): device of torch. Default to cpu.
@@ -70,6 +70,7 @@ class PretrainedImageInput(BaseInput):
         Returns:
             T, shape = (B, 1, E): output of PretrainedImageInput.
         """
+        self.model = self.model.cuda() if inputs.is_cuda else self.model.cpu()
         outputs = self.model(inputs.rename(None))
 
         if outputs.dim() == 2:

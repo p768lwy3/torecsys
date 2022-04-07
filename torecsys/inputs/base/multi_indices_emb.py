@@ -30,14 +30,14 @@ class MultiIndicesEmbedding(BaseInput):
             field_sizes (List[int]): list of inputs fields' sizes. Defaults to None
             nn_embedding (nn.Parameter, optional): pretrained embedding values. Defaults to None
             device (str): device of torch. Defaults to cpu
-            flatten (bool, optional): whether outputs is reshape to (B, 1, N * E) or not before return.
+            flatten (bool, optional): whether outputs is reshaped to (B, 1, N * E) or not before return.
                 Defaults to False
         
         Attributes:
             length (int): size of embedding tensor multiply by number of fields if flatten is True,
                 else Size of embedding tensor
             embedding (torch.nn.Module): embedding layer
-            flatten (bool): flag to show outputs will be flatten or not
+            flatten (bool): flag to show outputs will be flattened or not
             offsets (T): tensor of offsets to adjust values of inputs to fit the indices of embedding tensors
         """
         super().__init__()
@@ -100,6 +100,7 @@ class MultiIndicesEmbedding(BaseInput):
             T, shape = (B, 1, N * E) | (B, N, E), data_type = torch.float:
                 outputs of MultiIndicesEmbedding
         """
+        self.offsets = self.offsets.cuda() if inputs.is_cuda else self.offsets.cpu()
         inputs = inputs + self.offsets
         outputs = self.embedding(inputs.rename(None))
         outputs.names = ('B', 'N', 'E',)

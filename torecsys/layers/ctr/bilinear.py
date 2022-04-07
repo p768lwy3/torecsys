@@ -54,7 +54,7 @@ class BilinearNetworkLayer(BaseLayer):
         Returns:
             T, shape = (B, N, E), data_type = torch.float: output of BilinearNetworkLayer
         """
-        # Deep copy emb_inputs to outputs as residual
+        # Deep copy emb_inputs to output as residual
         # inputs: emb_inputs, shape = (B, O = N * E)
         # output: outputs, shape = (B, O = N * E)
         outputs = emb_inputs.detach().requires_grad_()

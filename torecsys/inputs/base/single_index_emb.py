@@ -8,7 +8,7 @@ from torecsys.inputs.base import BaseInput
 
 class SingleIndexEmbedding(BaseInput):
     """
-    Base Input class for embedding a single index of a input field
+    Base Input class for embedding a single index of an input field
     """
 
     def __init__(self,

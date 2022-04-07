@@ -10,7 +10,7 @@ class ComposeExcitationNetworkLayer(BaseLayer):
     """
     Layer class of Compose Excitation Network (CEN) / Squeeze-and-Excitation Network (SENET).
     
-    Compose Excitation Network was used in FAT-Deep :title:`Junlin Zhang et al, 2019`[1] and 
+    Compose Excitation Network was used in FAT-Deep :title:`Junlin Zhang et al., 2019`[1] and
     Squeeze-and-Excitation Network was used in FibiNET :title:`Tongwen Huang et al, 2019`[2]
     
     #. compose field-aware embedded tensors by a 1D convolution with a :math:`1 * 1` kernel
@@ -19,7 +19,7 @@ class ComposeExcitationNetworkLayer(BaseLayer):
     #. concatenate the tensors and feed them to dense network to calculate attention 
     weights.
     
-    #. inputs' tensor are multiplied by attention weights, and return outputs tensor with
+    #. inputs' tensor are multiplied by attention weights, and return outputs' tensor with
     shape = (B, N * N, E).
 
     :Reference:

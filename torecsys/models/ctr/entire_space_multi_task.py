@@ -12,7 +12,7 @@ class EntireSpaceMultiTaskModel(CtrBaseModel):
     Model class of Entire Space Multi Task Model (ESMM)
 
     Entire Space Multi Task Model is a model applying transfer learning on recommendation system in a straightforward
-    way, which is a pair of pooling and dense networks to calculate prediction of click through rate (CTR) and
+    way, which is a pair of pooling and dense networks to calculate prediction of click-through-rate (CTR) and
     conversion rate (CVR) sharing a set of embedding tensors, and compute losses with CTR and a multiple of CTR and
     CVR, called CTCVR.
 

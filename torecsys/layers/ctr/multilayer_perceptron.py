@@ -9,7 +9,7 @@ from torecsys.layers import BaseLayer
 class MultilayerPerceptionLayer(BaseLayer):
     """
     Layer class of Multilayer Perception (MLP), which is also called fully connected layer, dense layer,
-    deep neural network, etc, to calculate high order non linear relations of features with a stack of linear,
+    deep neural network, etc., to calculate high order non-linear relations of features with a stack of linear,
     dropout and activation.
     """
 

@@ -10,7 +10,7 @@ class FieldAwareFactorizationMachineLayer(BaseLayer):
     """
     Layer class of Field-aware Factorization Machine (FFM).
     
-    Field-aware Factorization Machine is purposed by Yuchin Juan et al, 2016, to calculate element-wise cross feature
+    Field-aware Factorization Machine is purposed by Yuchin Juan et al., 2016, to calculate element-wise cross feature
     interaction per field of sparse fields by using dot product between field-wise feature tensors.
 
     :Reference:
@@ -57,7 +57,7 @@ class FieldAwareFactorizationMachineLayer(BaseLayer):
         Returns:
             T, shape = (B, NC2, E), data_type = torch.float: output of FieldAwareFactorizationMachineLayer
         """
-        # Name the inputs tensor for alignment
+        # Name the inputs' tensor for alignment
         field_emb_inputs.names = ('B', 'N', 'E',)
 
         # initialize list to store tensors temporarily for output

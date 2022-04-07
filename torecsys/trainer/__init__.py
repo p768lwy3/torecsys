@@ -1,5 +1,6 @@
 r"""torecsys.utils.training is a sub model of training tools,
-including Traniner and RankingTrainer.
+including Trainer and RankingTrainer.
 """
 
-from .torecsys_module import TorecsysModule
+from .torecsys_pipeline import TorecsysPipeline
+from .torecsys_trainer import TorecsysTrainer

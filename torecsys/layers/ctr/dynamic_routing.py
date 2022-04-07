@@ -12,8 +12,8 @@ class DynamicRoutingLayer(BaseLayer):
     r"""
     Layer class of Behaviour to Interest Dynamic Routing (B2I Dynamic Routing).
 
-    Behaviour to Interest Dynamic Routing is purposed by :title:`Chao Li et al, 2019`[1] to 
-    transform users' behaviour to users' interest by a variant of Capsule Neural Network, 
+    Behaviour to Interest Dynamic Routing is purposed by :title:`Chao Li et al., 2019`[1] to
+    transform users' behaviour to users' interest in a variant of Capsule Neural Network,
     which is a new architecture purposed by :title:`Sara Sabour et al, 2017`[2] for image 
     recognition to solve the issues due to back propagation by taking vectors' inputs and
     generate vectors' outputs and keep more information of inference by length anf angle. 
@@ -98,7 +98,7 @@ class DynamicRoutingLayer(BaseLayer):
         Returns:
             T, shape = (B, N = N_cap, O = ECap), data_type = torch.float: output of DynamicRoutingLayer
         """
-        # Name the inputs tensor for alignment
+        # Name the inputs' tensor for alignment
         emb_inputs.names = ('B', 'N', 'E',)
 
         # calculate number of interest capsules K

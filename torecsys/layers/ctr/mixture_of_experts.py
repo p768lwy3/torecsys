@@ -14,7 +14,7 @@ class MixtureOfExpertsLayer(BaseLayer):
 
     :Reference:
 
-    #. `Robert A. Jacobs et al, 1991. Adaptive Mixtures of Local Experts
+    #. `Robert A. Jacobs et al., 1991. Adaptive Mixtures of Local Experts
     <https://www.cs.toronto.edu/~hinton/absps/jjnh91.pdf>_.
 
     #. `David Eigen et al, 2013. Learning Factored Representations in a Deep Mixture of Experts
@@ -108,7 +108,7 @@ class MixtureOfExpertsLayer(BaseLayer):
         Returns:
             T, shape = (B, O), data_type = torch.float: output of Mixture-of-Experts.
         """
-        # Name the inputs tensor for alignment
+        # Name the inputs' tensor for alignment
         emb_inputs.names = ('B', 'N', 'E',)
 
         # Flatten embed_inputs
@@ -121,7 +121,7 @@ class MixtureOfExpertsLayer(BaseLayer):
         experts_output = []
 
         for expert_name, expert_module in self.experts.items():
-            # forward calculate on expert i
+            # forward calculate on expert(i)
             # inputs: flatten_inputs, shape = (B, N * E)
             # output: outputs, shape = (B, O)
             expert_output = expert_module(emb_inputs)

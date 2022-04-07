@@ -126,8 +126,8 @@ def show_attention(attentions: np.ndarray,
     
     Args:
         attentions (np.ndarray), shape = (L, L), data_type=np.float32: attentions weights of nn.MultiHeadAttention
-        x_axis (str, optional): string or list of x axis. Defaults to None
-        y_axis (str, optional): string or list of y axis. Defaults to None
+        x_axis (str, optional): string or list of x-axis. Defaults to None
+        y_axis (str, optional): string or list of y-axis. Defaults to None
         save_dir (str, optional): string of directory to save the attention png. Defaults to None
     """
     fig = plt.figure()

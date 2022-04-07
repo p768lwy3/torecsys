@@ -12,7 +12,7 @@ class ElaboratedEntireSpaceSupervisedMultiTaskModel(CtrBaseModel):
     Model class of Elaborated Entire Space Supervised Multi Task Model (ESM2).
 
     Elaborated Entire Space Supervised Multi Task Model is a variant of Entire Space Multi Task Model, which is to
-    handle missed actions to order, like cart, wish, like etc, by adding two more base model to predict the direct
+    handle missed actions to order, like cart, wish, like etc., by adding two more base model to predict the direct
     CVR (Deterministic Action) and non-direct CVR separately (Other Action).
 
     :Reference:

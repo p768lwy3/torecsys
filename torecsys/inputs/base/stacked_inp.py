@@ -29,7 +29,7 @@ class StackedInput(BaseInput):
                     single_index_emb_0 = trs.inputs.base.SingleIndexEmbedding(2, 8)
                     single_index_emb_1 = trs.inputs.base.SingleIndexEmbedding(2, 8)
 
-                    # set schema, including field names etc
+                    # set schema, including field names etc.
                     single_index_emb_0.set_schema(['userId'])
                     single_index_emb_1.set_schema(['movieId'])
 

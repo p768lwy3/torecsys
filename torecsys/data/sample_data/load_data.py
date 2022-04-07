@@ -46,7 +46,7 @@ def load_ml_data(size: str,
         raise ValueError("dataset haven't been found in %s" % samples_dir)
     elif force is True and is_exist is False:
         print("dataset haven't been found in %s." % samples_dir)
-        download_data("-".join(["ml", size]), dir=samples_dir)
+        download_data("-".join(["ml", size]), directory=samples_dir)
 
     # set file path to load the data
     links_path = os.path.join(samples_dir, ("ml-%s/links.csv" % size))
@@ -123,7 +123,7 @@ def load_bx_data(directory: str = None,
         raise ValueError("dataset haven't been found in %s" % samples_dir)
     elif force is True and is_exist is False:
         print("dataset haven't been found in %s." % samples_dir)
-        download_data("bx", dir=samples_dir)
+        download_data("bx", directory=samples_dir)
 
     # set file path to load the data
     ratings_path = os.path.join(samples_dir, "bx/BX-Book-Ratings.csv")

@@ -53,7 +53,7 @@ class ListIndicesEmbedding(BaseInput):
             padding_idx (int): padding index of the embedder
             embedding (torch.nn.Module): embedding layer
             use_attn (bool): flag to show attention is used or not
-            attn_args (dict): dictionary of arguments used in multi head attention
+            attn_args (dict): dictionary of arguments used in multi head attention.
             attention (Union[torch.nn.Module, callable]): multi head attention layer or dummy_attention
             aggregation (Union[torch.nn.Module, callable]): pooling layer or aggregation function
             output_method (string): type of output_method
@@ -152,7 +152,7 @@ class ListIndicesEmbedding(BaseInput):
             outputs = outputs.align_to('B', 'N', 'E')
 
         else:
-            # apply aggregation function to outputs
+            # apply aggregation function to output
             # inputs: outputs, shape = (B, L, E)
             # output: outputs, shape = (B, 1, E) if output_method in ["mean", "sum"] else (B, L, E)
             outputs = self.aggregation(outputs.rename(None))

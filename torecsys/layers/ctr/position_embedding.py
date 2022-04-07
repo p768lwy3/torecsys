@@ -15,7 +15,7 @@ class PositionEmbeddingLayer(BaseLayer):
 
     :Reference:
 
-    `Changhua Pei et al, 2019. Personalized Re-ranking for Recommendation <https://arxiv.org/abs/1904.06813>`_.
+    `Changhua Pei et al., 2019. Personalized Re-ranking for Recommendation <https://arxiv.org/abs/1904.06813>`_.
 
     """
 

@@ -6,11 +6,15 @@ import torch.nn as nn
 
 
 class BaseMiner(nn.Module, ABC):
+    """
+
+    """
     def __init__(self, *args: List[Any], **kwargs: Dict[str, Any]):
         super().__init__()
 
     @abstractmethod
-    def forward(self, anchor: torch.Tensor, target: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def forward(self, anchor: torch.Tensor, target: torch.Tensor) \
+            -> Tuple[Dict[str, torch.Tensor], Dict[str, torch.Tensor]]:
         raise NotImplemented
 
 

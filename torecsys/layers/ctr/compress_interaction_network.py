@@ -10,9 +10,9 @@ class CompressInteractionNetworkLayer(BaseLayer):
     """
     Layer class of Compress Interaction Network (CIN).
     
-    Compress Interaction Network was used in xDeepFM by Jianxun Lian et al, 2018.
+    Compress Interaction Network was used in xDeepFM by Jianxun Lian et al., 2018.
     
-    It compress cross-features tensors calculated by element-wise cross features interactions 
+    It compresses cross-features tensors calculated by element-wise cross features interactions
     with outer product by 1D convolution with a :math:`1 * 1` kernel.
 
     :Reference:
@@ -51,7 +51,7 @@ class CompressInteractionNetworkLayer(BaseLayer):
             num_fields (int): number of inputs' fields
             output_size (int): output size of compress interaction network
             layer_sizes (List[int]): layer sizes of compress interaction network
-            is_direct (bool, optional): whether outputs is passed to next step directly or not. Defaults to False
+            is_direct (bool, optional): whether outputs are passed to next step directly or not. Defaults to False
             use_bias (bool, optional): whether bias added to Conv1d or not. Defaults to True
             use_batchnorm (bool, optional): whether batch normalization is applied or not after Conv1d.
                 Defaults to True
@@ -96,7 +96,7 @@ class CompressInteractionNetworkLayer(BaseLayer):
         direct_list = []
         hidden_list = []
 
-        # Name the inputs tensor for alignment
+        # Name the inputs' tensor for alignment
         emb_inputs.names = ('B', 'N', 'E',)
 
         # Transpose emb_inputs

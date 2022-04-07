@@ -475,16 +475,18 @@ class LearningToRankWrapperTestCase(unittest.TestCase):
         # mine negative samples with miner
         # outputs: p, shape = (B, N, E)
         # outputs: n, shape = (B * N Neg, N, E)
-        p, n = miner(emb_inp[:, 0], emb_inp[:, 1])
-        p.names = ('B', 'N', 'E',)
-        n.names = ('B', 'N', 'E',)
+        p, n = miner({'emb_inputs': emb_inp[:, 0]}, {'emb_inputs': emb_inp[:, 1]})
+        for k, v in p.items():
+            v.names = ('B', 'N', 'E',)
+        for k, v in n.items():
+            v.names = ('B', 'N', 'E',)
         # p_size = p.size()
         # n_size = n.size()
 
         # summary(wrapped, input_size=[p_size, n_size], device=device, dtypes=[torch.float, torch.float])
 
         # Forward
-        outputs = wrapped.forward(pos_inputs={'emb_inputs': p}, neg_inputs={'emb_inputs': n})
+        outputs = wrapped.forward(pos_inputs=p, neg_inputs=n)
         self.assertEqual(outputs['pos_outputs'].size(), (batch_size, 1))
         self.assertEqual(outputs['neg_outputs'].size(), (batch_size * sample_size, 1))
         print(f'Pos Output Size: {outputs["pos_outputs"].size()},\n'

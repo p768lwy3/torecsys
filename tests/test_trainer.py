@@ -8,7 +8,7 @@ import torch.utils.data
 from torecsys.data.dataloader.collate_fn import CollateFunction
 from torecsys.data.dataset import DataFrameToDataset
 from torecsys.inputs import MultiIndicesEmbedding
-from torecsys.trainer.torecsys_module import TorecsysModule as Module
+from torecsys.trainer.torecsys_pipeline import TorecsysPipeline as Module
 from torecsys.trainer.torecsys_trainer import TorecsysTrainer as Trainer
 
 

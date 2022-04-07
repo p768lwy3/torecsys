@@ -103,7 +103,9 @@ class SequenceIndicesEmbedding(BaseInput):
         
         Args:
             inputs (str): String of input's field name
-            kwargs.lengths (str): String of length's field name
+        
+        Kwargs:
+            lengths (str): String of length's field name
         """
         lengths = kwargs.get('lengths', None)
         if lengths is None:

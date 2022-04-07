@@ -48,7 +48,7 @@ class GeneralizedMatrixFactorizationLayer(BaseLayer):
         Returns:
             T, shape = (B, 1), data_type = torch.float: output of GeneralizedMatrixFactorizationLayer
         """
-        # Name the inputs tensor for alignment
+        # Name the inputs' tensor for alignment
         emb_inputs.names = ('B', 'N', 'E',)
 
         # Calculate dot product between tensors of user and item
