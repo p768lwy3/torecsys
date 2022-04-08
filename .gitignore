@@ -105,8 +105,10 @@ venv.bak/
 .mypy_cache/
 
 # directory
+example/notebook/data
 logdir/
 lightning_logs/
+torecsys/data/sample_data/sample_data
 
 # developing resource
 Untitled.ipynb

@@ -5,18 +5,18 @@ contain the root `toctree` directive.
 
 :github_url: https://github.com/p768lwy3/torecsys
 
-Welcome to torecsys's documentation!
+Welcome to ToR[e]cSys documentation!
 ====================================
 
 *Recommendation System in PyTorch.*
 
-This package is an implementation of several famous recommendation systelm algorithm 
+This package is an implementation of several famous recommendation system algorithm
 in PyTorch, including click-through-rate prediction, learning-to-ranking and embedding. 
 ToR[e]csys also comes with data loader, layers-level implementation, self-defined 
 architecture of models. It's open-source software, released under the MIT license.
 
 
-Minimial Requirements
+Minimal Requirements
 =====================
 
 * Numpy >= 1.17.0
@@ -62,7 +62,7 @@ Notations in documentation
     * - **I**
       - input sizes of any layers required *inputs_size*
     * - **O**
-      - output size of any layers requried *outputs_size*
+      - output size of any layers required *outputs_size*
     * - **V**
       - total number of words in a vocabulary set
     * - **S**

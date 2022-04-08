@@ -112,7 +112,7 @@ html_favicon = "_static/img/pytorch-logo-flame.ico"
 
 # Output file base name for HTML help builder.
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3.7', None),
+    'python': ('https://docs.python.org/3.9', None),
     'numpy': ('https://docs.scipy.org/doc/numpy/', None)
 }
 
