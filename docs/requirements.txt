@@ -16,11 +16,11 @@ sphinx~=4.0.1
 sqlalchemy~=1.4.15
 tensorboard!=2.5.0,>=2.2.0
 texttable~=1.6.4
-torch~=1.11.0+cpu
+torch~=1.11.0
 torchaudio~=0.11.0
 torchinfo~=0.1.1
 torchmetrics~=0.7.3
 torchtext~=0.6.0
-torchvision~=0.12.0+cpu
+torchvision~=0.12.0
 tqdm~=4.64.0
 umap-learn~=0.5.2
